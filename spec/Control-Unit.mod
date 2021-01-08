@@ -1,30 +1,30 @@
 mod cpu::control_unit
 {
-    membuf(16, 8) m_ivt; // interrupt vector table
+    membuf(16, 16) m_ivt; // interrupt vector table
     flag m_sti; // interrupts enabled ??
     flag m_in_irq; // in interrupt ??
     flag m_running;
     flag m_insn_loader_ready;
     flag m_cu_ready;
-    flag m_arg_needed;
+    reg(2) m_arg_state; // 0-not needed, 1-1 arg needed, 2-2 args needed
     reg(16) m_irq_state; // status of interrupt
     reg(8) m_insn_buf;
-    reg(8) m_arg_buf;
+    reg(16) m_arg_buf;
     
     public enum(8) INSTRUCTIONS {
-        DBG = 0x76 { need_arg = 1 },
+        DBG = 0x76 { need_arg = 2 },
         HLT = 0x77 { need_arg = 0 }
     }
 
     mod insn_loader {
-        reg(8) m_ip = 0; // instruction pointer
+        reg(16) m_ip = 0; // instruction pointer
         membuf(512, 8) m_insn_buf; // instruction buffer
         
         trig do_request(out bus(8) insn) {
             insn = wait m_insn_buf.load();
         }
         
-        trig set_ip(in bus(8) new_ip) {
+        trig set_ip(in bus(16) new_ip) {
             m_ip = new_ip;
         }
     }
