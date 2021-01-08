@@ -1,0 +1,400 @@
+
+
+             &&
+     ,_____&&&_____,
+    //             \\
+   //               \\
+   |  P u m p k i n  | 
+   |                 | 
+   \\    C e l l    //
+    \\             //
+     '\___________/'
+
+     
+     
+===================================
+-=-=-                         -=-=-
+-=-=-=-  CIMC Arch (8-bit)  -=-=-=-
+-=-=-                         -=-=-
+===================================
+
+
+
+   Software Developer's Manual
+   
+           Version 1.0
+   
+   
+   Copyright (c) SyberMCd 2020
+   
+   Prototype built by:
+    Adam2004yt
+    PumpkinCell
+    SyberMCd
+
+
+
+===================================
+
+    
+   
+   ===== SHORTCUTS =====
+
+
+
+Op - Opcode (Operation Code)
+Mm - Mnemonic (in assembly)
+Args - Arguments (in assembly)
+AddB - Additional Byte (used for storing operation argument)
+C++ - Instruction representation in C++ language
+
+ia - Instruction Address
+
+
+
+   ===== PHYSICAL ARCHITECTURE =====
+
+   
+   
+-- Instruction Loader --
+
+           ,-----,
+    Ack  --|     |
+    D0   --|     | 
+    D1   --|     | 
+    D2   --|     | 
+    D3   --|     | 
+    D4   --|     |  [TODO]
+    D5   --|     | 
+    D6   --|     | 
+    D7   --|     | 
+    Rq   --|     | 
+    RqOn --|     | 
+           '-----'
+
+
+
+   ===== PROCESS =====
+
+
+
+-- CPU Cycle --
+
+On Clock:
+1. Interrupt Check
+2. Instruction Load Request (if RQON is cleared)
+3. Done.
+
+On Instruction Loader ACK:
+1. Select Instruction
+2. If additional argument needed:
+    Set AddB flag
+    Instruction Load Request
+3. Else, execute instruction.
+4. Done.
+
+On Instruction Loader ACK, if AddB flag is set:
+1. Clear AddB flag
+2. Read AddB flag to internal ADDB registry
+3. Execute instruction.
+4. Done.
+
+On Instruction Load Request, in Instruction Loader:
+1. Set RQON output
+2. Load Insn from Instruction Memory
+3. Set DATA to loaded Insn
+4. Set ACK output
+5. Clear RQON output
+6. Done.
+
+-- Interrupts --
+
+On Interrupt Check, when IRQ is raised:
+ivt - Interrupt Vector Table (user-specified registry)
+
+- *sp = ip
+- ip = ivt[irq_num]
+
+
+
+   ===== REGISTERS =====
+
+
+
+-- General-Purpose Registers --
+
+Mm  Size Notes
+ax  8b   Accumulator
+bx  8b   Base
+cx  8b   Counter
+dx  8b   Data
+sp  8b   Stack pointer
+
+
+-- Control Registers --
+
+Mm  Size Notes
+ip  8b   Instruction Pointer
+fl  8b   Flags
+ivt 8b   Interrupt Vector Table Pointer
+
+
+-- Flags Register --
+
+xxxxxxxx
+   NZOGI
+
+I(Interrupt) G(Greater) O(Overflow) Z(Zero) N(In Interrupt)
+
+
+-- Internal CU Registers --
+
+These registers are not accesible by user.
+
+Mm   Size Notes
+addb 1b   Additional Byte needed flag
+
+
+
+   ===== ASSEMBLY =====
+
+   
+
+-- Detailed Description --
+
+----------------------------------------------
+OUT a, b -> Output to Port
+ C++  out8(a, b); // a-port, b-value
+ 
+Reserved Opcode Range: /3 (32 insn)
+x = port number (16x)
+
+Op  Mm  Args      AddB
+0x  OUT mem -> x  +A
+1x  OUT val -> x  +A
+ 
+----------------------------------------------
+IN a, b -> Input from Port
+ C++  b = in8(a)
+ 
+Reserved Opcode Range: /4 (16 insn)
+x = port number (16x)
+
+Op  Mm Args      AddB
+2x  IN mem <- x  +A
+ 
+----------------------------------------------
+MOV a, b -> Move Value from 'a' to 'b'
+ C++  a = b;
+
+Reserved Opcode Range: /4 (16 insn)
+ 
+Op  Mm  Args       AddB
+30  MOV ax <= bx
+31  MOV ax <= dx
+32  MOV bx <= ax
+33  MOV bx <= dx
+34  MOV cx <= ax
+35  MOV cx <= dx
+36  MOV dx <= ax
+37  MOV dx <= bx
+38  MOV dx <= mem  +B
+39  MOV val <= dx  +A
+3A  MOV mem <= dx  +A
+3B  MOV *dx <= ax
+3C  .. Reserved ..
+3D  .. Reserved ..
+3E  .. Reserved ..
+3F  .. Reserved ..
+
+----------------------------------------------
+J*c a -> Jump Conditionally
+ C++  if(...) eip = a;
+ Jumps to 'a' if specific flags are set. Clears these flags.
+ 
+Reserved Opcode Range: /5 (8 insn)
+
+Op  Mm  Args  AddB  Notes               Alias
+40  JMP ia    +A    Unconditional  
+41  JZ  ia    +A    If ZF is set        JE
+42  JG  ia    +A    If GF is set
+43  JL  ia    +A    If OF is set
+44  JNE ia    +A    If ZF/GF/OF is set
+45  .. Reserved ..
+46  .. Reserved ..
+47  .. Reserved ..
+
+----------------------------------------------
+CMP a, b -> Compare Values 'a', 'b'
+ C++  a ?? b;
+
+Reserved Opcode Range: /5 (8 insn)
+
+Op  Mm  Args       AddB
+48  CMP ax =? dx
+49  CMP bx =? dx
+4A  CMP cx =? dx
+4B  CMP ax =? val  +B
+4C  CMP ax =? mem  +B
+4D  .. Reserved ..
+4E  .. Reserved ..
+4F  .. Reserved ..
+
+----------------------------------------------
+PUSH a -> Push 'a' to Stack
+ C++  push(..)
+ 
+Reserved Opcode Range: /6 (4 insn)
+
+Op  Mm    Args  AddB  Notes
+50  PUSH  ax
+51  PUSH  dx
+52  PUSHA             All registries (ax,bx,cx,dx,sp,flags)
+53  PUSH  val   +A
+
+----------------------------------------------
+POP a -> Pop from Stack to 'a'
+ C++  pop(..)
+ 
+Reserved Opcode Range: /6 (4 insn)
+
+Op  Mm   Args  AddB  Notes
+54  POP  ax
+55  POP  dx
+56  POPA             All registries (ax,bx,cx,dx,sp,flags)
+57  POP  val   +A
+
+----------------------------------------------
+ADD a, b -> Add Memory from 'a' to 'b'
+ C++  a += b;
+
+Reserved Opcode Range: /5 (8 insn)
+
+Op  Mm  Args       AddB
+58  ADD ax <+ val  +B
+59  ADD ax <+ bx   
+5A  ADD ax <+ dx
+5B  ADD cx <+ val  +B
+5C  ADD cx <+ bx   
+5D  ADD cx <+ dx
+5E  ADD sp <+ val  +B
+5F  .. Reserved ..
+
+----------------------------------------------
+SUB a, b -> Subtract from 'a' to 'b'
+ C++  a -= b;
+ 
+Reserved Opcode Range: /6 (4 insn)
+
+Op  Mm  Args       AddB
+60  SUB ax <- val  +B
+61  SUB ax <- bx   
+62  SUB ax <- dx
+63  SUB cx <- val  +B
+64  SUB cx <- bx   
+65  SUB cx <- dx
+66  SUB sp <- val  +B
+67  .. Reserved ..
+
+Sets:
+ ZF if result == 0
+ OF if result < 0 (result & 0x80 == 1)
+ GF if result > 0
+
+----------------------------------------------
+MUL a, b -> Multiply from 'a' to 'b'
+ C++  a *= b;
+ Saves MSB -> DX, LSB -> AX
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm  Args              AddB
+68  MUL ax <* val %> dx  +B
+69  MUL ax <* bx %> dx
+
+----------------------------------------------
+DIV a, b -> Divide from 'a' to 'b'
+ C++  a /= b;
+ Saves modulus (a %= b) to DX
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm  Args                AddB
+6A  DIV ax:cx </ val %> dx  +B
+6B  DIV ax:cx </ bx %> dx
+
+----------------------------------------------
+AND a, b -> Byte AND from 'a' to 'b'
+ C++  a &= b;
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm  Args       AddB
+6C  AND ax <& val  +B
+6D  AND ax <& bx
+
+----------------------------------------------
+OR a, b -> Byte OR from 'a' to 'b'
+ C++  a |= b;
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm  Args       AddB
+6E  OR  ax <| val  +B
+6F  OR  ax <| bx
+
+----------------------------------------------
+NEG a -> Byte/Logic Negate 'a'
+ C++  a = !a;
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm  Args  Notes
+70  NEG ax    Byte Negate
+71  NOT ax    Logic Negate
+
+----------------------------------------------
+RET -> Return from Procedure
+ C++  return; [ip = *sp; sp--;]
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm   Notes
+72  RET  
+73  IRET Return from Interrupt; clears IIF
+
+----------------------------------------------
+CALL a -> Call Procedure
+ C++  (*a)(); [*sp = ip; jmp(a);]
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm   Args  AddB
+74  CALL ia    +A
+
+----------------------------------------------
+LIVT a -> Load Interrupt Vector Table
+ C++  ivt = a;
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm   Args  AddB
+75  LIVT ia    +A
+
+----------------------------------------------
+DBG -> Debug Print
+ C++  dbg();
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm 
+76  DBG
+
+----------------------------------------------
+HLT a -> Halt Processor
+ C++  hlt();
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm
+77  HLT
