@@ -6,10 +6,10 @@ mod cpu::control_unit
     flag m_running;
     flag m_insn_loader_ready;
     flag m_cu_ready;
-    reg(2) m_arg_state; // 0-not needed, 1-1 arg needed, 2-2 args needed
+    reg(2) m_arg_state; // 0-not needed, 1-1 arg needed, 2-2 args needed, 3-not checked
     reg(16) m_irq_state; // status of interrupt
     reg(8) m_insn_buf;
-    reg(16) m_arg_buf;
+    reg(8) m_arg_buf[2];
     
     public enum(8) INSTRUCTIONS {
         DBG = 0x76 { need_arg = 2 },
@@ -18,10 +18,10 @@ mod cpu::control_unit
 
     mod insn_loader {
         reg(16) m_ip = 0; // instruction pointer
-        membuf(512, 8) m_insn_buf; // instruction buffer
         
         trig do_request(out bus(8) insn) {
-            insn = wait m_insn_buf.load();
+            insn = wait cpu::ram_controller.load_addr(m_ip);
+            m_ip++;
         }
         
         trig set_ip(in bus(16) new_ip) {
@@ -45,10 +45,22 @@ mod cpu::control_unit
             m_insn_loader_ready = false;
             insn_loader.do_request() callback trig(in bus(8) byte) {
                 m_insn_loader_ready = true;
-                if(m_arg_needed) {
-                    m_arg_needed = false;
+                switch(m_arg_needed)
+                {
+                    case 0:
+                    case 3:
+                        m_insn_buf = byte;
+                        m_arg_needed = 0;
+                        break;
+                    case 2:
+                        m_arg_buf[0] = byte;
+                        m_arg_needed = 1;
+                        break;
+                    case 1:
+                        m_arg_buf[1] = byte;
+                        m_arg_needed = 3;
+                        break;
                 }
-                m_insn_buf = byte;
             }
             wait m_insn_loader_ready && m_cu_ready;
             m_cu_ready = false;
@@ -59,19 +71,25 @@ mod cpu::control_unit
     }
     
     trig run_insn(in bus(8) insn) {
-        // Interrupt Check
+        // Check Arg
+        if(m_arg_needed == 0) {
+            m_arg_needed = 3;
+        }
+        else
+        {
+            if(m_arg_needed == 3)
+                m_arg_needed = ((INSTRUCTIONS)insn).need_arg;
+            return;
+        }
+        
+        // Interrupt Check (if arg not checked)
         if(m_sti) {
             tmp bus(4) irqid;
             if(interrupt_check(irqid)) {
                 insn_loader.set_ip(m_ivt[irqid])
                 m_in_irq = true;
+                return;
             }
-        }
-    
-        // Check Arg
-        if(((INSTRUCTIONS)insn).need_arg) {
-            m_arg_needed = true;
-            return;
         }
         
         // Run Instruction
@@ -79,11 +97,14 @@ mod cpu::control_unit
             // TODO ...
             case INSTRUCTIONS::DBG:
                 sim.printf("DBG instruction invoked - no arg");
+                break;
             case INSTRUCTIONS::HLT:
                 m_running = false;
+                break;
             default:
                 // invalid instruction !!
                 sim.printf("Invalid Instruction!");
+                break;
         }
     }
 }

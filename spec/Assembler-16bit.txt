@@ -130,7 +130,7 @@ addb  2b    Additional 2 bytes needed flag
  * 00 - Not needed     N
  * 01 - 1 Byte needed  1
  * 10 - 2 Bytes needed 2
- * 11 - Reserved       3
+ * 11 - Not checked    3
 
    
 
@@ -367,8 +367,8 @@ DBG -> Debug Print
  
 Reserved Opcode Range: /8 (1 insn)
 
-Op  Mm 
-76  DBG
+Op  Mm   AddB
+76  DBG  2(ignored)
 
 ----------------------------------------------
 HLT a -> Halt Processor
