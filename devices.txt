@@ -1,0 +1,48 @@
+Devices
+
+Programmable Interval Timer
+IRQ 0
+Port 1
+
+Keyboard
+IRQ 1
+Port 2
+
+Graphics Card
+Port 3
+
+Mass storage
+IRQ 3
+Port 4
+
+Soundcard
+IRQ 4
+Port 5
+
+Programmable Interrupt Controller
+Port 1
+Port 6
+
+Main rule:
+Synchronous command
+-out cmd
+-out args...
+-in results...
+
+Asynchronous command
+-out cmd
+-out args...
+irq
+-in cmd
+-in results...
+
+Register read
+-out 0x00
+-out register
+-in value
+
+Register write
+-out 0x01
+-out register
+-out value
+-in status
