@@ -75,11 +75,11 @@ Do krótkich komunikatów tekstowych
 
 pliki *.cgr:
 ID - 0001 1010 - 1A
-Do tworzenia prostych grafik konsolowych 15 x 15
+Do tworzenia prostych grafik konsolowych do 16 x 16
 
 pliki *.gif:
 ID - 0001 1011 - 1B
-Proste zapętlone animacje 15 x 15 maksymalnie do 8 klatek (8 segmentów)
+Proste zapętlone animacje do 16 x 16 maksymalnie do 8 klatek (8 segmentów)
 
 pliki *.cpp:
 ID - 1010 0001 - A1
