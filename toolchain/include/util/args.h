@@ -7,12 +7,18 @@
 namespace util
 {
 
+struct ArgSpec
+{
+    bool is_bool = false;
+};
+    
 struct Args
 {
+    bool is_error = false;
     std::map<std::string, std::string> options;
     std::vector<std::string> positional_arguments;
 };
 
-Args parse_args(int argc, char* argv[]);
+Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments = {});
 
 }

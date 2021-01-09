@@ -5,6 +5,11 @@
 int main(int argc, char* argv[])
 {
     util::Args args = util::parse_args(argc, argv);
+    if(args.is_error)
+    {
+        // TODO: display help!
+        return 1;
+    }
     std::cout << "Options:" << std::endl;
     for(auto& it: args.options)
     {

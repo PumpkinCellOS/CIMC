@@ -1,36 +1,57 @@
 #include <util/args.h>
 
+#include <iostream>
+
 namespace util
 {
 
-Args parse_args(int argc, char* argv[])
+Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments)
 {
     Args args;
-    std::string current_arg;
     bool double_dash = false;
     
     for(size_t carg = 1; carg < argc; carg++)
     {
         std::string arg = argv[carg];
-        if(!double_dash)
+        if(arg[0] == '-' && !double_dash)
         {
-            if(!current_arg.empty())
+            if(arg == "--")
             {
-                args.options[current_arg] = arg;
+                double_dash = true;
                 continue;
             }
-            else if(arg[0] == '-')
+            
+            auto it = arguments.find(arg.substr(1));
+            if(it == arguments.end())
             {
-                if(arg == "--")
+                std::cout << "Invalid option: " << arg << std::endl;
+                args.is_error = true;
+                return args;
+            }
+            
+            ArgSpec argspec = it->second;
+            if(!argspec.is_bool)
+            {
+                carg++;
+                if(carg >= argc)
                 {
-                    double_dash = true;
-                    continue;
+                    std::cout << "Invalid command line at arg " << carg << std::endl;
+                    args.is_error = true;
+                    return args;
                 }
-                current_arg = arg;
-                continue;
+                std::string value = argv[carg];
+                args.options[arg] = value;
+            }
+            else
+            {
+                args.options[arg] = "1";
             }
         }
-        args.positional_arguments.push_back(arg);
+        else
+        {
+            args.positional_arguments.push_back(arg);
+            double_dash = true;
+        }
     }
     return args;
 }

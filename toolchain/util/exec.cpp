@@ -22,6 +22,7 @@ bool spawn_process_and_wait(std::string name, std::vector<std::string> args)
         // Child
         std::cout << "-- I'm in child! Replacing image..." << std::endl;
         std::vector<char*> data;
+        data.push_back((char*)name.c_str());
         for(auto& it: args)
         {
             data.push_back((char*)it.c_str());
