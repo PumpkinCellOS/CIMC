@@ -1,32 +1,20 @@
 #include <iostream>
 
-#include <config.h>
-
-#include <map>
-#include <string>
-
-std::map<std::string, std::string> parse_args(int argc, char* argv[])
-{
-    size_t carg = 0;
-    
-    // Skip program name
-    carg++;
-    
-    std::map<std::string, std::string> argmap;
-    std::string current_arg = false;
-    while(carg < argc)
-    {
-        std::string arg = argv[carg];
-        if(arg[0] == '-')
-        {
-            in_arg
-            argmap[arg] = 
-        }
-    }
-}
+#include <util/args.h>
 
 int main(int argc, char* argv[])
 {
-    
+    util::Args args = util::parse_args(argc, argv);
+    std::cout << "Options:" << std::endl;
+    for(auto& it: args.options)
+    {
+        std::cout << it.first << " = " << it.second << std::endl;
+    }
+    std::cout << "Positional arguments:" << std::endl;
+    for(auto& arg: args.positional_arguments)
+    {
+        std::cout << arg << ", " << std::endl;
+    }
+    // ...
     return 0;
 }
