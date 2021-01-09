@@ -20,6 +20,7 @@ struct Args
     std::vector<std::string> positional_arguments;
 };
 
+void display_arg_help(std::map<std::string, ArgSpec> arguments);
 Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments);
 
 }

@@ -5,7 +5,7 @@
 namespace util
 {
     
-void display_help(std::map<std::string, ArgSpec> arguments)
+void display_arg_help(std::map<std::string, ArgSpec> arguments)
 {
     std::cout << std::endl << "Possible options are: " << std::endl << std::endl;
     for(auto& it: arguments)
@@ -39,7 +39,7 @@ Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments
             {
                 std::cout << "Invalid option: " << arg << std::endl;
                 args.is_error = true;
-                display_help(arguments);
+                display_arg_help(arguments);
                 return args;
             }
             
@@ -51,7 +51,7 @@ Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments
                 {
                     std::cout << "Invalid command line at arg " << carg << std::endl;
                     args.is_error = true;
-                    display_help(arguments);
+                    display_arg_help(arguments);
                     return args;
                 }
                 std::string value = argv[carg];
