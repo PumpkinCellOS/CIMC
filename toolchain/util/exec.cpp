@@ -50,6 +50,10 @@ bool spawn_process_and_wait(std::string name, std::vector<std::string> args)
             {
                 std::cout << "--- Child process stopped by signal "  << WSTOPSIG(status) << std::endl;
             }
+            else if(WIFEXITED(status) && WEXITSTATUS(status) != 0)
+            {
+                std::cout << "--- Child process exited with status " << WEXITSTATUS(status) << std::endl;
+            }
         } while(!WIFEXITED(status) && !WIFSIGNALED(status));
     }
     else
