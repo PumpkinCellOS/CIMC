@@ -51,11 +51,11 @@ bool spawn_process_and_wait(std::string name, std::vector<std::string> args)
             if(WIFEXITED(status))
             {
                 std::cout << "--- Process " << w << " exited, status = " << WEXITSTATUS(status) << std::endl;
-            } 
+            }
             else if(WIFSIGNALED(status))
             {
                 std::cout << "--- Killed by signal " << WTERMSIG(status) << std::endl;
-            } 
+            }
             else if(WIFSTOPPED(status))
             {
                 std::cout << "--- Stopped by signal "  << WSTOPSIG(status) << std::endl;
