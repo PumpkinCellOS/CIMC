@@ -3,8 +3,23 @@
 #include <fstream>
 #include <string>
 
+namespace cpp_compiler
+{
+
+struct Options
+{
+    // Warnings
+    bool w_enable_all = false;
+    bool w_treat_as_errors = false;
+    
+    // Dialect options
+    bool f_freestanding = false;
+};
+    
+}
+
 bool compiler_make_asm_from_file(std::string input, std::string output);
-bool compiler_make_object_from_file(std::string input, std::string output);
+bool compiler_make_object_from_file(std::string input, std::string output, const cpp_compiler::Options& options);
 
 namespace convert
 {

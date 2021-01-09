@@ -76,7 +76,19 @@ int main(int argc, char* argv[])
         asm_output = "/tmp/scc/" + input + ".asm";
     }
     
-    if(!compiler_make_asm_from_file(input, asm_output))
+    cpp_compiler::Options options;
+    
+    // Warnings
+    if(args.options.count("Wall"))
+        options.w_enable = true;
+    if(args.options.count("Werror"))
+        options.w_treat_as_errors = true;
+    
+    // Dialect options
+    if(args.options.count("ffreestanding"))
+        options.f_freestanding = true;
+    
+    if(!compiler_make_asm_from_file(input, asm_output, options))
     {
         std::cout << "- Compilation failed." << std::endl;
         return 1;
