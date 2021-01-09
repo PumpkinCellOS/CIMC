@@ -13,32 +13,32 @@ rt - repeater ticks
 
 Synchronous command
 -out8 cmd
--outx args...
--inx results...
+-out16 args...
+[-in16 results]
 
 Asynchronous command
 -out8 cmd
 -outx args...
 irq
 -in8 cmd
--inx results...
+[-in16 results]
 
 Register read
 -out8 0x00
 -out8 register
--inx value
+-in16 value
 
 Register write
 -out8 0x01
 -out8 register
--outx value
+-out16 value
 [-in8 status (0 - Success, 1 - Invalid Operation, ...)]
 
 Plain interrupt
 
 Interrupt with command
 -in8 cmd
--inx results...
+[-in16 result]
 
 
 -----------
@@ -74,13 +74,13 @@ Interrupt with command
     0x00  RW  1     Video Mode (T / TextMode)
 - Commands
     color - (0-Black,1-White or ASCII character)
-    CID   Args                        Res  Purpose
-    0x02  [color(8)]                  []   Clear Framebuffer
-    0x03  [xy(8+8),color(8)]          []   Set Pixel
-    0x04  [xy(8+8),wh(4+4),color(8)]  []   Fill Rect
-    0x05  []                          []   Flush Framebuffer
-    0x06  [xy(8+8),size(16),op(4)]    []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
-    0x07  [addr(16)]                  []   Set Framebuffer Address
+    CID   Args                          Res  Purpose
+    0x02  [color(8)]                    []   Clear Framebuffer
+    0x03  [x,y(8+8);color(8)]           []   Set Pixel
+    0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
+    0x05  []                            []   Flush Framebuffer
+    0x06  [x,y(8+8);size,op(12+4)]      []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
+    0x07  [addr(16)]                    []   Set Framebuffer Address
 
 
 ## Mass storage
@@ -112,3 +112,12 @@ Interrupt with command
 - Commands
     CID   Args  Res  Purpose
     0x02  []    []   EOI - clears irq lines
+
+
+## Power Management
+
+- Port 7
+- Commands
+    CID   Args  Purpose
+    0x02  []    Shutdown
+    0x03  []    Reboot
