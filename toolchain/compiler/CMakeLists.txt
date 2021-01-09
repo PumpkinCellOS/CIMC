@@ -1,4 +1,5 @@
 set(SOURCES
+    "compiler.cpp"
     "main.cpp")
 
 add_executable(${SCC_PREFIX}-cc ${SOURCES})
