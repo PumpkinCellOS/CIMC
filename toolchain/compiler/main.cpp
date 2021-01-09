@@ -4,12 +4,16 @@
 
 int main(int argc, char* argv[])
 {
-    util::Args args = util::parse_args(argc, argv);
+    std::map<std::string, util::ArgSpec> argspec = {
+        {"help",    {true, "Display help"}},
+        {"version", {true, "Display version"}},
+    };
+    
+    util::Args args = util::parse_args(argc, argv, argspec);
+    
     if(args.is_error)
-    {
-        // TODO: display help!
         return 1;
-    }
+    
     std::cout << "Options:" << std::endl;
     for(auto& it: args.options)
     {
@@ -20,6 +24,8 @@ int main(int argc, char* argv[])
     {
         std::cout << arg << ", " << std::endl;
     }
+    
     // ...
+    
     return 0;
 }

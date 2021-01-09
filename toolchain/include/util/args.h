@@ -10,6 +10,7 @@ namespace util
 struct ArgSpec
 {
     bool is_bool = false;
+    std::string description;
 };
     
 struct Args
@@ -19,6 +20,6 @@ struct Args
     std::vector<std::string> positional_arguments;
 };
 
-Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments = {});
+Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments);
 
 }
