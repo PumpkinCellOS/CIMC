@@ -108,3 +108,7 @@ Pliki wykonywalne
 pliki *.ttf:
 ID - 1111 0010 - F2
 Do przechowywania symboli używanych w komputerze
+
+pliki *.obj
+ID - 1111 0011 - F3
+Do przechowywania plików obiektowych używanych przy kompilacji
