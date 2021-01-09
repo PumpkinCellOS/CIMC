@@ -1,0 +1,114 @@
+
+
+-------------
+  Shortcuts
+-------------
+
+rt - repeater ticks
+
+
+---------------
+  Conventions
+---------------
+
+Synchronous command
+-out8 cmd
+-outx args...
+-inx results...
+
+Asynchronous command
+-out8 cmd
+-outx args...
+irq
+-in8 cmd
+-inx results...
+
+Register read
+-out8 0x00
+-out8 register
+-inx value
+
+Register write
+-out8 0x01
+-out8 register
+-outx value
+[-in8 status (0 - Success, 1 - Invalid Operation, ...)]
+
+Plain interrupt
+
+Interrupt with command
+-in8 cmd
+-inx results...
+
+
+-----------
+  Devices
+-----------
+
+## Programmable Interval Timer
+
+- IRQ 0
+- Port 1
+- Registers
+    RID   Size  Purpose
+    0x00  8     Interval in rt
+- IRQs
+    ICID  Purpose
+    0x00  Timer Tick
+
+
+## Keyboard
+
+- IRQ 1
+- Port 2
+- Registers
+    RID   Acc Size  Purpose
+    0x00  RW  3     LED State (CNS / CapsLock-NumLock-ScrollLock)
+
+
+## Graphics Card
+
+- Port 3
+- Registers
+    RID   Acc Size  Purpose
+    0x00  RW  1     Video Mode (T / TextMode)
+- Commands
+    color - (0-Black,1-White or ASCII character)
+    CID   Args                        Res  Purpose
+    0x02  [color(8)]                  []   Clear Framebuffer
+    0x03  [xy(8+8),color(8)]          []   Set Pixel
+    0x04  [xy(8+8),wh(4+4),color(8)]  []   Fill Rect
+    0x05  []                          []   Flush Framebuffer
+    0x06  [xy(8+8),size(16),op(4)]    []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
+    0x07  [addr(16)]                  []   Set Framebuffer Address
+
+
+## Mass storage
+
+- IRQ 3
+- Port 4
+- Registers
+    [TODO]
+- Commands
+    [TODO]
+
+
+## Soundcard
+
+- IRQ 4
+- Port 5
+- Registers
+    [TODO]
+- Commands
+    [TODO]
+
+
+## Programmable Interrupt Controller
+
+- Port 6
+- Registers
+    RID   Acc Size  Purpose
+    0x00  RW  8     IRQ mask
+- Commands
+    CID   Args  Res  Purpose
+    0x02  []    []   EOI - clears irq lines
