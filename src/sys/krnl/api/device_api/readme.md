@@ -3,7 +3,7 @@
 The device API - routines used as wrappers for devices. They correspond with device I/O convention (see reference).  
 NOTE: These routines should NOT be used directly. They are used mainly by device drivers. Use libc routines instead.  
 
-[/spec/Devices/devices.txt](Reference)  
+[Reference](/spec/Devices/devices.txt)  
 
 ## Call list
 
