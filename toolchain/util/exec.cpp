@@ -11,16 +11,10 @@ namespace util
 
 bool spawn_process_and_wait(std::string name, std::vector<std::string> args)
 {
-    std::cout << "- Running " << name << " with [";
-    for(auto& str: args)
-        std::cout << str << " ";
-    std::cout << "]" << std::endl;
-    
     pid_t pid = fork();
     if(pid == 0)
     {
         // Child
-        std::cout << "-- I'm in child! Replacing image..." << std::endl;
         std::vector<char*> data;
         data.push_back((char*)name.c_str());
         for(auto& it: args)
@@ -37,7 +31,6 @@ bool spawn_process_and_wait(std::string name, std::vector<std::string> args)
     else if(pid > 0)
     {
         // Parent
-        std::cout << "-- New child PID: " << pid << std::endl;
         int status;
         pid_t w;
         do
@@ -49,17 +42,13 @@ bool spawn_process_and_wait(std::string name, std::vector<std::string> args)
                 return false;
             }
 
-            if(WIFEXITED(status))
+            if(WIFSIGNALED(status))
             {
-                std::cout << "--- Process " << w << " exited, status = " << WEXITSTATUS(status) << std::endl;
-            }
-            else if(WIFSIGNALED(status))
-            {
-                std::cout << "--- Killed by signal " << WTERMSIG(status) << std::endl;
+                std::cout << "--- Child process killed by signal " << WTERMSIG(status) << std::endl;
             }
             else if(WIFSTOPPED(status))
             {
-                std::cout << "--- Stopped by signal "  << WSTOPSIG(status) << std::endl;
+                std::cout << "--- Child process stopped by signal "  << WSTOPSIG(status) << std::endl;
             }
         } while(!WIFEXITED(status) && !WIFSIGNALED(status));
     }

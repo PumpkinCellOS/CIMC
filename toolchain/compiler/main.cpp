@@ -5,8 +5,9 @@
 int main(int argc, char* argv[])
 {
     std::map<std::string, util::ArgSpec> argspec = {
-        {"help",    {true, "Display help"}},
-        {"version", {true, "Display version"}},
+        {"help",    {true,  "Display help"}},
+        {"version", {true,  "Display version"}},
+        {"o",       {false, "Specify output file"}}
     };
     
     util::Args args = util::parse_args(argc, argv, argspec);
