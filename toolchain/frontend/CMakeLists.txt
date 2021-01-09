@@ -1,5 +1,6 @@
 set(SOURCES
     "main.cpp")
 
-add_executable(pcos-cx16-s++ ${SOURCES})
-target_include_directories(pcos-cx16-s++ PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_executable(${SCC_PREFIX}-s++ ${SOURCES})
+target_include_directories(${SCC_PREFIX}-s++ PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${SCC_PREFIX}-s++ scc-util)
