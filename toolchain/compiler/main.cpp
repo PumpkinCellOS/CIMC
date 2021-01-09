@@ -4,6 +4,7 @@
 #include <util/args.h>
 
 #include <iostream>
+#include <sys/stat.h>
 
 int main(int argc, char* argv[])
 {
@@ -69,9 +70,12 @@ int main(int argc, char* argv[])
     bool only_asm = args.options.count("S");
     if(only_asm)
         asm_output = output;
+    else
+    {
+        mkdir("/tmp/scc", 0700);
+        asm_output = "/tmp/scc/" + input + ".asm";
+    }
     
-    // The function will automatically detect if it's already assembly
-    // basing on file extension.
     if(!compiler_make_asm_from_file(input, asm_output))
     {
         std::cout << "- Compilation failed." << std::endl;

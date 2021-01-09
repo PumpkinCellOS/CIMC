@@ -1,53 +1,61 @@
 #include "compiler.h"
 
-#include <iostream>
+#include "assembler.h"
+#include "cpp_compiler.h"
 
-bool compiler_make_asm_from_file(std::string input, std::string output)
+#include <iostream>
+#include <string.h>
+
+namespace convert
 {
+ 
+static bool convert_from_file(std::string input, Converter::InputFormat iformat, std::string output, Converter::OutputFormat oformat)
+{
+    std::cout << "Converting files: " << input << " > " << output << std::endl;
+    
     std::ifstream ifile(input);
-    if(!ifile.good())
+    if(ifile.fail())
     {
-        std::cout << "- Failed to open input file!" << std::endl;
+        std::cout << "- Failed to open input file: " << strerror(errno) << std::endl;
         return false;
     }
     std::ofstream ofile(output);
-    if(!ofile.good())
+    if(ofile.fail())
     {
-        std::cout << "- Failed to open output file!" << std::endl;
+        std::cout << "- Failed to open output file: " << strerror(errno) << std::endl;
         return false;
     }
-    return convert::cpp_to_asm(ifile, ofile);
+    InputFile isfile = {ifile, input};
+    OutputFile osfile = {ofile, output};
+    
+    Converter converter(isfile, osfile);
+    return converter.convert(iformat, oformat);
+}
+    
+bool Converter::convert(InputFormat iformat, OutputFormat oformat)
+{
+    if(iformat == InputFormat::Cpp && oformat == OutputFormat::Asm)
+    {
+        return cpp_compiler::compile_to_asm(m_input, m_output);
+    }
+    else if(iformat == InputFormat::Asm && oformat == OutputFormat::Obj)
+    {
+        return assembler::assemble_to_obj(m_input, m_output);
+    }
+    std::cout << "- Unrecognized format!" << std::endl;
+    return false;
+}
+
+} // convert
+
+bool compiler_make_asm_from_file(std::string input, std::string output)
+{
+    // TODO: Detect file type!
+    return convert::convert_from_file(input, convert::Converter::InputFormat::Cpp, output, convert::Converter::OutputFormat::Asm);
 }
 
 bool compiler_make_object_from_file(std::string input, std::string output)
 {
-    std::ifstream ifile(input);
-    if(!ifile.good())
-    {
-        std::cout << "- Failed to open input file!" << std::endl;
-        return false;
-    }
-    std::ofstream ofile(output);
-    if(!ofile.good())
-    {
-        std::cout << "- Failed to open output file!" << std::endl;
-        return false;
-    }
-    return convert::asm_to_obj(ifile, ofile);
-}
-
-namespace convert
-{
-    
-bool cpp_to_asm(std::ifstream& input, std::ofstream& output)
-{
-    std::cout << "cpp_to_asm" << std::endl;
-    return true;
-}
-bool asm_to_obj(std::ifstream& input, std::ofstream& output)
-{
-    std::cout << "asm_to_obj" << std::endl;
-    return true;
-}
-
+    // TODO: Detect file type!
+    return convert::convert_from_file(input, convert::Converter::InputFormat::Asm, output, convert::Converter::OutputFormat::Obj);
 }
