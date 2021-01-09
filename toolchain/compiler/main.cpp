@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <config.h>
 #include <util/args.h>
 
 int main(int argc, char* argv[])
@@ -26,7 +27,11 @@ int main(int argc, char* argv[])
         std::cout << arg << ", " << std::endl;
     }
     
-    // ...
+    if(args.options.count("version"))
+    {
+        std::cout << std::endl;
+        std::cout << argv[0] << " (SPP Compiler) " << SCC_VER << " for " << SCC_OS_NAME << " (" << SCC_OS_ARCH << ")" << std::endl << std::endl;
+    }
     
     return 0;
 }

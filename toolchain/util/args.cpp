@@ -55,11 +55,11 @@ Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments
                     return args;
                 }
                 std::string value = argv[carg];
-                args.options[arg] = value;
+                args.options[arg.substr(1)] = value;
             }
             else
             {
-                args.options[arg] = "1";
+                args.options[arg.substr(1)] = "1";
             }
         }
         else
