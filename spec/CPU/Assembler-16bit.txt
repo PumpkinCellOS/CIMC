@@ -83,9 +83,57 @@ ia - Instruction Address
 
 See Control-Unit.mod
 
--- Interrupts --
 
-See Control-Unit.mod
+
+   ===== INTERRUPTS =====
+
+
+
+-- Internal Interrupts --
+
+If an interrupt is called, the registers are placed
+on stack in the following order:
+
+ PUSH16 ip
+ PUSH8 flags
+ [PUSH16 arg]
+
+'arg' is a 16-bit value which gives additional
+information about interrupt.
+If IRET is called, these registers are popped from
+the stack in the reverse order. The arg must be
+popped manually by operating system.
+
+ [POP16 arg] // done by OS
+ POP8 flags
+ POP16 ip
+
+ISRN  Arg  Mm    Purpose
+------------------------------------------------
+INT0  no   #IM   Invalid Math Operation
+INT1  no   #II   Invalid Instruction
+INT2  no   #R1   Reserved
+INT3  yes  #R2   Reserved (arg is ignored)
+INT4  no   #R3   Reserved
+INT5  yes  #R4   Reserved (arg is ignored)
+INT6  no   #U1   User Accesible #1
+INT7  no   #U2   User Accesible #2
+------------------------------------------------
+IRQ0  no   #IQ0  Device Interrupt #0
+IRQ1  no   #IQ1  Device Interrupt #1
+IRQ2  no   #IQ2  Device Interrupt #2
+IRQ3  no   #IQ3  Device Interrupt #3
+IRQ4  no   #IQ4  Device Interrupt #4
+IRQ5  no   #IQ5  Device Interrupt #5
+IRQ6  no   #IQ6  Device Interrupt #6
+IRQ7  yes  #IQ7  Cascaded Interrupt (reserved)
+------------------------------------------------
+
+The User Accessible Interrupts can be called using an INT instruction.
+
+The Cascaded Interrupt is reserved for scalability.
+
+See Control-Unit.mod for further information.
 
 
 
@@ -95,11 +143,11 @@ See Control-Unit.mod
 
 -- General-Purpose Registers --
 
-Mm  Size Notes
-ax  16b  Accumulator
-bx  16b  Base
-cx  16b  Counter
-dx  16b  Data
+Mm  Size Notes         MSB 0      4      8 LSB
+ax  16b  Accumulator       [[-ah-] [-al-]]
+bx  16b  Base              [[-bh-] [-bl-]]
+cx  16b  Counter           [[-ch-] [-cl-]]
+dx  16b  Data              [[-dh-] [-dl-]]
 sp  16b  Stack pointer
 bp  16b  Base pointer
 
@@ -140,25 +188,34 @@ addb  2b    Additional 2 bytes needed flag
 -- Detailed Description --
 
 ----------------------------------------------
-OUT a, b -> Output to Port
+OUT16 a, b -> 16-bit Output to Port
  C++  out16(a, b); // a-port, b-value
  
 Reserved Opcode Range: /3 (32 insn)
 x = port number (16x)
 
-Op  Mm  Args      AddB
-0x  OUT mem -> x  2(b)
-1x  OUT val -> x  2(b)
+Op  Mm     Args      AddB
+0x  OUT16  ax -> *x  N
+
+----------------------------------------------
+OUT8 a, b -> 8-bit Output to Port
+ C++  out8(a, b); // a-port, b-value
+ 
+Reserved Opcode Range: /3 (32 insn)
+x = port number (16x)
+
+Op  Mm     Args      AddB
+1x  OUT8   al -> *x  N
  
 ----------------------------------------------
-IN a, b -> Input from Port
+IN16 a, b -> 16-bit Input from Port
  C++  b = in16(a)
  
 Reserved Opcode Range: /4 (16 insn)
 x = port number (16x)
 
-Op  Mm Args      AddB
-2x  IN mem <- x  2(b)
+Op  Mm    Args      AddB
+2x  IN16  ax <- *x  2(b)
  
 ----------------------------------------------
 MOV a, b -> Move Value from 'a' to 'b'
@@ -223,11 +280,11 @@ PUSH a -> Push 'a' to Stack
  
 Reserved Opcode Range: /6 (4 insn)
 
-Op  Mm    Args  AddB  Notes
-50  PUSH  ax
-51  PUSH  dx
-52  PUSHA             All registries (ax,bx,cx,dx,sp,flags)
-53  PUSH  val   2(a)
+Op  Mm     Args  AddB  Notes
+50  PUSH   ax
+51  PUSH   dx
+52  PUSHA              All registries (ax,bx,cx,dx,sp,flags)
+53  PUSH   val   2(a)
 
 ----------------------------------------------
 POP a -> Pop from Stack to 'a'
@@ -235,11 +292,11 @@ POP a -> Pop from Stack to 'a'
  
 Reserved Opcode Range: /6 (4 insn)
 
-Op  Mm   Args  AddB  Notes
-54  POP  ax
-55  POP  dx
-56  POPA             All registries (ax,bx,cx,dx,sp,flags)
-57  POP  val   2(a)
+Op  Mm    Args  AddB  Notes
+54  POP   ax
+55  POP   dx
+56  POPA              All registries (ax,bx,cx,dx,sp,flags)
+57  POP   val   2(a)
 
 ----------------------------------------------
 ADD a, b -> Add from 'a' to 'b'
@@ -294,6 +351,8 @@ DIV a, b -> Divide from 'a' to 'b'
  C++  a /= b;
  Saves modulus (a %= b) to DX
  
+Note: This code is not implemented in prototype.
+Using the opcode always triggers INT0.
 Reserved Opcode Range: /7 (2 insn)
 
 Op  Mm  Args                AddB
@@ -355,6 +414,13 @@ LIVT a -> Load Interrupt Vector Table
  
 Reserved Opcode Range: /8 (1 insn)
 
+IVT structure:
+
+0    4    8        16     8+16*size 
++----+----+---------+---------+
+|0000| Sz |  Adresses x Size  |
++----+----+---------+---------+
+
 Op  Mm   Args  AddB
 75  LIVT ia    2(a)
 
@@ -363,6 +429,11 @@ DBG -> Debug Print
  C++  dbg();
  
 Reserved Opcode Range: /8 (1 insn)
+
+Note: If this instruction gets called in production
+environment, it's considered an "Invalid Instruction".
+The argument is used for debugging control unit and
+is ignored.
 
 Op  Mm   AddB
 76  DBG  2(ignored)
@@ -391,6 +462,31 @@ Op  Mm   AddB
 79  ...  2(...)
 
 ----------------------------------------------
-Opcodes not listed here are all reserved.
+INT a -> Interrupt
+ C++ int(a)
+
+Reserved Opcode Range: /8 (1 insn)
+
+Note: The user-callable interrupts are #U1 and #U2.
+
+Op  Mm       AddB
+7A  INT isr  2(a)
+ 
+----------------------------------------------
+Reserved Opcodes
+7B, 7C, 7D, 7E, 7F
+
+----------------------------------------------
+IN8 a, b -> 8-bit Input from Port
+ C++  b = in8(a)
+ 
+Reserved Opcode Range: /4 (16 insn)
+x = port number (16x)
+
+Op  Mm   Args
+8x  IN8  al <- *x
+ 
+----------------------------------------------
+Opcodes not listed here (90-FF) are all reserved.
 If they are called, an Invalid Instruction trap
 is triggered.

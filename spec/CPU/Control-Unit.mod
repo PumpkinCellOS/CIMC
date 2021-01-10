@@ -83,6 +83,7 @@ mod cpu::control_unit
         }
         
         // Interrupt Check (if arg not checked)
+        // TODO: Implement stack operations when isr is called!
         if(m_sti) {
             tmp bus(4) irqid;
             if(interrupt_check(irqid)) {
