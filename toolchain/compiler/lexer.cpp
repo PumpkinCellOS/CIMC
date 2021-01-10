@@ -10,7 +10,13 @@ namespace parse_helpers
 
 bool is_simple_type(std::string word)
 {
-    return word == "int" || word == "char" || word == "short" || word == "long" || word == "void";
+    return word == "int"
+        || word == "char"
+        || word == "short"
+        || word == "long"
+        || word == "void"
+        || word == "unsigned"
+        || word == "signed";
 }
 
 bool is_keyword(std::string word)
