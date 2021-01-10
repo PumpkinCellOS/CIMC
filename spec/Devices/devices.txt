@@ -58,6 +58,7 @@ IRQ  Res+Purpose
 7    V  Cascaded IRQ
 ----------------------------------------------
 
+
 ---------------
   Conventions
 ---------------
@@ -114,7 +115,11 @@ Interrupt with command
 - Port 1
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  8(3)  LED State (CNS / CapsLock-NumLock-ScrollLock)
+    0x00  RW  8(3)  LED State (000000Nr / NumLock-Reserved)
+    0x01  R   8(3)  Control Key State (000000CS / Control-Shift)
+- IRQ Commands
+    ICID  Res             Purpose
+    0x00  [scancode(16)]  Key Press
 
 
 ## Graphics Card
@@ -123,14 +128,15 @@ Interrupt with command
 - IRQ 6 (not used)
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  8(1)  Video Mode (T / TextMode)
+    0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
+    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 64x128)
 - Commands
     color - (0-Black,1-White or ASCII character)
     CID   Args                          Res  Purpose
     0x02  [color(8)]                    []   Clear Framebuffer
     0x03  [x,y(8+8);color(8)]           []   Set Pixel
     0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
-    0x05  []                            []   Flush Framebuffer
+    0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect
     0x06  [x,y(8+8);size(16),op(12+4)]  []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
     0x07  [addr(16)]                    []   Set Framebuffer Address
 
