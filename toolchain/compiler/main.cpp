@@ -17,14 +17,14 @@ int main(int argc, char* argv[])
         {"o",       {false, "Specify output file"}},
 
         // Warning options
-        {"Wall",    {false, "Enable all warnings"}},
-        {"Werror",  {false, "Treat warnings as errors"}},
+        {"Wall",    {true, "Enable all warnings"}},
+        {"Werror",  {true, "Treat warnings as errors"}},
 
         // Dialect options
-        {"ffreestanding", {false, "Do not link libc and crt0 (useful for OS kernels)"}},
+        {"ffreestanding", {true, "Do not link libc and crt0 (useful for OS kernels)"}},
 
         // Misc. options
-        {"S",  {false, "Do not assemble"}}
+        {"S",  {true, "Do not assemble"}}
     };
 
     util::Args args = util::parse_args(argc, argv, argspec);
