@@ -210,13 +210,23 @@ Fast I/O interrupt with command:
 
 
 -- Mass storage --
-
 - IRQ 3
 - Port 2
 - Registers
-    [TODO]
+    RID   Acc Size  Purpose
+    0x00  R   16    Filled storage (in B)
+    0x01  R   16    id counter (binary int)
+    0x02  RW  16    User address (address of current user's location)
 - Commands
-    [TODO]
+    CID   Args                                 Res  Purpose
+    0x02  [s(1), id(16) || name(64)]           []   show folder elements by id (s=0) or name (s=1)
+    0x03  [s(1), id(16) || name(64)]           []   delete element with id (s=0) or name (s=1)
+    0x04  [name(64), ext(8), fid(16)]          []   create element
+    0x05  [s(1), id(16) || name(64)]           []   read element with id (s=0) or name (s=1)
+    0x06  [s(1), id(16) || name(64)]           []   edit element with id (s=0) or name (s=1)
+    0x07  [fid(16), s(1), id(16) || name(64)]  []   move element with id (s=0) or name (s=1)
+    0x08  [name(64)]                           []   get element's id
+    0x09  [id(16)]                             []   get element's name
 
 
 -- Soundcard --
