@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 
-namespace cpp_compiler
+namespace compiler
 {
 
 struct Options
@@ -18,8 +18,8 @@ struct Options
     
 }
 
-bool compiler_make_asm_from_file(std::string input, std::string output);
-bool compiler_make_object_from_file(std::string input, std::string output, const cpp_compiler::Options& options);
+bool compiler_make_asm_from_file(std::string input, std::string output, const compiler::Options& options);
+bool compiler_make_object_from_file(std::string input, std::string output, const compiler::Options& options);
 
 namespace convert
 {
@@ -53,7 +53,7 @@ public:
         Obj
     };
     
-    bool convert(InputFormat iformat, OutputFormat oformat);
+    bool convert(InputFormat iformat, OutputFormat oformat, const compiler::Options& options);
     
 private:
     InputFile m_input;

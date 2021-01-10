@@ -8,8 +8,8 @@
 
 namespace convert
 {
- 
-static bool convert_from_file(std::string input, Converter::InputFormat iformat, std::string output, Converter::OutputFormat oformat)
+
+static bool convert_from_file(std::string input, Converter::InputFormat iformat, std::string output, Converter::OutputFormat oformat, const compiler::Options& options)
 {
     std::cout << "Converting files: " << input << " > " << output << std::endl;
     
@@ -29,14 +29,14 @@ static bool convert_from_file(std::string input, Converter::InputFormat iformat,
     OutputFile osfile = {ofile, output};
     
     Converter converter(isfile, osfile);
-    return converter.convert(iformat, oformat);
+    return converter.convert(iformat, oformat, options);
 }
     
-bool Converter::convert(InputFormat iformat, OutputFormat oformat)
+bool Converter::convert(InputFormat iformat, OutputFormat oformat, const compiler::Options& options)
 {
     if(iformat == InputFormat::Cpp && oformat == OutputFormat::Asm)
     {
-        return cpp_compiler::compile_to_asm(m_input, m_output);
+        return cpp_compiler::compile_to_asm(m_input, m_output, options);
     }
     else if(iformat == InputFormat::Asm && oformat == OutputFormat::Obj)
     {
@@ -48,14 +48,14 @@ bool Converter::convert(InputFormat iformat, OutputFormat oformat)
 
 } // convert
 
-bool compiler_make_asm_from_file(std::string input, std::string output)
+bool compiler_make_asm_from_file(std::string input, std::string output, const compiler::Options& options)
 {
     // TODO: Detect file type!
-    return convert::convert_from_file(input, convert::Converter::InputFormat::Cpp, output, convert::Converter::OutputFormat::Asm);
+    return convert::convert_from_file(input, convert::Converter::InputFormat::Cpp, output, convert::Converter::OutputFormat::Asm, options);
 }
 
-bool compiler_make_object_from_file(std::string input, std::string output)
+bool compiler_make_object_from_file(std::string input, std::string output, const compiler::Options& options)
 {
     // TODO: Detect file type!
-    return convert::convert_from_file(input, convert::Converter::InputFormat::Asm, output, convert::Converter::OutputFormat::Obj);
+    return convert::convert_from_file(input, convert::Converter::InputFormat::Asm, output, convert::Converter::OutputFormat::Obj, options);
 }

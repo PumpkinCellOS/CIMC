@@ -76,11 +76,11 @@ int main(int argc, char* argv[])
         asm_output = "/tmp/scc/" + input + ".asm";
     }
     
-    cpp_compiler::Options options;
+    compiler::Options options;
     
     // Warnings
     if(args.options.count("Wall"))
-        options.w_enable = true;
+        options.w_enable_all = true;
     if(args.options.count("Werror"))
         options.w_treat_as_errors = true;
     
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
     }
     if(!only_asm)
     {
-        if(!compiler_make_object_from_file(asm_output, output))
+        if(!compiler_make_object_from_file(asm_output, output, options))
         {
             std::cout << "- Assembling failed." << std::endl;
             return 1;

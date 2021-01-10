@@ -2,6 +2,7 @@ set(SOURCES
     "assembler.cpp"
     "compiler.cpp"
     "cpp_compiler.cpp"
+    "lexer.cpp"
     "main.cpp")
 
 add_executable(${SCC_PREFIX}-cc ${SOURCES})
