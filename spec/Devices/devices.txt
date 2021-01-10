@@ -7,6 +7,57 @@
 rt - repeater ticks
 
 
+--------------------
+  I/O Ports & IRQs
+--------------------
+
+There are 16 I/O half-duplex ports connected to CPU.
+Each port is assigned to specific device. Every device
+can have its own IRQ assigned. It's done in southbridge.
+
+For Graphics Card (which is connected to northbridge), 
+there is 1 port (PORT15) and 1 IRQ (IRQ6) reserved. 
+
+The IRQ7 is reserved as Cascading IRQ. It will be used
+in extended versions of computer.
+
+Ports:
+
+PORT  Res+Purpose
+----------------------------------------------
+0     V  Programmable Interval Timer
+1     V  Keyboard
+2     V  Mass storage
+3     V  Soundcard
+4     V  Programmable Interrupt Controller
+5     V  Power Management Interface
+6     -
+7     -
+8     -
+9     R  Reserved for Device Info
+10    R  Reserved
+11    R  Reserved
+12    R  Reserved
+----------------------------------------------
+13    R  Fast I/O (Port 2) [Reserved]
+14    R  Fast I/O (Port 1) [Reserved]
+15    V  Fast I/O (Port 0) [GFX]
+----------------------------------------------
+
+IRQs:
+
+IRQ  Res+Purpose
+----------------------------------------------
+0    V  Programmable Interval Timer
+1    V  Keyboard
+2    V  Power Management Interface
+3    V  Mass storage
+4    V  Soundcard
+5    R  Reserved
+6    V  Fast I/O
+7    V  Cascaded IRQ
+----------------------------------------------
+
 ---------------
   Conventions
 ---------------
@@ -48,30 +99,31 @@ Interrupt with command
 ## Programmable Interval Timer
 
 - IRQ 0
-- Port 1
+- Port 0
 - Registers
     RID   Size  Purpose
     0x00  8     Interval in rt
 - IRQs
-    ICID  Purpose
+    IRQN  Purpose
     0x00  Timer Tick
 
 
 ## Keyboard
 
 - IRQ 1
-- Port 2
+- Port 1
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  3     LED State (CNS / CapsLock-NumLock-ScrollLock)
+    0x00  RW  8(3)  LED State (CNS / CapsLock-NumLock-ScrollLock)
 
 
 ## Graphics Card
 
-- Port 3
+- Port 15
+- IRQ 6 (not used)
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  1     Video Mode (T / TextMode)
+    0x00  RW  8(1)  Video Mode (T / TextMode)
 - Commands
     color - (0-Black,1-White or ASCII character)
     CID   Args                          Res  Purpose
@@ -79,14 +131,14 @@ Interrupt with command
     0x03  [x,y(8+8);color(8)]           []   Set Pixel
     0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
     0x05  []                            []   Flush Framebuffer
-    0x06  [x,y(8+8);size,op(12+4)]      []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
+    0x06  [x,y(8+8);size(16),op(12+4)]  []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
     0x07  [addr(16)]                    []   Set Framebuffer Address
 
 
 ## Mass storage
 
 - IRQ 3
-- Port 4
+- Port 2
 - Registers
     [TODO]
 - Commands
@@ -96,7 +148,7 @@ Interrupt with command
 ## Soundcard
 
 - IRQ 4
-- Port 5
+- Port 3
 - Registers
     [TODO]
 - Commands
@@ -105,7 +157,7 @@ Interrupt with command
 
 ## Programmable Interrupt Controller
 
-- Port 6
+- Port 4
 - Registers
     RID   Acc Size  Purpose
     0x00  RW  8     IRQ mask
@@ -114,10 +166,15 @@ Interrupt with command
     0x02  []    []   EOI - clears irq lines
 
 
-## Power Management
+## Power Management Interface
 
-- Port 7
+- Port 5
+- IRQ 2
 - Commands
     CID   Args  Purpose
     0x02  []    Shutdown
     0x03  []    Reboot
+- IRQ Commands
+    ICID  Res  Purpose
+    0x00  no   Power-off Button
+    0x01  no   Reset Button
