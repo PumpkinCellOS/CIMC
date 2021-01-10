@@ -61,8 +61,7 @@ ia - Instruction Address
 -- Instruction Loader --
 
            ,-----,
-    Ack  --|     |
-    D0   --|     | 
+    Ack  --|     |    D0   --|     | 
     D1   --|     | 
     D2   --|     | 
     D3   --|     | 
@@ -102,7 +101,7 @@ bx  16b  Base
 cx  16b  Counter
 dx  16b  Data
 sp  16b  Stack pointer
-bp  16b  Base pointer [TODO]
+bp  16b  Base pointer
 
 
 -- Control Registers --
@@ -137,8 +136,6 @@ addb  2b    Additional 2 bytes needed flag
    ===== ASSEMBLY =====
 
 
-
-[TODO] use 16bit registers
    
 -- Detailed Description --
 
@@ -245,7 +242,7 @@ Op  Mm   Args  AddB  Notes
 57  POP  val   2(a)
 
 ----------------------------------------------
-ADD a, b -> Add Memory from 'a' to 'b'
+ADD a, b -> Add from 'a' to 'b'
  C++  a += b;
 
 Reserved Opcode Range: /5 (8 insn)
@@ -258,7 +255,7 @@ Op  Mm  Args       AddB
 5C  ADD cx <+ bx   
 5D  ADD cx <+ dx
 5E  ADD sp <+ val  2(b)
-5F  .. Reserved ..
+5F  ADD bp <+ val  2(b)
 
 ----------------------------------------------
 SUB a, b -> Subtract from 'a' to 'b'
@@ -274,7 +271,7 @@ Op  Mm  Args       AddB
 64  SUB cx <- bx   
 65  SUB cx <- dx
 66  SUB sp <- val  2(b)
-67  .. Reserved ..
+67  SUB bp <- val  2(b)
 
 Sets:
  ZF if result == 0
@@ -378,3 +375,22 @@ Reserved Opcode Range: /8 (1 insn)
 
 Op  Mm
 77  HLT
+
+----------------------------------------------
+EXT ... -> Extended Operations
+
+These opcodes are used to add new operations
+in the future. They are reserved in current
+version of spec. Using them triggers "Invalid
+Instruction" trap.
+
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm   AddB
+78  ...  1(...)
+79  ...  2(...)
+
+----------------------------------------------
+Opcodes not listed here are all reserved.
+If they are called, an Invalid Instruction trap
+is triggered.
