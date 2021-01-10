@@ -10,12 +10,25 @@ namespace parse_helpers
 
 bool is_simple_type(std::string word)
 {
-    return word == "int" || word == "char" || word == "void";
+    return word == "int" || word == "char" || word == "short" || word == "long" || word == "void";
 }
 
 bool is_keyword(std::string word)
 {
-    return word == "struct" || word == "const" || word == "asm";
+    return word == "struct"
+        || word == "const"
+        || word == "asm"
+        || word == "if"
+        || word == "else"
+        || word == "switch"
+        || word == "case"
+        || word == "default"
+        || word == "do"
+        || word == "while"
+        || word == "for"
+        || word == "break"
+        || word == "continue"
+        || word == "return";
 }
 
 Token::Type token_type_from_word(std::string word)
@@ -98,6 +111,9 @@ bool is_operator(char ch)
     case '=':
     case ':':
     case '?':
+    case '<':
+    case '>':
+    case '.':
     case '/': // Valid for lexer but invalid for parser due to arch limitations
     case '%':
         return true;

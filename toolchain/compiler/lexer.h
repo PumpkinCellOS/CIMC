@@ -19,8 +19,8 @@ struct Token
 {
     enum Type
     {
-        TypeName, // int, void, char, ...
-        Keyword, // struct, const, asm
+        TypeName, // int, void, char, short, long
+        Keyword, // struct, const, asm, if, else, switch, case, default, do, while, for, break, continue, return
         Name, // other words
         LeftCurly,
         RightCurly,
