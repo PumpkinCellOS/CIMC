@@ -1,15 +1,56 @@
 
 
--------------
-  Shortcuts
--------------
+             &&
+     ,_____&&&_____,
+    //             \\
+   //               \\
+   |  P u m p k i n  | 
+   |                 | 
+   \\    C e l l    //
+    \\             //
+     '\___________/'
+
+   
+     
+======================================
+-=-=-                            -=-=-
+-=-=-=-  Device I/O (16-bit)   -=-=-=-
+-=-=-                            -=-=-
+======================================
+
+
+
+   Software Developer's Manual
+   
+           Version 1.0
+   
+   
+   Copyright (c) SyberMCd 2021
+   Copyright (c) Adam2004yt 2021
+   
+   
+   Prototype built by:
+    Adam2004yt
+    PumpkinCell
+    SyberMCd
+
+
+
+====================================
+
+
+
+   ===== SHORTCUTS =====
+
+   
 
 rt - repeater ticks
 
 
---------------------
-  I/O Ports & IRQs
---------------------
+
+   ===== I/O PORTS & IRQs =====
+   
+   
 
 There are 16 I/O half-duplex ports connected to CPU.
 Each port is assigned to specific device. Every device
@@ -21,47 +62,53 @@ there is 1 port (PORT15) and 1 IRQ (IRQ6) reserved.
 The IRQ7 is reserved as Cascading IRQ. It will be used
 in extended versions of computer.
 
-Ports:
+
+-- Ports --
 
 PORT  Res+Purpose
 ----------------------------------------------
-0     V  Programmable Interval Timer
-1     V  Keyboard
-2     V  Mass storage
-3     V  Soundcard
-4     V  Programmable Interrupt Controller
-5     V  Power Management Interface
-6     -
-7     -
-8     -
-9     R  Reserved for Device Info
-10    R  Reserved
-11    R  Reserved
-12    R  Reserved
+0     V  Legacy I/O [Programmable Interval Timer]
+1     V  Legacy I/O [Keyboard]
+2     V  Legacy I/O [Mass storage]
+3     V  Legacy I/O [Soundcard]
+4     V  Legacy I/O [Programmable Interrupt Controller]
+5     V  Legacy I/O [Power Management Interface]
+6     -  Legacy I/O [-]
+7     -  Legacy I/O [-]
+8     -  Legacy I/O [-]
+----------------------------------------------
+9     R  Device Info
+10    R  Slow I/O (Port 2) [Reserved]
+11    R  Slow I/O (Port 1) [Reserved]
+12    R  Slow I/O (Port 0) [Reserved]
 ----------------------------------------------
 13    R  Fast I/O (Port 2) [Reserved]
 14    R  Fast I/O (Port 1) [Reserved]
 15    V  Fast I/O (Port 0) [GFX]
 ----------------------------------------------
 
-IRQs:
+
+-- IRQs --
 
 IRQ  Res+Purpose
 ----------------------------------------------
-0    V  Programmable Interval Timer
-1    V  Keyboard
-2    V  Power Management Interface
-3    V  Mass storage
-4    V  Soundcard
-5    R  Reserved
-6    V  Fast I/O
+0    V  Legacy I/O [Programmable Interval Timer]
+1    V  Legacy I/O [Keyboard]
+2    V  Legacy I/O [Power Management Interface]
+3    V  Legacy I/O [Mass storage]
+4    V  Legacy I/O [Soundcard]
+5    R  Slow I/O [Ports 0-2]
+6    V  Fast I/O [Ports 0-2]
 7    V  Cascaded IRQ
 ----------------------------------------------
 
 
----------------
-  Conventions
----------------
+
+   ===== CONVENTIONS =====
+
+
+
+-- Any I/O --
 
 Synchronous command
 -out8 cmd
@@ -86,18 +133,39 @@ Register write
 -out16 value
 [-in8 status (0 - Success, 1 - Invalid Operation, ...)]
 
-Plain interrupt
 
-Interrupt with command
+-- Legacy I/O specific --
+
+Legacy I/O plain interrupt
+- device-specific
+
+Legacy I/O interrupt with command
 -in8 cmd
 [-in16 result]
 
 
------------
-  Devices
------------
+-- Slow I/O specific --
 
-## Programmable Interval Timer
+Slow I/O interrupt with command:
+-in8 dev
+-in8 cmd
+[-in16 result]
+
+
+-- Fast I/O specific --
+
+Fast I/O interrupt with command:
+-in8 dev
+-in8 cmd
+[-in16 result]
+
+
+
+   =====  DEVICES =====
+
+
+
+-- Programmable Interval Timer --
 
 - IRQ 0
 - Port 0
@@ -109,7 +177,7 @@ Interrupt with command
     0x00  Timer Tick
 
 
-## Keyboard
+-- Keyboard --
 
 - IRQ 1
 - Port 1
@@ -122,7 +190,7 @@ Interrupt with command
     0x00  [scancode(16)]  Key Press
 
 
-## Graphics Card
+-- Graphics Card --
 
 - Port 15
 - IRQ 6 (not used)
@@ -141,7 +209,7 @@ Interrupt with command
     0x07  [addr(16)]                    []   Set Framebuffer Address
 
 
-## Mass storage
+-- Mass storage --
 
 - IRQ 3
 - Port 2
@@ -151,7 +219,7 @@ Interrupt with command
     [TODO]
 
 
-## Soundcard
+-- Soundcard --
 
 - IRQ 4
 - Port 3
@@ -161,7 +229,7 @@ Interrupt with command
     [TODO]
 
 
-## Programmable Interrupt Controller
+-- Programmable Interrupt Controller --
 
 - Port 4
 - Registers
@@ -172,7 +240,7 @@ Interrupt with command
     0x02  []    []   EOI - clears irq lines
 
 
-## Power Management Interface
+-- Power Management Interface --
 
 - Port 5
 - IRQ 2
