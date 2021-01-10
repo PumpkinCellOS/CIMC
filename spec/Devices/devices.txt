@@ -73,7 +73,7 @@ PORT  Res+Purpose
 3     V  Legacy I/O [Soundcard]
 4     V  Legacy I/O [Programmable Interrupt Controller]
 5     V  Legacy I/O [Power Management Interface]
-6     -  Legacy I/O [-]
+6     V  Legacy I/O [ROM]
 7     -  Legacy I/O [-]
 8     -  Legacy I/O [-]
 ----------------------------------------------
@@ -262,3 +262,12 @@ Fast I/O interrupt with command:
     ICID  Res  Purpose
     0x00  no   Power-off Button
     0x01  no   Reset Button
+    
+
+-- ROM --
+
+- Port 6
+- Commands
+    CID   Args        Res         Purpose
+    0x02  [addr(16)]  [size(16)]  Load to RAM
+    0x03  []          []          Init Buffer
