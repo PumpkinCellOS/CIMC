@@ -223,22 +223,26 @@ Fast I/O interrupt with command:
     0x01  R   16    id counter (binary int)
     0x02  RW  16    User address (address of current user's location)
 - Commands
-    CID   Args                         Res  Purpose
-    0x02  [id(16)]                     []   show folder elements by id
-    0x03  [id(16)]                     []   delete element by id
-    0x04  [id(16),addr(16),size(16)]   []   read element by id
-    0x05  [id(16),addr(16),size(16)]   []   edit element by id
-    0x06  [fid(16), id(16)]            []   move element by id
+    CID   Args                          Res  Purpose
+    0x02  [id(16)]                      []   show folder elements by id
+    0x03  [id(16)]                      []   delete element by id
+    0x04  [id(16),addr(16),size(16)]    []   read element by id
+    0x05  [id(16),addr(16),size(16)]    []   edit element by id
+    0x06  [fid(16),id(16)]              []   move element by id
     
-    0x08  [name(64)]                   []   get element's id
-    0x09  [id(16)]                     []   get element's name
-    0x0a  [name(64), ext(8), fid(16)]  []   create element
+    0x08  [name(64)]                    []   get element's id
+    0x09  [id(16)]                      []   get element's name
+    0x0a  [name(64),ext(8),fid(16)]     []   create element
     
-    0x12  [name(64)]                   []   show folder elements by name
-    0x13  [name(64)]                   []   delete element with name
-    0x14  [name(64)]                   []   read element by name
-    0x15  [name(64)]                   []   edit element by name
-    0x16  [fid(16), name(64)]          []   move element by name
+    0x12  [name(64)]                    []   show folder elements by name
+    0x13  [name(64)]                    []   delete element with name
+    0x14  [name(64),addr(16),size(16)]  []   read element by name
+    0x15  [name(64),addr(16),size(16)]  []   edit element by name
+    0x16  [fid(16),name(64)]            []   move element by name
+- IRQ Commands
+    ICID  Res       Purpose
+    0x00  [id(16)]  Read Finished
+    0x01  [id(16)]  Write Finished
 
 
 -- Soundcard --
