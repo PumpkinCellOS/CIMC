@@ -108,26 +108,26 @@ popped manually by operating system.
  POP8 flags
  POP16 ip
 
-ISRN  Arg  Mm    Purpose
-------------------------------------------------
-INT0  no   #IM   Invalid Math Operation
-INT1  no   #II   Invalid Instruction
-INT2  no   #R1   Reserved
-INT3  yes  #R2   Reserved (arg is ignored)
-INT4  no   #R3   Reserved
-INT5  yes  #R4   Reserved (arg is ignored)
-INT6  no   #U1   User Accesible #1
-INT7  no   #U2   User Accesible #2
-------------------------------------------------
-IRQ0  no   #IQ0  Device Interrupt #0
-IRQ1  no   #IQ1  Device Interrupt #1
-IRQ2  no   #IQ2  Device Interrupt #2
-IRQ3  no   #IQ3  Device Interrupt #3
-IRQ4  no   #IQ4  Device Interrupt #4
-IRQ5  no   #IQ5  Device Interrupt #5
-IRQ6  no   #IQ6  Device Interrupt #6
-IRQ7  yes  #IQ7  Cascaded Interrupt (reserved)
-------------------------------------------------
+No  Id    Arg  Mm    Purpose
+---------------------------------------------------
+0   INT0  no   #IM   Invalid Math Operation
+1   INT1  no   #II   Invalid Instruction
+2   INT2  no   #R1   Reserved
+3   INT3  yes  #R2   Reserved (arg is ignored)
+4   INT4  no   #R3   Reserved
+5   INT5  yes  #R4   Reserved (arg is ignored)
+6   INT6  no   #U1   User Accesible #1
+7   INT7  no   #U2   User Accesible #2
+---------------------------------------------------
+8   IRQ0  no   #IQ0  Device Interrupt #0
+9   IRQ1  no   #IQ1  Device Interrupt #1
+10  IRQ2  no   #IQ2  Device Interrupt #2
+11  IRQ3  no   #IQ3  Device Interrupt #3
+12  IRQ4  no   #IQ4  Device Interrupt #4
+13  IRQ5  no   #IQ5  Device Interrupt #5
+14  IRQ6  no   #IQ6  Device Interrupt #6
+15  IRQ7  yes  #IQ7  Cascaded Interrupt (reserved)
+---------------------------------------------------
 
 The User Accessible Interrupts can be called using an INT instruction.
 
