@@ -45,6 +45,10 @@
    
 
 rt - repeater ticks
+Res - Result
+IRQ - Interrupt Request
+ISR - Interrupt Service Routine
+I/O - Input/Output
 
 
 
@@ -99,7 +103,7 @@ IRQ  Res+Purpose
 4    V  Legacy I/O [Soundcard]
 5    R  Slow I/O [Ports 0-2]
 6    V  Fast I/O [Ports 0-2]
-7    V  Cascaded IRQ
+7    R  Cascaded IRQ [Reserved]
 ----------------------------------------------
 
 
@@ -192,8 +196,8 @@ Fast I/O interrupt with command:
 
 -- Graphics Card --
 
+- IRQ 6
 - Port 15
-- IRQ 6 (not used)
 - Registers
     RID   Acc Size  Purpose
     0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
@@ -205,11 +209,12 @@ Fast I/O interrupt with command:
     0x03  [x,y(8+8);color(8)]           []   Set Pixel
     0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
     0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect
-    0x06  [x,y(8+8);size(16),op(12+4)]  []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
+    0x06  [x,y(8+8);size(16);op(12+4)]  []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
     0x07  [addr(16)]                    []   Set Framebuffer Address
 
 
 -- Mass storage --
+
 - IRQ 3
 - Port 2
 - Registers
@@ -218,15 +223,22 @@ Fast I/O interrupt with command:
     0x01  R   16    id counter (binary int)
     0x02  RW  16    User address (address of current user's location)
 - Commands
-    CID   Args                                 Res  Purpose
-    0x02  [s(1), id(16) || name(64)]           []   show folder elements by id (s=0) or name (s=1)
-    0x03  [s(1), id(16) || name(64)]           []   delete element with id (s=0) or name (s=1)
-    0x04  [name(64), ext(8), fid(16)]          []   create element
-    0x05  [s(1), id(16) || name(64)]           []   read element with id (s=0) or name (s=1)
-    0x06  [s(1), id(16) || name(64)]           []   edit element with id (s=0) or name (s=1)
-    0x07  [fid(16), s(1), id(16) || name(64)]  []   move element with id (s=0) or name (s=1)
-    0x08  [name(64)]                           []   get element's id
-    0x09  [id(16)]                             []   get element's name
+    CID   Args                         Res  Purpose
+    0x02  [id(16)]                     []   show folder elements by id
+    0x03  [id(16)]                     []   delete element by id
+    0x04  [id(16),addr(16),size(16)]   []   read element by id
+    0x05  [id(16),addr(16),size(16)]   []   edit element by id
+    0x06  [fid(16), id(16)]            []   move element by id
+    
+    0x08  [name(64)]                   []   get element's id
+    0x09  [id(16)]                     []   get element's name
+    0x0a  [name(64), ext(8), fid(16)]  []   create element
+    
+    0x12  [name(64)]                   []   show folder elements by name
+    0x13  [name(64)]                   []   delete element with name
+    0x14  [name(64)]                   []   read element by name
+    0x15  [name(64)]                   []   edit element by name
+    0x16  [fid(16), name(64)]          []   move element by name
 
 
 -- Soundcard --
