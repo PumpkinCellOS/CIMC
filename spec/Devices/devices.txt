@@ -264,8 +264,8 @@ Fast I/O interrupt with command:
 
 Get DI by Device Port:
 -out8 0x9, port
--in8 0x9, status                     // 0000AXCP / Assigned-eXtendedCaps-knownCaps-Present
-[-in8 0x9, caps] if knownCaps        // xxxxVVVV / Version-(x:device specific)
+-in8 0x9, status                     // AXCPVVVV / Version-Assigned-eXtendedCaps-knownCaps-Present
+[-in8 0x9, caps] if knownCaps        // xxxxrrrr / (x:device specific)-(reserved)
 [-in16 0x9, excaps] if eXtendedCaps  // xxxxxxxxxxxxxxxx / (x:device specific)
 
 Get Self-DI:
