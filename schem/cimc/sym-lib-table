@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name cimc)(type Legacy)(uri ${KIPRJMOD}/cimc.lib)(options "")(descr ""))
+)

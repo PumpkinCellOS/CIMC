@@ -1,0 +1,279 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFDEA7C
+P 4400 1050
+F 0 "AS?" H 4400 1465 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 1374 50  0000 C CNN
+F 2 "" H 4400 900 50  0001 C CNN
+F 3 "" H 4400 900 50  0001 C CNN
+	1    4400 1050
+	1    0    0    -1  
+$EndComp
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFDF3D9
+P 4400 1800
+F 0 "AS?" H 4400 2215 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 2124 50  0000 C CNN
+F 2 "" H 4400 1650 50  0001 C CNN
+F 3 "" H 4400 1650 50  0001 C CNN
+	1    4400 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFDFA2D
+P 4400 2550
+F 0 "AS?" H 4400 2965 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 2874 50  0000 C CNN
+F 2 "" H 4400 2400 50  0001 C CNN
+F 3 "" H 4400 2400 50  0001 C CNN
+	1    4400 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFE0032
+P 4400 3300
+F 0 "AS?" H 4400 3715 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 3624 50  0000 C CNN
+F 2 "" H 4400 3150 50  0001 C CNN
+F 3 "" H 4400 3150 50  0001 C CNN
+	1    4400 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFE201D
+P 4400 4800
+F 0 "AS?" H 4400 5215 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 5124 50  0000 C CNN
+F 2 "" H 4400 4650 50  0001 C CNN
+F 3 "" H 4400 4650 50  0001 C CNN
+	1    4400 4800
+	1    0    0    -1  
+$EndComp
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFE2023
+P 4400 5550
+F 0 "AS?" H 4400 5965 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 5874 50  0000 C CNN
+F 2 "" H 4400 5400 50  0001 C CNN
+F 3 "" H 4400 5400 50  0001 C CNN
+	1    4400 5550
+	1    0    0    -1  
+$EndComp
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFE2029
+P 4400 6300
+F 0 "AS?" H 4400 6715 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 6624 50  0000 C CNN
+F 2 "" H 4400 6150 50  0001 C CNN
+F 3 "" H 4400 6150 50  0001 C CNN
+	1    4400 6300
+	1    0    0    -1  
+$EndComp
+Wire Bus Line
+	4800 900  5000 900 
+Wire Bus Line
+	4800 6150 5000 6150
+Wire Bus Line
+	5000 900  5000 1650
+Connection ~ 5000 6150
+Wire Bus Line
+	5000 6150 5000 7750
+Wire Bus Line
+	4800 5400 5000 5400
+Connection ~ 5000 5400
+Wire Bus Line
+	5000 5400 5000 6150
+Wire Bus Line
+	4800 4650 5000 4650
+Connection ~ 5000 4650
+Wire Bus Line
+	5000 4650 5000 5400
+Wire Bus Line
+	4800 3900 5000 3900
+Connection ~ 5000 3900
+Wire Bus Line
+	5000 3900 5000 4650
+Wire Bus Line
+	4800 3150 5000 3150
+Connection ~ 5000 3150
+Wire Bus Line
+	5000 3150 5000 3900
+Wire Bus Line
+	4800 2400 5000 2400
+Connection ~ 5000 2400
+Wire Bus Line
+	5000 2400 5000 3150
+Wire Bus Line
+	4800 1650 5000 1650
+Connection ~ 5000 1650
+Wire Bus Line
+	5000 1650 5000 2400
+Wire Bus Line
+	3800 6800 4950 6800
+Wire Bus Line
+	4950 6800 4950 7750
+Entry Wire Line
+	3800 6250 3900 6350
+Entry Wire Line
+	3800 5500 3900 5600
+Entry Wire Line
+	3800 4750 3900 4850
+Entry Wire Line
+	3800 4000 3900 4100
+Entry Wire Line
+	3800 3250 3900 3350
+Entry Wire Line
+	3800 2500 3900 2600
+Entry Wire Line
+	3800 1750 3900 1850
+Entry Wire Line
+	3800 1000 3900 1100
+Wire Wire Line
+	3900 1100 4000 1100
+Wire Wire Line
+	3900 1850 4000 1850
+Wire Wire Line
+	3900 2600 4000 2600
+Wire Wire Line
+	4000 3350 3900 3350
+Wire Wire Line
+	3900 4100 4000 4100
+Wire Wire Line
+	3900 4850 4000 4850
+Wire Wire Line
+	4000 5600 3900 5600
+Wire Wire Line
+	4000 6350 3900 6350
+Wire Bus Line
+	4900 7750 4900 6850
+Wire Bus Line
+	4900 6850 3750 6850
+Wire Bus Line
+	3750 6850 3750 6150
+Wire Bus Line
+	3750 900  4000 900 
+Wire Bus Line
+	4000 1650 3750 1650
+Connection ~ 3750 1650
+Wire Bus Line
+	3750 1650 3750 900 
+Wire Bus Line
+	4000 2400 3750 2400
+Connection ~ 3750 2400
+Wire Bus Line
+	3750 2400 3750 1650
+Wire Bus Line
+	4000 3900 3750 3900
+Connection ~ 3750 3900
+Wire Bus Line
+	3750 3900 3750 3150
+Wire Bus Line
+	4000 4650 3750 4650
+Connection ~ 3750 4650
+Wire Bus Line
+	3750 4650 3750 3900
+Wire Bus Line
+	4000 5400 3750 5400
+Connection ~ 3750 5400
+Wire Bus Line
+	3750 5400 3750 4650
+Wire Bus Line
+	4000 6150 3750 6150
+Connection ~ 3750 6150
+Wire Bus Line
+	3750 6150 3750 5400
+Wire Bus Line
+	3700 950  3700 1700
+Wire Bus Line
+	4000 6250 4000 6200
+Wire Bus Line
+	4000 6200 3700 6200
+Connection ~ 3700 6200
+Wire Bus Line
+	3700 6200 3700 7750
+Wire Bus Line
+	4000 5500 4000 5450
+Wire Bus Line
+	4000 5450 3700 5450
+Connection ~ 3700 5450
+Wire Bus Line
+	3700 5450 3700 6200
+Wire Bus Line
+	4000 4750 4000 4700
+Wire Bus Line
+	4000 4700 3700 4700
+Wire Bus Line
+	3700 4700 3700 5450
+Wire Bus Line
+	4000 4000 4000 3950
+Wire Bus Line
+	4000 3250 4000 3200
+Wire Bus Line
+	4000 3200 3700 3200
+Wire Bus Line
+	4000 3150 3750 3150
+Connection ~ 3750 3150
+Wire Bus Line
+	3750 3150 3750 2400
+Wire Bus Line
+	4000 2500 4000 2450
+Wire Bus Line
+	4000 2450 3700 2450
+Connection ~ 3700 2450
+Wire Bus Line
+	3700 2450 3700 3200
+Wire Bus Line
+	4000 1750 4000 1700
+Wire Bus Line
+	4000 1700 3700 1700
+Connection ~ 3700 1700
+Wire Bus Line
+	3700 1700 3700 2450
+Wire Bus Line
+	4000 1000 4000 950 
+Wire Bus Line
+	3700 950  4000 950 
+$Comp
+L cimc:ALU-Segment AS?
+U 1 1 5FFE2017
+P 4400 4050
+F 0 "AS?" H 4400 4465 50  0000 C CNN
+F 1 "ALU-Segment" H 4400 4374 50  0000 C CNN
+F 2 "" H 4400 3900 50  0001 C CNN
+F 3 "" H 4400 3900 50  0001 C CNN
+	1    4400 4050
+	1    0    0    -1  
+$EndComp
+Connection ~ 3700 3200
+Connection ~ 3700 4700
+Wire Bus Line
+	3800 1000 3800 6800
+Wire Bus Line
+	3700 3200 3700 3950
+Wire Bus Line
+	3700 3950 3700 4700
+Connection ~ 3700 3950
+Wire Bus Line
+	4000 3950 3700 3950
+$EndSCHEMATC

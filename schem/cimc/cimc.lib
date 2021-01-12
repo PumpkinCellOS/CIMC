@@ -1,0 +1,33 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# ALU-Segment
+#
+DEF ALU-Segment AS 0 40 Y Y 1 F N
+F0 "AS" 0 -150 50 H V C CNN
+F1 "ALU-Segment" 0 -150 50 H V C CNN
+F2 "" 0 -150 50 H I C CNN
+F3 "" 0 -150 50 H I C CNN
+DRAW
+S -300 250 300 -250 0 1 0 N
+X ENABLE ~ -400 -50 100 R 50 50 1 1 I
+X IN ~ 400 150 100 L 50 50 1 1 I
+X OUT ~ -400 150 100 R 50 50 1 1 O
+X REG ~ -400 50 100 R 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# RegStor
+#
+DEF RegStor RS 0 40 Y Y 1 F N
+F0 "RS" 0 -50 50 H V C CNN
+F1 "RegStor" 0 -50 50 H V C CNN
+F2 "" 0 -50 50 H I C CNN
+F3 "" 0 -50 50 H I C CNN
+DRAW
+S -150 150 150 -150 0 1 0 N
+X REG ~ 250 50 100 L 50 50 1 1 O
+ENDDRAW
+ENDDEF
+#
+#End Library
