@@ -351,8 +351,7 @@ DIV a, b -> Divide from 'a' to 'b'
  C++  a /= b;
  Saves modulus (a %= b) to DX
  
-Note: This code is not implemented in prototype.
-Using the opcode always triggers INT0.
+Using the opcode always triggers INT0 if b == 0
 Reserved Opcode Range: /7 (2 insn)
 
 Op  Mm  Args                AddB
