@@ -71,3 +71,11 @@ NOTE: These routines should NOT be used directly. They are used mainly by device
 - *Arguments*:
     * `fd`: A device descriptor.
     * `handler`: A function `void handler(u8 cmd, u16 result)` that gets called when IRQ is raised.
+    
+### di_get_self
+- TODO
+- *Purpose*: Loads Self Device Information. It's equivalent for di_get_by_port(0x9).
+
+### di_get_by_port
+- TODO
+- *Purpose*: Loads Device Information for device conencted to specified `port`.
