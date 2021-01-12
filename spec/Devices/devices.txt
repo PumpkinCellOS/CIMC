@@ -56,13 +56,97 @@ I/O - Input/Output
 
 
 
-The I/O protocol is a half-duplex format for doing I/O
-operations. There are 2 types of I/O users:
-- Master - controls I/O operations
-- Slave - responds to master's signals.
-   
-   
-   
+The I/O protocol is a half-duplex, parallel interface for 
+doing I/O operations. There are 2 types of I/O users:
+- Master - controls I/O operations; typically CPU
+- Slave - responds to master's signals; typically devices.
+
+
+-- Physical overview --
+
+ Master                   Slave
+ ,---,                    ,---,
+ |   |=<=== DAT0 IN ====<=|   |
+ |   |=>=== DAT0 OUT ===>=|   |
+ |   |=<=== DAT1 IN ====<=|   |
+ |   |=>=== DAT1 OUT ===>=|   |
+ |   |-<--- IN FIN -----<-|   |
+ |   |->--- OUT FIN ---->-|   |
+ |   |->--- IN REQ ----->-|   |
+ |   |->---- MODE ------>-|   |
+ '---'                    '---'
+
+DAT0 IN - 8-bit Input data (LSB)
+DAT0 OUT - 8-bit Output data (LSB)
+DAT1 IN - 8-bit Input data (MSB)
+DAT1 OUT - 8-bit Output data (MSB)
+IN FIN - Whether the slave has finished transmitting or receiving data.
+OUT FIN - Whether the master has finished transmitting or receiving data.
+IN RQ - Master's request for input
+MODE - If 0, slave will send data only through DAT0 line. (for 8-bit I/O)
+ 
+The entire bus created by the lines above is named
+'data bus' (DATA). It is simply drawn as below:
+
+ Master                Slave
+ ,---,                ,---,
+ |   |=<>== DATA ==<>=|   |
+ '---'                '---'
+
+ 
+-- OUT procedure --
+
+1. If 16-bit OUT, Master sets MODE bit.
+2. Master sets DAT0 OUT lines to transmitted value's LSB.
+3. If 16-bit OUT, Master sets DAT1 OUT to transmitted value's MSB.
+4. Master sets OUT FIN line to indicate that transmision has finished.
+5. Slave sets IN FIN line to inform Master that they successfully received the data.
+6. Master clears OUT FIN and MODE line. Slave clears IN FIN line.
+
+
+-- IN procedure --
+
+1. If 16-bit IN, Master sets MODE bit.
+2. Master sets IN REQ line to request input from Slave.
+3. Slave sets DAT0 OUT lines to transmitted value's LSB.
+4. If MODE is set, Slave sets DAT1 OUT to transmitted value's MSB.
+5. Slave sets IN FIN line to indicate that transmision has finished.
+6. Master sets OUT FIN line to inform Slave that they successfully received the data.
+7. Slave clears IN FIN line. Master clears OUT FIN, MODE and IN REQ line.
+
+
+-- I/O switch --
+
+An I/O switch expands 1 master line to several slave's lines.
+It needs an additional 8-bit PORT line for select destination 
+slave:
+                 
+                       Switch
+ Master                ,---,    ,-,
+ ,---,                 |   |=<>=|0|
+ |   |=<>== DATA ===<>=|   |    '-'
+ |   |=>=== PORT ====>=|   |    ,-,
+ '---'                 |   |=<>=|1|
+                       '---'    '-'
+ 
+The switches can be connected cascading. The port line must
+be wider:
+                 
+                      Sw. layer1          Sw. layer2         Slaves
+ Master                 ,---,               ,--,
+                        |   |=<>= DATA ==<>=|0 |=<>= DATA =<>=[00]
+ ,---,                  | ,-|=>== PORT1 ==>=|  |=<>= DATA =<>=[01]
+ |   |=<>== DATA ====<>=| | |               '--'
+ |   |=>=== PORT01 ===>=|-| |               ,--,
+ '---'                  | | |=<>= DATA ==<>=|1 |=<>= DATA =<>=[10]
+                        | '-|=>== PORT1 ==>=|  |=<>= DATA =<>=[11]
+                        '---'               '--'
+
+In the above example, the PORT0 line is used to address 2 layer2
+switches and PORT1 to 2 slaves for each layer2 switch. The resulting
+PORT01 line is 16-bit wide.
+
+
    ===== I/O PORTS & IRQs =====
    
    
