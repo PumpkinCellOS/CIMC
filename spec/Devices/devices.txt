@@ -52,6 +52,17 @@ I/O - Input/Output
 
 
 
+   ===== I/O PROTOCOL =====
+
+
+
+The I/O protocol is a half-duplex format for doing I/O
+operations. There are 2 types of I/O users:
+- Master - controls I/O operations
+- Slave - responds to master's signals.
+   
+   
+   
    ===== I/O PORTS & IRQs =====
    
    
@@ -144,32 +155,41 @@ Legacy I/O plain interrupt
 - device-specific
 
 Legacy I/O interrupt with command
--in8 cmd
-[-in16 result]
+-in8 port, cmd
+[-in16 port, result]
 
 
 -- Slow I/O specific --
 
 Slow I/O interrupt with command:
--in8 dev
--in8 cmd
-[-in16 result]
+-in8 port, dev
+-in8 port, cmd
+[-in16 port, result]
 
 
 -- Fast I/O specific --
 
 Fast I/O interrupt with command:
--in8 dev
--in8 cmd
-[-in16 result]
+-in8 port, dev
+-in8 port, cmd
+[-in16 port, result]
 
 
 -- Device Info --
 
-Device Info Command:
--out8 cmd
-[-out8 args...]
-[-in16 result]
+
+Get DI by Device Port:
+-out8 0x9, port
+-in8 0x9, status                     // 0000AXCP / Assigned-eXtendedCaps-knownCaps-Present
+[-in8 0x9, caps] if knownCaps        // VVVVxxxx / Version-(x:device specific)
+[-in16 0x9, excaps] if eXtendedCaps  // xxxxxxxxxxxxxxxx / (x:device specific)
+
+Get Self-DI:
+-out 0x9, 0x9
+-in8 0x9, status   // 0000101P / Present
+-in8 0x9, caps    // VVVV00000000000r / Version-reserved for DI2
+
+Prototype DI version: 0x1 (1.0).
 
 
 
@@ -206,6 +226,11 @@ Device Info Command:
 
 - IRQ 6
 - Port 15
+- DI Capabilities
+    - 0
+    - 1  #DB  Double Buffer
+    - 1  #FO  Fill Operations
+    - 1  #VM  Graphics Video Mode
 - Registers
     RID   Acc Size  Purpose
     0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
@@ -225,6 +250,11 @@ Device Info Command:
 
 - IRQ 3
 - Port 2
+- DI Capabilities
+    - 0
+    - 0
+    - 0  
+    - 1  #DN  Directory-unique Names
 - Registers
     RID   Acc Size  Purpose
     0x00  R   16    Filled storage (in B)
@@ -259,6 +289,11 @@ Device Info Command:
 
 - IRQ 4
 - Port 3
+- DI Capabilities
+    - 0
+    - 0
+    - 0  
+    - 1  #MC  Multi-Channel
 - Registers
     RID   Acc Size  Purpose
     0x00  R   8     Max Channel Count
@@ -267,7 +302,7 @@ Device Info Command:
     0x03  R   16    Buffer Size per Sound
 - Commands
     CID   Args                            Res  Purpose
-    0x02  [addr(16);size(16);channel(8)]  []   Load Sound from RAM(addr:size) to BUF[soundid]
+    0x02  [addr(16);size(16);channel(8)]  []   Load Sound from RAM(addr:size) to BUF[channel]. If not #MC, do NOT give `channel`.
     0x03  [chmask(8)]                     []   Start Playing
     0x04  [chmask(8)]                     []   Stop Playing
     0x05  [chmask(8)]                     []   Pause Playing
@@ -288,6 +323,11 @@ Device Info Command:
 
 - Port 5
 - IRQ 2
+- DI Capabilities
+    - 0
+    - 1       Reserved (alternatively for PMI2)
+    - 1  #SL  Allow Sleep
+    - 1  #RB  Allow Reboot
 - Commands
     CID   Args  Purpose
     0x02  []    Shutdown
