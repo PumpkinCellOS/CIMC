@@ -265,13 +265,13 @@ Fast I/O interrupt with command:
 Get DI by Device Port:
 -out8 0x9, port
 -in8 0x9, status                     // 0000AXCP / Assigned-eXtendedCaps-knownCaps-Present
-[-in8 0x9, caps] if knownCaps        // VVVVxxxx / Version-(x:device specific)
+[-in8 0x9, caps] if knownCaps        // xxxxVVVV / Version-(x:device specific)
 [-in16 0x9, excaps] if eXtendedCaps  // xxxxxxxxxxxxxxxx / (x:device specific)
 
 Get Self-DI:
 -out 0x9, 0x9
 -in8 0x9, status   // 0000101P / Present
--in8 0x9, caps    // VVVV00000000000r / Version-reserved for DI2
+-in8 0x9, caps    // 00000000000rVVVV / (reserved for DI2)-Version
 
 Prototype DI version: 0x1 (1.0).
 
