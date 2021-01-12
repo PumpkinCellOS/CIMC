@@ -116,12 +116,12 @@ IRQ  Res+Purpose
 
 Synchronous command
 -out8 cmd
--out16 args...
+[-out16 args...]
 [-in16 results]
 
 Asynchronous command
 -out8 cmd
--outx args...
+[-out16 args...]
 irq
 -in8 cmd
 [-in16 results]
@@ -164,6 +164,14 @@ Fast I/O interrupt with command:
 [-in16 result]
 
 
+-- Device Info --
+
+Device Info Command:
+-out8 cmd
+[-out8 args...]
+[-in16 result]
+
+
 
    =====  DEVICES =====
 
@@ -202,6 +210,7 @@ Fast I/O interrupt with command:
     RID   Acc Size  Purpose
     0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
     0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 64x128)
+    0x02  RW  16    Framebuffer Address
 - Commands
     color - (0-Black,1-White or ASCII character)
     CID   Args                          Res  Purpose
@@ -209,8 +218,7 @@ Fast I/O interrupt with command:
     0x03  [x,y(8+8);color(8)]           []   Set Pixel
     0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
     0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect
-    0x06  [x,y(8+8);size(16);op(12+4)]  []   Fill Framebuffer from Memory [op: 0(=) 1(&) 2(|)]
-    0x07  [addr(16)]                    []   Set Framebuffer Address
+    0x06  [x,y(8+8);size(16);op(8)]     []   Fill Framebuffer from Memory RAM[fbaddr:size] using op: 0(=) 1(&) 2(|) 3(^)
 
 
 -- Mass storage --
@@ -223,22 +231,24 @@ Fast I/O interrupt with command:
     0x01  R   16    id counter (binary int)
     0x02  RW  16    User address (address of current user's location)
 - Commands
-    CID   Args                          Res  Purpose
-    0x02  [id(16)]                      []   show folder elements by id
-    0x03  [id(16)]                      []   delete element by id
-    0x04  [id(16),addr(16),size(16)]    []   read element by id
-    0x05  [id(16),addr(16),size(16)]    []   edit element by id
-    0x06  [fid(16),id(16)]              []   move element by id
+    CID   Args                            Res  Purpose
+    0x02  [id(16)]                        []   show folder elements by id
+    0x03  [id(16)]                        []   delete element by id
+    0x04  [id(16);addr(16);size(16)]      []   read element by id to RAM[addr:size]
+    0x05  [id(16);addr(16);size(16)]      []   edit element by id to RAM[addr:size]
+    0x06  [fid(16);id(16)]                []   move element by id
     
-    0x08  [name(64)]                    []   get element's id
-    0x09  [id(16)]                      []   get element's name
-    0x0a  [name(64),ext(8),fid(16)]     []   create element
+    0x08  [name(4*16)]                    []   get element's id
+    0x09  [id(16)]                        []   get element's name
+    0x0a  [name(4*16);ext(8);fid(16)]     []   create element
     
-    0x12  [name(64)]                    []   show folder elements by name
-    0x13  [name(64)]                    []   delete element with name
-    0x14  [name(64),addr(16),size(16)]  []   read element by name
-    0x15  [name(64),addr(16),size(16)]  []   edit element by name
-    0x16  [fid(16),name(64)]            []   move element by name
+    0x12  [name(4*16)]                    []   show folder elements by name
+    0x13  [name(4*16)]                    []   delete element with name
+    0x14  [name(4*16);addr(16);size(16)]  []   read element by name to RAM[addr:size]
+    0x15  [name(4*16);addr(16);size(16)]  []   edit element by name to RAM[addr:size]
+    0x16  [fid(16);name(4*16)]            []   move element by name
+    
+    0x17  [id(16);newname(4*16)]          []   rename element by id to newname
 - IRQ Commands
     ICID  Res       Purpose
     0x00  [id(16)]  Read Finished
@@ -250,9 +260,17 @@ Fast I/O interrupt with command:
 - IRQ 4
 - Port 3
 - Registers
-    [TODO]
+    RID   Acc Size  Purpose
+    0x00  R   8     Max Channel Count
+    0x01  RW  8     Channel Mask (used to mute channels)
+    0x02  RW  8     Play Mode (0000000L / Loop)
+    0x03  R   16    Buffer Size per Sound
 - Commands
-    [TODO]
+    CID   Args                            Res  Purpose
+    0x02  [addr(16);size(16);channel(8)]  []   Load Sound from RAM(addr:size) to BUF[soundid]
+    0x03  [chmask(8)]                     []   Start Playing
+    0x04  [chmask(8)]                     []   Stop Playing
+    0x05  [chmask(8)]                     []   Pause Playing
 
 
 -- Programmable Interrupt Controller --

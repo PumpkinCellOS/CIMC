@@ -21,23 +21,25 @@ NOTE: These routines should NOT be used directly. They are used mainly by device
     * `fd`: A device descriptor.
 
 ### device_cmd
-- *Synopsis*: `u16 device_cmd(u8 fd, u8 cmd, u8 argc, u16* argv);`
+- *Synopsis*: `u16 device_cmd(u8 fd, u8 cmd, u8 argc, u16 argt, ...);`
 - *Purpose*: Performs a command on device descriptor.
 - *Arguments*:
     * `fd`: A device descriptor.
     * `cmd`: A command to perform.
     * `argc`: \[0000yyyy\]  y-argument count.
-    * `argv`: Arguments for operation (count specified by `argc`).
+    * `argt`: Argument type (0: 8-bit, 1: 16-bit)
+    * `...`: Arguments for operation (count specified by `argc`).
 - *Return value*: A result, or 0 if no result (see reference)
 
 ### device_cmd_async
-- *Synopsis*: `void device_cmd_async(u8 fd, u8 cmd, u8 argc, u16* argv);`
+- *Synopsis*: `void device_cmd_async(u8 fd, u8 cmd, u8 argc, u16 argt, ...);`
 - *Purpose*: Perform an asynchronous command on device descriptor. Result is passed to function specified with `irqc_handler` syscall.
 - *Arguments*:
     * `fd`: A device descriptor.
     * `cmd`: A command to perform.
     * `argc`: \[0000yyyy\]  y-argument count.
-    * `argv`: Arguments for operation (count specified by `argc`).
+    * `argt`: Argument type (0: 8-bit, 1: 16-bit)
+    * `...`: Arguments for operation (count specified by `argc`).
     
 ### device_read_reg
 - *Synopsis*: `u16 device_read_reg(u8 fd, u8 rid);`
