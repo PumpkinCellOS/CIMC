@@ -464,16 +464,17 @@ Op  Mm   AddB
 INT a -> Interrupt
  C++ int(a)
 
-Reserved Opcode Range: /8 (1 insn)
+Reserved Opcode Range: /7 (2 insn)
 
 Note: The user-callable interrupts are #U1 and #U2.
 
-Op  Mm       AddB
-7A  INT isr  2(a)
+Op  Mm
+7A  INT #U1
+7B  INT #U2
  
 ----------------------------------------------
 Reserved Opcodes
-7B, 7C, 7D, 7E, 7F
+7C, 7D, 7E, 7F
 
 ----------------------------------------------
 IN8 a, b -> 8-bit Input from Port
