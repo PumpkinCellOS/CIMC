@@ -72,10 +72,45 @@ NOTE: These routines should NOT be used directly. They are used mainly by device
     * `fd`: A device descriptor.
     * `handler`: A function `void handler(u8 cmd, u16 result)` that gets called when IRQ is raised.
     
+### di_info Structure
+- *Synopsis*:
+```
+
+#define DI_STATUS_PRESENT      0x10
+#define DI_STATUS_KNOWN_CAPS   0x20
+#define DI_STATUS_EXT_CAPS     0x40
+#define DI_STATUS_ASSIGNED     0x80
+#define DI_STATUS_VERSION_MASK 0x0F
+
+struct di_info
+{
+    u8 di_status;
+    u8 di_caps;
+    u16 di_extcaps;
+};
+```
+- *Purpose*: The structure is used by `di_*` function group to store Device Information data.
+    
 ### di_get_self
-- TODO
-- *Purpose*: Loads Self Device Information. It's equivalent for di_get_by_port(0x9).
+- *Synopsis*:
+```
+#define DISELF_CAPS_VERSION_MASK 0x0F
+#define DISELF_DI2               0x10
+
+u8 di_get_self(di_info* data)
+```
+- *Purpose*: Loads Self Device Information. It's equivalent to `int di_get_by_port(0x9, data)`.
 
 ### di_get_by_port
-- TODO
-- *Purpose*: Loads Device Information for device conencted to specified `port`.
+- *Synopsis*: `u8 di_get_by_port(u8 port, di_info* data)`
+- *Purpose*: Loads Device Information for device connected to specified `port`.
+- *Arguments*:
+    * `port`: Device Port.
+    * `data`: Pointer to `di_info` structure.
+
+### di_get
+- *Synopsis*: `u8 di_get(u8 fd, di_info* data)`
+- *Purpose*: Loads Device Information for device with opened device descriptor.
+- *Arguments*:
+    * `fd`: Device descriptor.
+    * `data`: Pointer to `di_info` structure.
