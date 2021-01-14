@@ -147,6 +147,7 @@ switches and PORT1 to 2 slaves for each layer2 switch. The resulting
 PORT01 line is 16-bit wide.
 
 
+
    ===== I/O PORTS & IRQs =====
    
    
@@ -203,7 +204,7 @@ IRQ  Res+Purpose
 
 
 
-   ===== CONVENTIONS =====
+   ===== I/O CONVENTIONS FOR DEVICES =====
 
 
 
@@ -260,7 +261,6 @@ Fast I/O interrupt with command:
 
 
 -- Device Info --
-
 
 Get DI by Device Port:
 -out8 0x9, port
