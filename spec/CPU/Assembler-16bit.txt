@@ -61,7 +61,8 @@ ia - Instruction Address
 -- Instruction Loader --
 
            ,-----,
-    Ack  --|     |    D0   --|     | 
+    Ack  --|     |    
+    D0   --|     | 
     D1   --|     | 
     D2   --|     | 
     D3   --|     | 
