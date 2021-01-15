@@ -6,8 +6,8 @@ Oto spis bloków składających się na pamięć:
 
 000 - blok systemowy
 001 - blok dźwięku
-010 - I blok aplikacji
-011 - II blok aplikacji
+010 - blok aplikacji
+011 - rejestr nazw
 100 - I blok danych
 101 - II blok danych
 110 - III blok danych
