@@ -112,3 +112,11 @@ Do przechowywania symboli używanych w komputerze
 pliki *.obj
 ID - 1111 0011 - F3
 Do przechowywania plików obiektowych używanych przy kompilacji
+
+pliki *.lnk
+ID - 0101 0101 - 55
+Przechowuje lokalizację innego pliku (dowiązanie symboliczne)
+
+foldery
+ID - 1010 1010 - AA
+Do przechowywania innych plików

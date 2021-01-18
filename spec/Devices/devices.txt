@@ -174,7 +174,7 @@ PORT  Res+Purpose
 4     V  Legacy I/O [Programmable Interrupt Controller]
 5     V  Legacy I/O [Power Management Interface]
 6     V  Legacy I/O [ROM]
-7     -  Legacy I/O [-]
+7     V  Legacy I/O [Real Time Clock]
 8     -  Legacy I/O [-]
 ----------------------------------------------
 9     R  Device Info
@@ -286,8 +286,9 @@ Prototype DI version: 0x1 (1.0).
 - IRQ 0
 - Port 0
 - Registers
-    RID   Size  Purpose
-    0x00  8     Interval in rt
+    RID   Size Acc  Purpose
+    0x00  8    RW   Interval in rt
+    0x01  16   R    Ticks since boot
 - IRQs
     IRQN  Purpose
     0x00  Timer Tick
@@ -429,3 +430,12 @@ Prototype DI version: 0x1 (1.0).
     CID   Args        Res         Purpose
     0x02  [addr(16)]  [size(16)]  Load to RAM
     0x03  []          []          Init Buffer
+
+
+-- Real Time Clock --
+
+- Port 7
+- Registers
+    RID   Acc Size  Purpose
+    0x00  RW  16    MC Days
+    0x01  RW  16    MC Ticks

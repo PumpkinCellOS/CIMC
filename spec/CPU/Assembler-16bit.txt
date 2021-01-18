@@ -151,6 +151,8 @@ cx  16b  Counter           [[-ch-] [-cl-]]
 dx  16b  Data              [[-dh-] [-dl-]]
 sp  16b  Stack pointer
 bp  16b  Base pointer
+// TODO: some basics of vm
+// TODO: cycle counting ??
 
 
 -- Control Registers --
