@@ -1,0 +1,16 @@
+----------------------------------------------
+Executable format
+
+8 bit magic (0x00)
+8 bit arch (0x00 - cx16)
+16 bit entry point
+1 bit exec type (0-executable, 1-library)
+7 bit padding
+8 bit section count (x)
+8x bit 
+------------------- entry point
+     Name    Access  Purpose
+.... .text   --x     Executable code
+.... .rodata r--     Read-only data (e.g hardcoded strings)
+.... .data   rw-     Initialized memory space
+.... .bss    rw-     Non-initialized memory space

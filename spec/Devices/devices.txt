@@ -342,7 +342,7 @@ Prototype DI version: 0x1 (1.0).
 - Registers
     RID   Acc Size  Purpose
     0x00  R   16    Filled storage (in B)
-    0x01  R   16    id counter (binary int)
+    0x01  R   16    ID counter (binary int)
     0x02  RW  16    User address (address of current user's location)
 - Commands
     CID   Args                            Res  Purpose

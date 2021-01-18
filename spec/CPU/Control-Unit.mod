@@ -1,3 +1,22 @@
+import mod cpu::insn_loader
+
+/*
+mod insn_loader {
+    public reg(16) m_ip = 0; // instruction pointer
+    
+    trig do_request(out bus(8) insn) {
+        // TODO: Buffering ??
+        // TODO: Load from ROM ??
+        insn = wait cpu::ram_controller.load_addr(m_ip);
+        m_ip++;
+    }
+    
+    trig set_ip(in bus(16) new_ip) {
+        m_ip = new_ip;
+    }
+}
+*/
+
 mod cpu::control_unit
 {
     membuf(16, 16) m_ivt; // interrupt vector table
@@ -10,23 +29,21 @@ mod cpu::control_unit
     reg(16) m_irq_state; // status of interrupt
     reg(8) m_insn_buf;
     reg(8) m_arg_buf[2];
+    reg(16) m_interrupt_arg;
+    
+    public enum FLAGS {
+        IF,
+        GF,
+        OF,
+        ZF,
+        IIF
+    }
+
+    reg(8) m_flags; // Flags register (Interrupt, Greater, Overflow, Zero, In Interrupt)
     
     public enum(8) INSTRUCTIONS {
         DBG = 0x76 { need_arg = 2 },
         HLT = 0x77 { need_arg = 0 }
-    }
-
-    mod insn_loader {
-        reg(16) m_ip = 0; // instruction pointer
-        
-        trig do_request(out bus(8) insn) {
-            insn = wait cpu::ram_controller.load_addr(m_ip);
-            m_ip++;
-        }
-        
-        trig set_ip(in bus(16) new_ip) {
-            m_ip = new_ip;
-        }
     }
     
     sync trig interrupt_check(out bus(4) irqid) : flag {
@@ -37,6 +54,12 @@ mod cpu::control_unit
             }
         }
         return 0;
+    }
+    
+    trig raise_irq(const in bus(4) isr, in bus(16) arg) {
+        if(arg)
+            m_interrupt_arg = arg;
+        m_irq_state[isr] = 1;
     }
 
     trig cycle() {
@@ -83,11 +106,16 @@ mod cpu::control_unit
         }
         
         // Interrupt Check (if arg not checked)
-        // TODO: Implement stack operations when isr is called!
-        if(m_sti) {
+        if(m_flags[FLAGS.IIF]) {
             tmp bus(4) irqid;
             if(interrupt_check(irqid)) {
-                insn_loader.set_ip(m_ivt[irqid])
+                wait stack.push(insn_loader.m_ip);
+                wait stack.push(m_flags);
+                
+                if(m_interrupt_arg);
+                    wait stack.push(m_interrupt_arg);
+                    
+                insn_loader.set_ip(m_ivt[irqid]);
                 m_in_irq = true;
                 return;
             }

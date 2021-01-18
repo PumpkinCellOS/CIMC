@@ -269,11 +269,11 @@ Op  Mm  Args       AddB
 48  CMP ax =? dx
 49  CMP bx =? dx
 4A  CMP cx =? dx
-4B  CMP ax =? val  2(b)
-4C  CMP ax =? mem  2(b)
-4D  .. Reserved ..
-4E  .. Reserved ..
-4F  .. Reserved ..
+4B  .. reserved ..
+4C  CMP ax =? val  2(b)
+4D  CMP bx =? val  2(b)
+4E  CMP cx =? val  2(b)
+4F  CMP dx =? val  2(b)
 
 ----------------------------------------------
 PUSH a -> Push 'a' to Stack
@@ -356,8 +356,8 @@ Using the opcode always triggers INT0 if b == 0
 Reserved Opcode Range: /7 (2 insn)
 
 Op  Mm  Args                AddB
-6A  DIV ax:cx </ val %> dx  2(b)
-6B  DIV ax:cx </ bx %> dx
+6A  DIV ax </ val %> dx  2(b)
+6B  DIV ax </ bx %> dx
 
 ----------------------------------------------
 AND a, b -> Byte AND from 'a' to 'b'
@@ -403,10 +403,11 @@ Op  Mm   Notes
 CALL a -> Call Procedure
  C++  (*a)(); [*sp = ip; jmp(a);]
  
-Reserved Opcode Range: /8 (1 insn)
+Reserved Opcode Range: /7 (2 insn)
 
 Op  Mm   Args  AddB
 74  CALL ia    2(a)
+75  CALL ax    N
 
 ----------------------------------------------
 LIVT a -> Load Interrupt Vector Table
@@ -422,7 +423,7 @@ IVT structure:
 +----+----+---------+---------+
 
 Op  Mm   Args  AddB
-75  LIVT ia    2(a)
+76  LIVT ia    2(a)
 
 ----------------------------------------------
 DBG -> Debug Print
@@ -436,7 +437,7 @@ The argument is used for debugging control unit and
 is ignored.
 
 Op  Mm   AddB
-76  DBG  2(ignored)
+77  DBG  2(ignored)
 
 ----------------------------------------------
 HLT a -> Halt Processor
@@ -445,7 +446,7 @@ HLT a -> Halt Processor
 Reserved Opcode Range: /8 (1 insn)
 
 Op  Mm
-77  HLT
+78  HLT
 
 ----------------------------------------------
 EXT ... -> Extended Operations
@@ -458,8 +459,8 @@ Instruction" trap.
 Reserved Opcode Range: /7 (2 insn)
 
 Op  Mm   AddB
-78  ...  1(...)
-79  ...  2(...)
+79  ...  1(...)
+7A  ...  2(...)
 
 ----------------------------------------------
 INT a -> Interrupt
@@ -470,12 +471,35 @@ Reserved Opcode Range: /7 (2 insn)
 Note: The user-callable interrupts are #U1 and #U2.
 
 Op  Mm
-7A  INT #U1
-7B  INT #U2
- 
+7B  INT #U1
+
 ----------------------------------------------
-Reserved Opcodes
-7C, 7D, 7E, 7F
+NEG a -> Byte/Logic Negate 'a'
+ C++  a = !a; a = -a
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm  Args  Notes
+7C  NEG ax    Logic Negate
+7D  NOT ax    Arithmetic Negate
+
+----------------------------------------------
+STI a -> Set Interrupt Flag
+ C++  if = true;
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm
+7E  STI
+
+----------------------------------------------
+CLI a -> Clear Interrupt Flag
+ C++  if = false;
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm
+7F  CLI
 
 ----------------------------------------------
 IN8 a, b -> 8-bit Input from Port
@@ -488,6 +512,65 @@ Op  Mm   Args
 8x  IN8  al <- *x
  
 ----------------------------------------------
-Opcodes not listed here (90-FF) are all reserved.
+INC a -> Increment a
+ C++  a++;
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm
+90  INC ax
+
+----------------------------------------------
+DEC a -> Decrement a
+ C++  a--;
+ 
+Reserved Opcode Range: /8 (1 insn)
+
+Op  Mm
+91  DEC ax
+
+----------------------------------------------
+XOR a, b -> Exclusive OR from 'a' to 'b'
+ C++  a ^= b;
+ 
+Reserved Opcode Range: /7 (2 insn)
+
+Op  Mm   Args       AddB  Notes
+92  XOR  ax <^ val  2(b)
+93  XOR  ax <^ bx   N
+94  XOR  ax <^ ax   N     Clear ax
+95  XOR  bx <^ bx   N     Clear bx
+96  XOR  cx <^ cx   N     Clear cx
+97  XOR  dx <^ dx   N     Clear dx
+
+----------------------------------------------
+98-9F -- Reserved
+
+----------------------------------------------
+XCHG a, b -> Exchange Values
+ C++  swap(a, b);
+
+Reserved Opcode Range: /4 (16 insn)
+ 
+Op  Mm   Args       AddB  Notes
+A0  XCHG ax <> ax   N     Debug
+A1  XCHG ax <> bx   N
+A2  XCHG ax <> cx   N
+A3  XCHG ax <> dx   N
+A4  XCHG bx <> ax   N
+A5  XCHG bx <> bx   N     Debug
+A6  XCHG bx <> cx   N
+A7  XCHG bx <> dx   N
+A8  XCHG cx <> ax   N
+A9  XCHG cx <> bx   N
+AA  XCHG cx <> cx   N     Debug
+AB  XCHG cx <> dx   N
+AC  XCHG dx <> ax   N
+AD  XCHG dx <> bx   N
+AE  XCHG cx <> cx   N
+AF  XCHG dx <> dx   N     Debug
+
+----------------------------------------------
+Opcodes not listed here (B0-FF) are all reserved.
 If they are called, an Invalid Instruction trap
 is triggered.
