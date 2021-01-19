@@ -218,34 +218,30 @@ Physical address is calculated using following formula:
 ((PDaddr[PT].addr)[P]).addr
 
 
-               0       4     7 8              16
-               +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
-               | PTidx |Pidx |  Page-rel addr  |  Virtual address
-               +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
-                   |       |           |
-                  idx      |           |
-                   |       |           |
-        ,----------+-----, |           |
-[c0]-A>-| Page Directory | |           |
-        '-------+--------' |           |
-                |          |           |
-                |         idx          |
-                |          |           |
-                |    ,-----+------,    |
-                '-A>-| Page Table |    |
-                     '-+----------'    |
-                       |               |
-               0       |     7 8       |      16
-               +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
-               |   Page ID   |  Page-rel addr  |  Physical address
-               +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
+                0       4     7 8              16
+                +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
+                | PTidx |Pidx |  Page-rel addr  |  Virtual address
+                +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
+                    |       |          |
+                   idx     idx         |
+                    |       |          |
+            ,-------+-+-----+------,   |
+PD address>-|    PD   | Page Table |   |
+            '----+----+---+--+-----'   |
+                 |        |  |         |
+                 '--off->-'  |         |
+                       ,--<--'         |
+                0      |      7 8      |       16
+                +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
+                |   Page ID   |  Page-rel addr  |  Physical address
+                +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
 
 
 In result, the entire virtual address space is divided
 into 16 equal parts (each described by one page table).
 These parts are further divided into 8 equal parts (pages),
 each described by page table descriptor. This makes
-implementation using only 1 page table.
+implementation using only 2 page tables.
 
 
 -- Enabling Paging --
@@ -253,9 +249,9 @@ implementation using only 1 page table.
 Paging is enabled by calling PGE instruction. The format 
 of argument:
 
-0   2     5     8 9            16
+0   2 3   5     8 9            16
 +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
-|Cps|L|Res| PDsiz |  PD address |
+|Cps|L|Res| PDsiz | PD address  |
 +-+-+-+-+-+-+-+-#-+-+-+-+-+-+-+-+
   |  |  |     |          |
   |  |  |     |          '-------- Page Directory physical page number, in pages.
@@ -280,7 +276,7 @@ Page Table descriptor in Page Directory:
 +-+-+-+-+-+-+-+-#
 |M|  PT offset  |
 +-+-+-+-+-+-+-+-#
- |       '-------- Page Table address offset (relative to PD address), in 4B-blocks
+ |       '-------- Page Table address offset (relative to PD address), in 4B-blocks. If 0, #PF is triggered on access.
  '---------------- Mapped flag (If not set, the space will be considered identity-mapped)
 
 
@@ -301,11 +297,11 @@ Page descriptor in Page Table:
 +-+-+-+-+-+-+-+-#
 |P|Page physical|
 +-+-+-+-+-+-+-+-#
- |       '-------- Page Table physical address, in pages
+ |       '-------- Page Table physical address, in pages.
  '---------------- Present (should NOT crash when accessed)
 
 Calculating address of page descriptor in page table:
-pnum = PTaddr + PIdx
+Paddr = PTaddr + PIdx
 
 Calculating resulting physical address:
 Phys = Page physical * 512
