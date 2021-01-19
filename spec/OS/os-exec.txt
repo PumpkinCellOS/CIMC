@@ -1,0 +1,77 @@
+
+
+             &&
+     ,_____&&&_____,
+    //             \\
+   //               \\
+   |  P u m p k i n  | 
+   |                 | 
+   \\    C e l l    //
+    \\             //
+     '\___________/'
+
+   
+     
+========================================
+-=-=-                              -=-=-
+-=-=-=-  PumpkinCellOS (16-bit)  -=-=-=-
+-=-=-                              -=-=-
+========================================
+
+
+
+         Executable Format
+   
+           Version 1.0
+   
+   
+   Copyright (c) SyberMCd 2021
+   Copyright (c) Adam2004yt 2021
+   
+   
+   Prototype built by:
+    Adam2004yt
+    PumpkinCell
+    SyberMCd
+
+
+
+=====================================
+
+
+
+   ===== HEADER =====
+
+
+
+0       4       8      12      16
++-------+-------#-------+-------+
+|    Magic      |      Arch     |
++-------+-------#-------+-------+
+|          Entry point          |
++-+-+---+-------#-------+-------+
+|E|R| Padding   |               |
++-+-+---+-------#               +
+|          Sections...          |
++-------+-------#-------+-------+
+   
+ * Magic - (0x50 'P')
+ * Arch (0x00 - cx16)
+ * Entry point
+ * E - Exec Type (0-executable, 1-library)
+ * R - Reserved (should be 0)
+ * Padding is reserved and should be 0
+ * Section start adresses (.text,.rodata,.data,.bss)
+
+
+
+   ===== SECTIONS =====
+
+
+
+Name    Access  Purpose
+--------------- (base)
+.text   --x     Executable code
+.rodata r--     Read-only data (e.g hardcoded strings)
+.data   rw-     Initialized memory space
+.bss    rw-     Non-initialized memory space

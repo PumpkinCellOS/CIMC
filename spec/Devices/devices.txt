@@ -421,7 +421,7 @@ Prototype DI version: 0x1 (1.0).
     ICID  Res  Purpose
     0x00  no   Power-off Button
     0x01  no   Reset Button
-    
+
 
 -- ROM --
 
