@@ -66,8 +66,8 @@ NOTE: These routines should NOT be used directly. They are used mainly by device
     * `handler`: A function `void handler(void)` that gets called when IRQ is raised.
 
 ### irqc_handler
-- *Synopsis*: `void irq_handler(u8 fd, void(*handler)(u8, u16));`
-- *Purpose*: Adds an IRQ handler (ISR) for specified IRQ number.
+- *Synopsis*: `void irqc_handler(u8 fd, void(*handler)(u8, u16));`
+- *Purpose*: Adds an interrupt command handler (ICH) for specified IRQ number.
 - *Arguments*:
     * `fd`: A device descriptor.
     * `handler`: A function `void handler(u8 cmd, u16 result)` that gets called when IRQ is raised.
