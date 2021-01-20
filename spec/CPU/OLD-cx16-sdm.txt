@@ -310,12 +310,13 @@ Phys = Page physical * 512
 -- Page Directory Caching --
 
 When an instruction writes to c0, the Page Directory is
-loaded from RAM to cache specified by Paging Descriptor
-Cache Index (PDCI). The cache stores max. 4 page directories
-with their corresponding page tables.
+loaded from RAM to cache specified by Cache Index (PDCI).
+The cache stores max. 4 page directories with their
+corresponding page tables.
 
 Page Directory Cache size: 4 PDs * 16 PT descr * 1B/descr = 4x16x1B = 64B (16B)
 Page Table Cache size: 4 PDs * 16 PTs * 8 Page descr * 1B/descr = 4x16x8x1B = 256B (64B)
+Total size: 320B
 
 Cache can be switched using PGE instruction, if L = 0.
 
