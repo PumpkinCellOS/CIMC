@@ -20,7 +20,7 @@ int main(u16 argc, char* argv[])
         
         // i16 load_split_str(fd_t fd, const char** bufs, u16 bufsz, u16 bufcount, char* delim)
         // returns split count, -1 too many splits, -2 too big splits, -3 system error
-        u16 argc = load_split_str(STDIN, (char**)argv, 8, 3, " \n");
+        i16 argc = load_split_str(STDIN, (char**)argv, 8, 3, " \n");
         switch(argc) {
             case -1:
                 puts("too many args\n");
