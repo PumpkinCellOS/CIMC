@@ -319,7 +319,7 @@ Prototype DI version: 0x1 (1.0).
 - Registers
     RID   Acc Size  Purpose
     0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
-    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 64x128)
+    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64)
     0x02  RW  16    Framebuffer Address
 - Commands
     color - (0-Black,1-White or ASCII character)
