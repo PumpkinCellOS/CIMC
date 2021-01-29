@@ -40,7 +40,7 @@
 #define EXT_LNK 0x55
 #define EXT_DIR 0xAA
 
-class MassStorage : public Cx16Device
+class MassStorage : public Cx16ConventionalDevice
 {
 public:
     MassStorage(std::istream& disk_image, u16 _id_counter, u16 _filled_storage)
@@ -50,7 +50,7 @@ public:
     virtual u8 get_argc(u8 cmd) const override;
     virtual u16* reg(u8 id) override;
 
-    virtual u8 di_caps() const override { return 0x1; }
+    virtual u8 di_caps() const override { return 0x3; }
 
 private:
     u16 list_by_id(u16 id);
@@ -62,15 +62,17 @@ private:
     u16 request_id(u16 name[4]);
     u16 make_element(u16 name[4], u8 ext, u16 folder_id);
 
-    u16 HDD_CMD_SHOWNM 0x12
-    u16 HDD_CMD_DELNM  0x13
-    u16 HDD_CMD_READNM 0x14
-    u16 HDD_CMD_WRITNM 0x15
-    u16 HDD_CMD_MOVENM 0x16
+    u16 list_by_name(u16 name[4]);
+    u16 delete_by_name(u16 name[4]);
+    u16 read_by_name(u16 name[4], u16 addr, u16 size);
+    u16 write_by_name(u16 name[4], u16 addr, u16 size);
+    u16 move_by_name(u16 target_folder_id, u16 name[4]);
 
-    u16 HDD_CMD_RENAME 0x17
+    u16 rename(u16 id, u16 new_name[4]);
 
     u16 filled_storage = 0;
     u16 id_counter = 0;
     u16 user_address = 0;
+
+    std::istream& m_disk_image;
 };

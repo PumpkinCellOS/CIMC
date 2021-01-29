@@ -4,21 +4,23 @@
 #include "Gfx.h"
 #include "HDD.h"
 
+#include <unistd.h>
+
 class LegacyIOBus : public Cx16Bus { public: virtual std::string name() const { return "Legacy I/O Bus"; } };
 class SlowIOBus : public Cx16Bus { public: virtual std::string name() const { return "Slow I/O Bus"; } };
 class FastIOBus : public Cx16Bus { public: virtual std::string name() const { return "Fast I/O Bus"; } };
+class CPUIOBus : public Cx16Bus { public: virtual std::string name() const { return "CPU I/O Bus"; } };
 
 int main()
 {
     std::ofstream err("err.log", std::ios::app);
     if(!err.good())
     {
-        std::cerr << "Failed to open error log!" << std::endl;
-        return 1;
+        log("main") << "Failed to open error log!";
     }
     std::cerr.rdbuf(err.rdbuf());
 
-    std::cerr << "PumpkinCellOS cx16 Emulator v1.0" << std::endl;
+    std::cerr << std::endl << "\e[38;5;68;1mPumpkinCellOS cx16 Emulator v1.0\e[0m" << std::endl << std::endl;
 
     display::init(128, 64);
 
@@ -26,7 +28,7 @@ int main()
     auto memory = std::make_shared<Memory>(8192);
 
     // Create devices
-    auto cpu_io_bus = std::make_shared<Cx16Bus>();
+    auto cpu_io_bus = std::make_shared<CPUIOBus>();
 
     // Create busses
     auto legacy_io_bus = std::make_shared<LegacyIOBus>();
@@ -84,6 +86,8 @@ int main()
     cpu_io_bus->out16(0x0F, 0x1111);
     cpu_io_bus->out16(0x0F, 0x0a0a);
     cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
+
+    log("main") << "Main thread finished";
 
     while(1) ;
 
