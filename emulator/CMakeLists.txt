@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.0)
 set(SOURCES
 	"CPU.cpp"
 	"Cx16.cpp"
+	"Display.cpp"
+	"Gfx.cpp"
+	"HDD.cpp"
 	"main.cpp"
 )
 
