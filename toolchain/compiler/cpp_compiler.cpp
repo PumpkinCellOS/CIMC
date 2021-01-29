@@ -1,5 +1,6 @@
 #include "cpp_compiler.h"
 
+#include "ast.h"
 #include "lexer.h"
 
 #include <iostream>
@@ -18,6 +19,14 @@ bool compile_to_asm(convert::InputFile& input, convert::OutputFile& output, cons
         return false;
     }
     lex_output.display();
+
+    // Parse
+    auto translation_unit = std::make_shared<AST::TranslationUnit>();
+    if(!translation_unit->from_lex(lex_output))
+    {
+        return false;
+    }
+    translation_unit->display();
 
     return true;
 }

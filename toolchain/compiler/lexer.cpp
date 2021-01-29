@@ -64,7 +64,7 @@ bool consume_comment(std::istream& stream)
                 stream.ignore(1);
                 if(!stream.ignore(STREAM_MAX, '*'))
                 {
-                    PARSE_ERROR(stream, "comment not closed");
+                    LEX_ERROR(stream, "comment not closed");
                 }
                 if(stream.peek() == '/')
                 {
@@ -176,7 +176,7 @@ bool consume_string(std::istream& stream, std::string& value)
 {
     if(stream.peek() != '"')
     {
-        PARSE_ERROR(stream, "invalid string");
+        LEX_ERROR(stream, "invalid string");
     }
 
     stream.ignore(1);
@@ -211,16 +211,17 @@ bool consume_string(std::istream& stream, std::string& value)
                     case 'r': ch = '\r'; break;
                     case 't': ch = '\t'; break;
                     case '\\': ch = '\\'; break;
+                    case '\n': ch = '\n'; break;
                     case '"': ch = '"'; break;
                     default:
-                        PARSE_ERROR(stream, "invalid escape character");
+                        LEX_ERROR(stream, "invalid escape character");
                 }
                 escape = false;
             }
 
             if(stream.get() == -1)
             {
-                PARSE_ERROR(stream, "not-closed string");
+                LEX_ERROR(stream, "not-closed string");
             }
         }
         word += ch;
@@ -231,7 +232,8 @@ bool consume_string(std::istream& stream, std::string& value)
 
 bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& options)
 {
-    // For now, just detect and ignore comments to test API.
+    stream = &input.stream;
+
     while(!input.stream.eof())
     {
         Token token;
@@ -319,7 +321,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
                 token.type = Token::Operator;
                 if(!parse_helpers::consume_operator(input.stream, token.value))
                 {
-                    PARSE_ERROR(input.stream, "invalid operator");
+                    LEX_ERROR(input.stream, "invalid operator");
                 }
                 m_tokens.push_back(token);
             }
@@ -346,7 +348,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
         }
         else
         {
-            PARSE_ERROR(input.stream, "invalid token");
+            LEX_ERROR(input.stream, "invalid token");
         }
     }
 
@@ -403,12 +405,17 @@ std::string token_type_to_name(Token::Type ttype)
     }
 }
 
+void Token::display() const
+{
+    std::cout << "Token " << codepos.filename << ":" << codepos.line << ":" << codepos.column
+        << " type " << token_type_to_name(type) << " ['" << token_type_to_color(type) << value << "\e[0m']" << std::endl;
+}
+
 void LexOutput::display()
 {
     for(auto& token: m_tokens)
     {
-        std::cout << "Token " << token.codepos.filename << ":" << token.codepos.line << ":" << token.codepos.column
-            << " type " << token_type_to_name(token.type) << " ['" << token_type_to_color(token.type) << token.value << "\e[0m']" << std::endl;
+        token.display();
     }
 }
 
