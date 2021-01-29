@@ -1,11 +1,4 @@
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-
-typedef uint8_t u8;
-typedef uint16_t u16;
+#include "Cx16.h"
 
 #define GFX_CLEAR_FB 0x02
 #define GFX_SET_PIXEL 0x03
@@ -42,129 +35,8 @@ void set_pixel(u8 x, u8 y, u8 color)
 
 }
 
-class Device
-{
-public:
-    virtual void out8(u8 val) = 0;
-    virtual void out16(u16 val) = 0;
-    virtual u16 in16() = 0;
-    virtual u8 in8() = 0;
-    virtual bool irq_raised() const = 0;
-};
-
-class Cx16IODevice : public Device
-{
-    enum State
-    {
-        Ready,
-        RegisterReadRq,
-        RegisterRead,
-        RegisterWriteRq,
-        RegisterWrite,
-        CommandRq,
-        Irqc
-    };
-protected:
-    virtual u16 do_cmd(u8 cmd, const std::vector<u16>& args) = 0;
-    virtual u8 get_argc(u8 cmd) const { return 0; }
-
-public:
-    virtual void out8(u8 val) override
-    {
-        switch(m_state)
-        {
-        case Ready:
-            {
-                switch(val)
-                {
-                    case 0x00: m_state = RegisterReadRq; break;
-                    case 0x01: m_state = RegisterWriteRq; break;
-                    default:
-                        m_args_needed = get_argc(val);
-                        m_command = val;
-                        m_state = CommandRq;
-                        std::cerr << (int)m_args_needed << " " << (int)m_command << " " << (int)m_state << std::endl;
-                        break;
-                }
-            } break;
-        case RegisterReadRq:
-            m_command = val;
-            m_state = RegisterRead;
-            break;
-        case RegisterWriteRq:
-            m_command = val;
-            m_state = RegisterWrite;
-            break;
-        case CommandRq:
-            out16(val);
-            break;
-        default:
-            break;
-        }
-    }
-    virtual void out16(u16 val) override
-    {
-        switch(m_state)
-        {
-        case CommandRq:
-            m_arg_buf.push_back(val);
-            if(!(--m_args_needed))
-            {
-                std::cerr << "Cx16Device command: " << (int)m_command << std::endl;
-                m_command_result = do_cmd(m_command, m_arg_buf);
-                m_arg_buf.clear();
-                m_state = Ready;
-            }
-            break;
-        case RegisterWrite:
-            {
-                u16* _reg = reg(m_command);
-                if(_reg)
-                    *_reg = val;
-                m_state = Ready;
-            } break;
-        case RegisterRead:
-            {
-                u16* _reg = reg(m_command);
-                if(_reg)
-                    m_command_result = *_reg;
-                m_state = Ready;
-            } break;
-        default:
-            break;
-        }
-    }
-    virtual u16 in16() override
-    {
-        return m_command_result;
-    }
-    virtual u8 in8() override
-    {
-        // TODO: async commands!
-        if(m_state == Irqc)
-            return m_command;
-        return 0;
-    }
-    virtual bool irq_raised() const override
-    {
-        // TODO: async commands!
-        return false;
-    }
-
-    virtual u16* reg(u8 id) = 0;
-
-    virtual u8 di_caps() const = 0;
-
-private:
-    State m_state = Ready;
-    u8 m_args_needed = 0;
-    u8 m_command = 0;
-    u16 m_command_result = 0;
-    std::vector<u16> m_arg_buf;
-};
-
 //size: 128x64
-class GraphicsCard : public Cx16IODevice
+class GraphicsCard : public Cx16ConventionalDevice
 {
 protected:
     virtual u16 do_cmd(u8 cmd, const std::vector<u16>& args) override
@@ -189,7 +61,7 @@ protected:
             case 0x04: return 3;
             case 0x05: return 2;
             case 0x06: return 3;
-            default: return Cx16IODevice::get_argc(cmd);
+            default: return Cx16ConventionalDevice::get_argc(cmd);
         }
     }
 
@@ -247,6 +119,38 @@ private:
     u16 fb_addr = 0x0;
 };
 
+template<int Size>
+class Memory : public Cx16Device
+{
+public:
+    u8 read_memory(u16 addr);
+    void write_memory(u16 addr);
+
+    // Not allowed!
+    virtual void out8(u8 val) {}
+    virtual void out16(u16 val) {}
+    virtual u16 in16() { return 0; }
+    virtual u8 in8() { return 0; }
+    virtual bool irq_raised() const { return false; }
+
+    virtual u8 di_caps() const { return 0xF; }
+};
+
+class Cx16Device : public Device
+{
+public:
+    virtual u8 di_caps() const = 0;
+    virtual void pmi_command(u8 cmd) {}
+
+private:
+    u8 m_intr_memory[Size];
+};
+
+class CPU : public Cx16Device
+{
+
+};
+
 int main()
 {
     std::ofstream err("err.log", std::ios::app);
@@ -257,6 +161,9 @@ int main()
     }
     std::cerr.rdbuf(err.rdbuf());
     display::init(128, 64);
+
+    // Initialize hard-coded devices
+    Memory<8192> memory;
 
     GraphicsCard gfx;
 
