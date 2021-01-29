@@ -115,83 +115,14 @@ private:
     }
     u16 fill_framebuffer_from_memory(u16 coords, u16 size, u8 op)
     {
+        m_dmac->write_memory(fb_addr, 0x80);
+        std::cerr << "dma test " << (int)m_dmac->read_memory(fb_addr) << std::endl;
         return 0;
     }
 
     u16 video_mode = 0x0;
     u16 screen_size = 0x8040;
     u16 fb_addr = 0x0;
-};
-
-template<u16 Size>
-class Memory : public Device
-{
-public:
-    Memory() {}
-
-    u8 read_memory(u16 addr) const { if(addr >= Size) return 0; return m_mem[addr]; }
-    void write_memory(u16 addr, u8 val) { if(addr >= Size) return; m_mem[addr] = val; }
-
-    virtual std::string name() const override { return "Main Memory"; }
-
-private:
-    // Intentionally not initialized!
-    u8 m_mem[Size];
-};
-
-typedef Memory<8192> CIMCMemory;
-
-class Cx16CPUBus : public Cx16Bus
-{
-public:
-    void register_io_switch(std::shared_ptr<Cx16Bus> bus)
-    {
-        std::cerr << "Cx16CPUBus: Registering I/O Switch bus: " << bus->name() << std::endl;
-        m_switches.push_back(bus);
-    }
-
-    virtual void out8(u8 id, u8 val) override
-    {
-        for(auto sw: m_switches)
-        {
-            if(sw->has_device(id))
-                sw->out8(id, val);
-        }
-    }
-
-    virtual void out16(u8 id, u16 val) override
-    {
-        for(auto sw: m_switches)
-        {
-            if(sw->has_device(id))
-                sw->out16(id, val);
-        }
-    }
-
-    virtual u16 in16(u8 id) override
-    {
-        for(auto sw: m_switches)
-        {
-            if(sw->has_device(id))
-                return sw->in16(id);
-        }
-        return 0;
-    }
-
-    virtual u8 in8(u8 id) override
-    {
-        for(auto sw: m_switches)
-        {
-            if(sw->has_device(id))
-                return sw->in8(id);
-        }
-        return 0;
-    }
-
-    virtual std::string name() const override { return "Cx16 CPU Bus"; }
-
-private:
-    std::vector<std::shared_ptr<Cx16Bus>> m_switches;
 };
 
 int main()
@@ -203,14 +134,18 @@ int main()
         return 1;
     }
     std::cerr.rdbuf(err.rdbuf());
+
+    std::cerr << "PumpkinCellOS cx16 Emulator v1.0" << std::endl;
+
     display::init(128, 64);
 
     // Create CPU and memory
-    auto memory = std::make_shared<CIMCMemory>();
+    auto memory = std::make_shared<Memory>(8192);
 
     // Create devices
-    auto cpu_io_bus = std::make_shared<Cx16CPUBus>();
+    auto cpu_io_bus = std::make_shared<Cx16Bus>();
 
+    // Create busses
     auto legacy_io_bus = std::make_shared<Cx16Bus>();
     auto slow_io_bus = std::make_shared<Cx16Bus>();
     auto fast_io_bus = std::make_shared<Cx16Bus>();
@@ -219,12 +154,21 @@ int main()
     cpu_io_bus->register_io_switch(slow_io_bus);
     cpu_io_bus->register_io_switch(fast_io_bus);
 
+    // Create DMA controllers
+    auto legacy_dma_controller = std::make_shared<Cx16DMAController>();
+    legacy_dma_controller->set_master(memory.get());
+
+    // Create end devices
     auto pic = std::make_shared<Cx16InterruptController>();
     auto gfx = std::make_shared<GraphicsCard>();
+
+    // Register devices
     pic->register_device(0x00, gfx);
 
     legacy_io_bus->register_device(0x0F, gfx); // TODO: Move to Fast I/O
     legacy_io_bus->register_device(0x04, pic);
+
+    legacy_dma_controller->register_device(0x0F, gfx);
 
     // Do some example code
     cpu_io_bus->out8(0x0F, GFX_FILL_RECT);
@@ -235,6 +179,12 @@ int main()
     cpu_io_bus->out8(0x0F, GFX_FILL_RECT);
     cpu_io_bus->out16(0x0F, 0x0202);
     cpu_io_bus->out16(0x0F, 0x7d3d);
+    cpu_io_bus->out8(0x0F, 0x00);
+
+    // Test DMA
+    cpu_io_bus->out8(0x0F, GFX_FILL_FB);
+    cpu_io_bus->out16(0x0F, 0x0000);
+    cpu_io_bus->out16(0x0F, 0x0001);
     cpu_io_bus->out8(0x0F, 0x00);
 
     while(1) ;

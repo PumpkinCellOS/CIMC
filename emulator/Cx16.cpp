@@ -10,8 +10,8 @@ Device* Bus::find_device(u8 id)
 
 void Bus::register_device(u8 id, std::shared_ptr<Device> device)
 {
-    std::cerr << "Bus: Registering device ID " << (int)id << ": " << device->name() << std::endl;
-    device->set_bus(this);
+    std::cerr << name() << ": Registering device ID " << (int)id << ": " << device->name() << std::endl;
+    device->set_master_bus(this);
     m_devices.insert(std::make_pair(id, device));
 }
 
@@ -21,7 +21,17 @@ void Cx16Bus::out8(u8 id, u8 val)
     if(dev)
         dev->out8(val);
     else
-        std::cerr << "Bus: Device ID not found: " << (int)id << std::endl;
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+            {
+                sw->out8(id, val);
+                return;
+            }
+        }
+        std::cerr << name() << ": Device ID not found: " << (int)id << std::endl;
+    }
 }
 
 void Cx16Bus::out16(u8 id, u16 val)
@@ -30,7 +40,17 @@ void Cx16Bus::out16(u8 id, u16 val)
     if(dev)
         dev->out16(val);
     else
-        std::cerr << "Bus: Device ID not found: " << (int)id << std::endl;
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+            {
+                sw->out16(id, val);
+                return;
+            }
+        }
+        std::cerr << name() << ": Device ID not found: " << (int)id << std::endl;
+    }
 }
 
 u16 Cx16Bus::in16(u8 id)
@@ -39,7 +59,14 @@ u16 Cx16Bus::in16(u8 id)
     if(dev)
         return dev->in16();
     else
-        std::cerr << "Bus: Device ID not found: " << (int)id << std::endl;
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+                return sw->in16(id);
+        }
+        std::cerr << name() << ": Device ID not found: " << (int)id << std::endl;
+    }
     return 0;
 }
 
@@ -49,16 +76,36 @@ u8 Cx16Bus::in8(u8 id)
     if(dev)
         return dev->in8();
     else
-        std::cerr << "Bus: Device ID not found: " << (int)id << std::endl;
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+                return sw->in8(id);
+        }
+        std::cerr << name() << ": Device ID not found: " << (int)id << std::endl;
+    }
     return 0;
 }
 
-
-void Cx16InterruptController::register_device(u8 irq, std::shared_ptr<Cx16IRQCapableDevice> device)
+void Cx16Bus::register_io_switch(std::shared_ptr<Cx16Bus> bus)
 {
-    std::cerr << "Cx16InterruptController: Registering device on IRQ " << (int)irq << ": " << device->name() << std::endl;
+    std::cerr << name() << ": Registering I/O Switch bus: " << bus->name() << std::endl;
+    m_switches.push_back(bus);
+}
+
+
+void Cx16InterruptController::register_device(u8 irq, std::shared_ptr<Cx16Device> device)
+{
+    std::cerr << name() << ": Registering device on IRQ " << (int)irq << ": " << device->name() << std::endl;
     device->set_interrupt_controller(this);
     m_devices.insert(std::make_pair(irq, device));
+}
+
+void Cx16DMAController::register_device(u8 channel, std::shared_ptr<Cx16Device> device)
+{
+    std::cerr << name() << ": Registering device on DMA channel " << (int)channel << ": " << device->name() << std::endl;
+    device->set_dma_controller(this);
+    m_devices.insert(std::make_pair(channel, device));
 }
 
 
@@ -76,7 +123,6 @@ void Cx16ConventionalDevice::out8(u8 val)
                     m_args_needed = get_argc(val);
                     m_command = val;
                     m_state = CommandRq;
-                    std::cerr << (int)m_args_needed << " " << (int)m_command << " " << (int)m_state << std::endl;
                     break;
             }
         } break;
@@ -103,7 +149,6 @@ void Cx16ConventionalDevice::out16(u16 val)
         m_arg_buf.push_back(val);
         if(!(--m_args_needed))
         {
-            std::cerr << "Cx16Device command: " << (int)m_command << std::endl;
             m_command_result = do_cmd(m_command, m_arg_buf);
             m_arg_buf.clear();
             m_state = Ready;
