@@ -2,21 +2,83 @@
 
 #include "Config.h"
 
+class Bus;
+
 class Device
+{
+public:
+    virtual std::string name() const { return "Generic Device"; }
+
+    void set_bus(Bus* bus) { m_bus = bus; }
+
+protected:
+    Bus* m_bus;
+};
+
+class Bus : public Device
+{
+public:
+    void register_device(u8 id, std::shared_ptr<Device> device);
+    virtual bool has_device(u8 id) { return find_device(id); }
+
+    virtual std::string name() const override { return "Generic Bus"; }
+
+protected:
+    Device* find_device(u8 id);
+
+private:
+    std::map<u8, std::shared_ptr<Device>> m_devices;
+};
+
+class Cx16Bus : public Bus
+{
+public:
+    virtual void out8(u8 id, u8 val);
+    virtual void out16(u8 id, u16 val);
+    virtual u16 in16(u8 id);
+    virtual u8 in8(u8 id);
+
+    virtual std::string name() const override { return "Cx16 Bus"; }
+};
+
+class Cx16IRQCapableDevice;
+
+class Cx16InterruptController : public Device
+{
+public:
+    void register_device(u8 irq, std::shared_ptr<Cx16IRQCapableDevice> device);
+
+    virtual std::string name() const override { return "Cx16 Interrupt Controller"; }
+
+private:
+    std::map<u8, std::shared_ptr<Cx16IRQCapableDevice>> m_devices;
+};
+
+class Cx16IRQCapableDevice : public Device
+{
+public:
+    virtual bool irq_raised() const = 0;
+
+    void set_interrupt_controller(Cx16InterruptController* irqc) { m_irqc = irqc; }
+
+    virtual std::string name() const override { return "Cx16 IRQ Capable Device"; }
+
+protected:
+    Cx16InterruptController* m_irqc;
+};
+
+class Cx16Device : public Cx16IRQCapableDevice
 {
 public:
     virtual void out8(u8 val) = 0;
     virtual void out16(u16 val) = 0;
     virtual u16 in16() = 0;
     virtual u8 in8() = 0;
-    virtual bool irq_raised() const = 0;
-};
 
-class Cx16Device : public Device
-{
-public:
     virtual u8 di_caps() const = 0;
     virtual u8 pmi_command(u8 cmd) { std::cerr << "Unhandled PMI command: " << (int)cmd << std::endl; return 0; }
+
+    virtual std::string name() const override { return "Cx16 Generic Device"; }
 };
 
 class Cx16ConventionalDevice : public Cx16Device
@@ -43,6 +105,8 @@ public:
     virtual bool irq_raised() const override;
 
     virtual u16* reg(u8 id) = 0;
+
+    virtual std::string name() const override { return "Cx16 Conventional Device"; }
 
 private:
     State m_state = Ready;

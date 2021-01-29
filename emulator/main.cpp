@@ -1,3 +1,4 @@
+#include "CPU.h"
 #include "Cx16.h"
 
 #define GFX_CLEAR_FB 0x02
@@ -38,6 +39,9 @@ void set_pixel(u8 x, u8 y, u8 color)
 //size: 128x64
 class GraphicsCard : public Cx16ConventionalDevice
 {
+public:
+    virtual std::string name() const override { return "Cx16 Graphics Adapter"; }
+
 protected:
     virtual u16 do_cmd(u8 cmd, const std::vector<u16>& args) override
     {
@@ -120,31 +124,74 @@ private:
 };
 
 template<u16 Size>
-class Memory : public Cx16Device
+class Memory : public Device
 {
 public:
+    Memory() {}
+
     u8 read_memory(u16 addr) const { if(addr >= Size) return 0; return m_mem[addr]; }
     void write_memory(u16 addr, u8 val) { if(addr >= Size) return; m_mem[addr] = val; }
 
-    // Not allowed!
-    virtual void out8(u8 val) {}
-    virtual void out16(u16 val) {}
-    virtual u16 in16() { return 0; }
-    virtual u8 in8() { return 0; }
-    virtual bool irq_raised() const { return false; }
-
-    virtual u8 di_caps() const override { return 0x0; }
-    virtual u8 pmi_command(u8 cmd) override { std::cerr << "PMI Command to memory: " << (int)cmd << std::endl; return 0x00; }
+    virtual std::string name() const override { return "Main Memory"; }
 
 private:
     // Intentionally not initialized!
     u8 m_mem[Size];
 };
 
-class CPU : public Cx16Device
+typedef Memory<8192> CIMCMemory;
+
+class Cx16CPUBus : public Cx16Bus
 {
 public:
+    void register_io_switch(std::shared_ptr<Cx16Bus> bus)
+    {
+        std::cerr << "Cx16CPUBus: Registering I/O Switch bus: " << bus->name() << std::endl;
+        m_switches.push_back(bus);
+    }
 
+    virtual void out8(u8 id, u8 val) override
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+                sw->out8(id, val);
+        }
+    }
+
+    virtual void out16(u8 id, u16 val) override
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+                sw->out16(id, val);
+        }
+    }
+
+    virtual u16 in16(u8 id) override
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+                return sw->in16(id);
+        }
+        return 0;
+    }
+
+    virtual u8 in8(u8 id) override
+    {
+        for(auto sw: m_switches)
+        {
+            if(sw->has_device(id))
+                return sw->in8(id);
+        }
+        return 0;
+    }
+
+    virtual std::string name() const override { return "Cx16 CPU Bus"; }
+
+private:
+    std::vector<std::shared_ptr<Cx16Bus>> m_switches;
 };
 
 int main()
@@ -158,24 +205,37 @@ int main()
     std::cerr.rdbuf(err.rdbuf());
     display::init(128, 64);
 
-    // Initialize hard-coded devices
-    Memory<8192> memory;
-    GraphicsCard gfx;
+    // Create CPU and memory
+    auto memory = std::make_shared<CIMCMemory>();
 
-    // Broadcast PMI boot
-    memory.pmi_command(0x00);
-    gfx.pmi_command(0x00);
+    // Create devices
+    auto cpu_io_bus = std::make_shared<Cx16CPUBus>();
+
+    auto legacy_io_bus = std::make_shared<Cx16Bus>();
+    auto slow_io_bus = std::make_shared<Cx16Bus>();
+    auto fast_io_bus = std::make_shared<Cx16Bus>();
+
+    cpu_io_bus->register_io_switch(legacy_io_bus);
+    cpu_io_bus->register_io_switch(slow_io_bus);
+    cpu_io_bus->register_io_switch(fast_io_bus);
+
+    auto pic = std::make_shared<Cx16InterruptController>();
+    auto gfx = std::make_shared<GraphicsCard>();
+    pic->register_device(0x00, gfx);
+
+    legacy_io_bus->register_device(0x0F, gfx); // TODO: Move to Fast I/O
+    legacy_io_bus->register_device(0x04, pic);
 
     // Do some example code
-    gfx.out8(GFX_FILL_RECT);
-    gfx.out16(0x0101);
-    gfx.out16(0x7f3f);
-    gfx.out8(0x01);
+    cpu_io_bus->out8(0x0F, GFX_FILL_RECT);
+    cpu_io_bus->out16(0x0F, 0x0101);
+    cpu_io_bus->out16(0x0F, 0x7f3f);
+    cpu_io_bus->out8(0x0F, 0x01);
 
-    gfx.out8(GFX_FILL_RECT);
-    gfx.out16(0x0202);
-    gfx.out16(0x7d3d);
-    gfx.out8(0x00);
+    cpu_io_bus->out8(0x0F, GFX_FILL_RECT);
+    cpu_io_bus->out16(0x0F, 0x0202);
+    cpu_io_bus->out16(0x0F, 0x7d3d);
+    cpu_io_bus->out8(0x0F, 0x00);
 
     while(1) ;
 
