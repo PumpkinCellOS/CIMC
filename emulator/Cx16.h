@@ -16,6 +16,7 @@ class Cx16Device : public Device
 {
 public:
     virtual u8 di_caps() const = 0;
+    virtual u8 pmi_command(u8 cmd) { std::cerr << "Unhandled PMI command: " << (int)cmd << std::endl; return 0; }
 };
 
 class Cx16ConventionalDevice : public Cx16Device

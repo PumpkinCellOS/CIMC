@@ -119,12 +119,12 @@ private:
     u16 fb_addr = 0x0;
 };
 
-template<int Size>
+template<u16 Size>
 class Memory : public Cx16Device
 {
 public:
-    u8 read_memory(u16 addr);
-    void write_memory(u16 addr);
+    u8 read_memory(u16 addr) const { if(addr >= Size) return 0; return m_mem[addr]; }
+    void write_memory(u16 addr, u8 val) { if(addr >= Size) return; m_mem[addr] = val; }
 
     // Not allowed!
     virtual void out8(u8 val) {}
@@ -133,21 +133,17 @@ public:
     virtual u8 in8() { return 0; }
     virtual bool irq_raised() const { return false; }
 
-    virtual u8 di_caps() const { return 0xF; }
-};
-
-class Cx16Device : public Device
-{
-public:
-    virtual u8 di_caps() const = 0;
-    virtual void pmi_command(u8 cmd) {}
+    virtual u8 di_caps() const override { return 0x0; }
+    virtual u8 pmi_command(u8 cmd) override { std::cerr << "PMI Command to memory: " << (int)cmd << std::endl; return 0x00; }
 
 private:
-    u8 m_intr_memory[Size];
+    // Intentionally not initialized!
+    u8 m_mem[Size];
 };
 
 class CPU : public Cx16Device
 {
+public:
 
 };
 
@@ -164,9 +160,13 @@ int main()
 
     // Initialize hard-coded devices
     Memory<8192> memory;
-
     GraphicsCard gfx;
 
+    // Broadcast PMI boot
+    memory.pmi_command(0x00);
+    gfx.pmi_command(0x00);
+
+    // Do some example code
     gfx.out8(GFX_FILL_RECT);
     gfx.out16(0x0101);
     gfx.out16(0x7f3f);
