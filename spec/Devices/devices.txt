@@ -328,7 +328,7 @@ Prototype DI version: 0x1 (1.0).
     0x03  [x,y(8+8);color(8)]           []   Set Pixel
     0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
     0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect
-    0x06  [x,y(8+8);size(16);op(8)]     []   Fill Framebuffer from Memory RAM[fbaddr:size] using op: 0(=) 1(&) 2(|) 3(^)
+    0x06  [x,y(8+8);size(16);op(8)]     []   Fill Framebuffer from Memory RAM[fbaddr:size] using op: 0(=) 1(&) 2(|) 3(^) 4(!^)
 
 
 -- Mass storage --
@@ -338,7 +338,7 @@ Prototype DI version: 0x1 (1.0).
 - DI Capabilities
     - 0
     - 0
-    - 0  
+    - 1  #IR  ID Recycling
     - 1  #DN  Directory-unique Names
 - Registers
     RID   Acc Size  Purpose
@@ -354,7 +354,7 @@ Prototype DI version: 0x1 (1.0).
     0x06  [fid(16);id(16)]                []   move element by id
     
     0x08  [name(4*16)]                    []   get element's id
-    0x09  [id(16)]                        []   get element's name
+    0x09  [id(16)]                        []   get element's name // How output is returned to user ??
     0x0a  [name(4*16);ext(8);fid(16)]     []   create element
     
     0x12  [name(4*16)]                    []   show folder elements by name
