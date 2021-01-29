@@ -9,9 +9,9 @@ struct DeviceBootstrapper
 
     void operator()()
     {
-        log("Bootstrapper") << "Booting device: " << m_device.name();
+        debug("Bootstrapper") << "Booting device: " << m_device.name();
         m_device.boot();
-        log("Bootstrapper") << "Shutting down device: " << m_device.name();
+        debug("Bootstrapper") << "Shutting down device: " << m_device.name();
     }
 
 private:
@@ -59,7 +59,7 @@ void Cx16Bus::out8(u8 id, u8 val)
                 return;
             }
         }
-        log(name()) << name() << ": Device ID not found: " << (int)id;
+        error(name()) << "Device ID not found: " << (int)id;
     }
 }
 
@@ -78,7 +78,7 @@ void Cx16Bus::out16(u8 id, u16 val)
                 return;
             }
         }
-        log(name()) << name() << ": Device ID not found: " << (int)id;
+        error(name()) << "Device ID not found: " << (int)id;
     }
 }
 
@@ -94,7 +94,7 @@ u16 Cx16Bus::in16(u8 id)
             if(sw->has_device(id))
                 return sw->in16(id);
         }
-        log(name()) << name() << ": Device ID not found: " << (int)id;
+        error(name()) << "Device ID not found: " << (int)id;
     }
     return 0;
 }
@@ -111,28 +111,28 @@ u8 Cx16Bus::in8(u8 id)
             if(sw->has_device(id))
                 return sw->in8(id);
         }
-        log(name()) << name() << ": Device ID not found: " << (int)id;
+        error(name()) << "Device ID not found: " << (int)id;
     }
     return 0;
 }
 
 void Cx16Bus::register_io_switch(std::shared_ptr<Cx16Bus> bus)
 {
-    log(name()) << name() << ": Registering I/O Switch bus: " << bus->name();
+    info(name()) << "Registering I/O Switch bus: " << bus->name();
     m_switches.push_back(bus);
 }
 
 
 void Cx16InterruptController::register_device(u8 irq, std::shared_ptr<Cx16Device> device)
 {
-    log(name()) << name() << ": Registering device on IRQ " << (int)irq << ": " << device->name();
+    info(name()) << "Registering device on IRQ " << (int)irq << ": " << device->name();
     device->set_interrupt_controller(this);
     m_devices.insert(std::make_pair(irq, device));
 }
 
 void Cx16DMAController::register_device(u8 channel, std::shared_ptr<Cx16Device> device)
 {
-    log(name()) << name() << ": Registering device on DMA channel " << (int)channel << ": " << device->name();
+    info(name()) << "Registering device on DMA channel " << (int)channel << ": " << device->name();
     device->set_dma_controller(this);
     m_devices.insert(std::make_pair(channel, device));
 }
@@ -141,7 +141,7 @@ u8 Memory::read_memory(u16 addr) const
 {
     if(addr >= m_memory_size)
     {
-        log(name()) << name() << ": read: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
+        error(name()) << name() << "read: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
         return 0;
     }
     return m_memory[addr];
@@ -150,7 +150,7 @@ void Memory::write_memory(u16 addr, u8 val)
 {
     if(addr >= m_memory_size)
     {
-        log(name()) << name() << ": write: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
+        error(name()) << name() << "write: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
         return;
     }
     m_memory[addr] = val;
@@ -159,7 +159,7 @@ void Memory::write_memory(u16 addr, u8 val)
 
 void Cx16ConventionalDevice::out8(u8 val)
 {
-    log(name()) << "out8:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
+    trace(name()) << "out8:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
     switch(m_state)
     {
     case Ready:
@@ -172,7 +172,7 @@ void Cx16ConventionalDevice::out8(u8 val)
                     m_args_needed = get_argc(val);
                     m_current_command.m_command = val;
                     m_state = CommandRq;
-                    log(name()) << "Switching to commandrq state";
+                    trace(name()) << "Switching to commandrq state";
                     break;
             }
         } break;
@@ -193,11 +193,11 @@ void Cx16ConventionalDevice::out8(u8 val)
 }
 void Cx16ConventionalDevice::out16(u16 val)
 {
-    log(name()) << "out16:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
+    trace(name()) << "out16:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
     switch(m_state)
     {
     case CommandRq:
-        log(name()) << "commandrq!";
+        trace(name()) << "commandrq!";
         m_current_command.m_arg_buf.push_back(val);
         {
             std::lock_guard<std::mutex> lock(m_queue_access_mutex);
@@ -207,7 +207,7 @@ void Cx16ConventionalDevice::out16(u16 val)
             {
 
                 {
-                    auto _l = log(name());
+                    auto _l = trace(name());
                     _l << "Requesting command: " << std::hex << (int)m_current_command.m_command << "[";
                     for(auto& it: m_current_command.m_arg_buf)
                         _l << it << " ";
@@ -222,7 +222,7 @@ void Cx16ConventionalDevice::out16(u16 val)
         break;
     case RegisterWrite:
         {
-            log(name()) << "Register write: regs[0x" << std::hex << (int)m_current_command.m_command << "] = 0x" << val << std::dec;
+            trace(name()) << "Register write: regs[0x" << std::hex << (int)m_current_command.m_command << "] = 0x" << val << std::dec;
             u16* _reg = reg(m_current_command.m_command);
             if(_reg)
                 *_reg = val;
@@ -230,7 +230,7 @@ void Cx16ConventionalDevice::out16(u16 val)
         } break;
     case RegisterRead:
         {
-            log(name()) << "Register read: regs[0x" << std::hex << (int)m_current_command.m_command << "]" << std::dec;
+            trace(name()) << "Register read: regs[0x" << std::hex << (int)m_current_command.m_command << "]" << std::dec;
             u16* _reg = reg(m_current_command.m_command);
             if(_reg)
                 m_command_result = *_reg;
@@ -265,7 +265,7 @@ void Cx16ConventionalDevice::boot()
             Command& command = m_pending_commands.front();
 
             {
-                auto _l = log(name());
+                auto _l = trace(name());
                 _l << "Running command: " << std::hex << (int)command.m_command << "[";
                 for(auto& it: command.m_arg_buf)
                     _l << it << " ";

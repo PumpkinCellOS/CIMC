@@ -18,11 +18,11 @@ typedef uint16_t u16;
 struct LogStream
 {
 public:
-    LogStream(std::string module, std::ostream& stream)
+    LogStream(std::string module, std::ostream& stream, std::string format = "0")
     : m_stream(stream)
     {
         m_log_mutex.lock();
-        std::cerr << "\e[1m" << module << "\e[0m: ";
+        std::cerr << "\e[" + format + ";1m" << module << "\e[0;" << format << "m: ";
     }
 
     ~LogStream() { std::cerr << std::endl; m_log_mutex.unlock(); }
@@ -39,4 +39,7 @@ private:
     std::ostream& m_stream;
 };
 
-LogStream log(std::string module);
+LogStream info(std::string module);
+LogStream error(std::string module);
+LogStream debug(std::string module);
+LogStream trace(std::string module);

@@ -14,7 +14,7 @@ public:
 
     void set_master_bus(Bus* bus) { m_bus = bus; }
 
-    virtual void boot() { log(name()) << "Dummy boot called!"; }
+    virtual void boot() { error(name()) << "Dummy boot called!"; }
 
 protected:
     Bus* m_bus = nullptr;
@@ -28,7 +28,7 @@ public:
     void register_device(u8 id, std::shared_ptr<Device> device)
     {
         std::lock_guard<std::mutex> lock(m_access_mutex);
-        log(name()) << "Registering device ID " << (int)id << ": " << device->name();
+        info(name()) << "Registering device ID " << (int)id << ": " << device->name();
         device->set_master_bus(this);
         m_devices.insert(std::make_pair(id, device));
     }
@@ -135,7 +135,7 @@ public:
     virtual u8 in8() = 0;
 
     virtual u8 di_caps() const = 0;
-    virtual u8 pmi_command(u8 cmd) { log(name()) << "Unhandled PMI command: " << (int)cmd; return 0; }
+    virtual u8 pmi_command(u8 cmd) { error(name()) << "Unhandled PMI command: " << (int)cmd; return 0; }
 
     virtual std::string name() const override { return "Cx16 Generic Device"; }
 

@@ -16,7 +16,7 @@ int main()
     std::ofstream err("err.log", std::ios::app);
     if(!err.good())
     {
-        log("main") << "Failed to open error log!";
+        error("main") << "Failed to open error log!";
     }
     std::cerr.rdbuf(err.rdbuf());
 
@@ -87,7 +87,7 @@ int main()
     cpu_io_bus->out16(0x0F, 0x0a0a);
     cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
 
-    log("main") << "Main thread finished";
+    debug("main") << "Main thread finished";
 
     while(1) ;
 
