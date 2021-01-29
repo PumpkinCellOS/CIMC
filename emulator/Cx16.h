@@ -78,8 +78,8 @@ public:
     : m_memory_size(size)
         { m_memory = std::make_unique<u8[]>(size); }
 
-    virtual u8 read_memory(u16 addr) const override { if(addr >= m_memory_size) return 0; return m_memory[addr]; }
-    virtual void write_memory(u16 addr, u8 val) override { if(addr >= m_memory_size) return; m_memory[addr] = val; }
+    virtual u8 read_memory(u16 addr) const override;
+    virtual void write_memory(u16 addr, u8 val) override;
 
     virtual std::string name() const override { return "Main Memory"; }
 
@@ -124,6 +124,9 @@ protected:
     Cx16InterruptController* m_irqc = nullptr;
     Cx16DMAController* m_dmac = nullptr;
 };
+
+#define CX16_REG_READ  0x00
+#define CX16_REG_WRITE 0x01
 
 class Cx16ConventionalDevice : public Cx16Device
 {

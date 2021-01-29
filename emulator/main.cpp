@@ -138,7 +138,6 @@ private:
     }
     u16 fill_framebuffer_from_memory(u16 coords, u16 size, u8 op)
     {
-        m_dmac->write_memory(fb_addr, 0x80);
         u8 xs = (coords & 0xFF00) >> 8;
         u8 ys = coords & 0xFF;
         u8 xe = (size & 0xFF00) >> 8;
@@ -149,7 +148,7 @@ private:
         for(u8 y = ys; y < ys + ye; y++)
         {
             u8 current_pixel = display::pixel(x, y);
-            u8 new_pixel = m_dmac->read_memory(fb_addr + xs * ye + ys);
+            u8 new_pixel = m_dmac->read_memory(fb_addr + (x - xs) * ye + (y - ys));
             switch(op)
             {
             case GFX_FILL_OP_ASSIGN:
@@ -238,6 +237,11 @@ int main()
     cpu_io_bus->out16(0x0F, 0x0202);
     cpu_io_bus->out16(0x0F, 0x7d3d);
     cpu_io_bus->out8(0x0F, 0x00);
+
+    // Test registers
+    cpu_io_bus->out8(0x0F, CX16_REG_WRITE);
+    cpu_io_bus->out8(0x0F, 0x02);
+    cpu_io_bus->out16(0x0F, 0x1000);
 
     // Test DMA
     cpu_io_bus->out8(0x0F, GFX_FILL_FB);

@@ -108,6 +108,25 @@ void Cx16DMAController::register_device(u8 channel, std::shared_ptr<Cx16Device> 
     m_devices.insert(std::make_pair(channel, device));
 }
 
+u8 Memory::read_memory(u16 addr) const
+{
+    if(addr >= m_memory_size)
+    {
+        std::cerr << name() << ": read: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec << std::endl;
+        return 0;
+    }
+    return m_memory[addr];
+}
+void Memory::write_memory(u16 addr, u8 val)
+{
+    if(addr >= m_memory_size)
+    {
+        std::cerr << name() << ": write: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec << std::endl;
+        return;
+    }
+    m_memory[addr] = val;
+}
+
 
 void Cx16ConventionalDevice::out8(u8 val)
 {
@@ -156,6 +175,7 @@ void Cx16ConventionalDevice::out16(u16 val)
         break;
     case RegisterWrite:
         {
+            std::cerr << name() << ": Register write: regs[0x" << std::hex << (int)m_command << "] = 0x" << val << std::dec << std::endl;
             u16* _reg = reg(m_command);
             if(_reg)
                 *_reg = val;
@@ -163,6 +183,7 @@ void Cx16ConventionalDevice::out16(u16 val)
         } break;
     case RegisterRead:
         {
+            std::cerr << name() << ": Register read: regs[0x" << std::hex << (int)m_command << "]" << std::dec << std::endl;
             u16* _reg = reg(m_command);
             if(_reg)
                 m_command_result = *_reg;
