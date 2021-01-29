@@ -10,15 +10,24 @@
 namespace display
 {
 
+u8* display_buffer;
+u8 size_x, size_y;
+
 void init(u8 sx, u8 sy);
 void set_pixel(u8 x, u8 y, u8 color);
 
 void init(u8 sx, u8 sy)
 {
+    std::cerr << "Initializing Display: " << (int)sx << "x" << (int)sy << std::endl;
+
     // Hide Cursor
     std::cout << "\033[?25l";
 
     system("stty -echo");
+
+    size_x = sx;
+    size_y = sy;
+    display_buffer = new u8[size_x * size_y];
 
     for(u8 x = 0; x < sx; x++)
     for(u8 y = 0; y < sy; y++)
@@ -32,9 +41,23 @@ void set_pixel(u8 x, u8 y, u8 color)
 
     // Display
     std::cout << (color ? "\e[107m" : "\e[40m") << "  " << std::flush;
+
+    // Set internal buffer
+    display_buffer[x*size_y+y] = color;
+}
+
+u8 pixel(u8 x, u8 y)
+{
+    return display_buffer[x*size_y+y];
 }
 
 }
+
+#define GFX_FILL_OP_ASSIGN 0x00
+#define GFX_FILL_OP_AND    0x01
+#define GFX_FILL_OP_OR     0x02
+#define GFX_FILL_OP_XOR    0x03
+#define GFX_FILL_OP_XNOR   0x04
 
 //size: 128x64
 class GraphicsCard : public Cx16ConventionalDevice
@@ -116,7 +139,38 @@ private:
     u16 fill_framebuffer_from_memory(u16 coords, u16 size, u8 op)
     {
         m_dmac->write_memory(fb_addr, 0x80);
-        std::cerr << "dma test " << (int)m_dmac->read_memory(fb_addr) << std::endl;
+        u8 xs = (coords & 0xFF00) >> 8;
+        u8 ys = coords & 0xFF;
+        u8 xe = (size & 0xFF00) >> 8;
+        u8 ye = size & 0xFF;
+        std::cerr << "fill_framebuffer_from_memory: " << (int)xs << "," << (int)ys << ":" << (int)xe << "," << (int)ye << std::endl;
+
+        for(u8 x = xs; x < xs + xe; x++)
+        for(u8 y = ys; y < ys + ye; y++)
+        {
+            u8 current_pixel = display::pixel(x, y);
+            u8 new_pixel = m_dmac->read_memory(fb_addr + xs * ye + ys);
+            switch(op)
+            {
+            case GFX_FILL_OP_ASSIGN:
+                current_pixel = new_pixel;
+                break;
+            case GFX_FILL_OP_AND:
+                current_pixel &= new_pixel;
+                break;
+            case GFX_FILL_OP_OR:
+                current_pixel |= new_pixel;
+                break;
+            case GFX_FILL_OP_XOR:
+                current_pixel ^= new_pixel;
+                break;
+            case GFX_FILL_OP_XNOR:
+                current_pixel ^= ~new_pixel;
+                break;
+            }
+            display::set_pixel(x, y, current_pixel);
+        }
+
         return 0;
     }
 
@@ -124,6 +178,10 @@ private:
     u16 screen_size = 0x8040;
     u16 fb_addr = 0x0;
 };
+
+class LegacyIOBus : public Cx16Bus { public: virtual std::string name() const { return "Legacy I/O Bus"; } };
+class SlowIOBus : public Cx16Bus { public: virtual std::string name() const { return "Slow I/O Bus"; } };
+class FastIOBus : public Cx16Bus { public: virtual std::string name() const { return "Fast I/O Bus"; } };
 
 int main()
 {
@@ -146,9 +204,9 @@ int main()
     auto cpu_io_bus = std::make_shared<Cx16Bus>();
 
     // Create busses
-    auto legacy_io_bus = std::make_shared<Cx16Bus>();
-    auto slow_io_bus = std::make_shared<Cx16Bus>();
-    auto fast_io_bus = std::make_shared<Cx16Bus>();
+    auto legacy_io_bus = std::make_shared<LegacyIOBus>();
+    auto slow_io_bus = std::make_shared<SlowIOBus>();
+    auto fast_io_bus = std::make_shared<FastIOBus>();
 
     cpu_io_bus->register_io_switch(legacy_io_bus);
     cpu_io_bus->register_io_switch(slow_io_bus);
@@ -165,7 +223,7 @@ int main()
     // Register devices
     pic->register_device(0x00, gfx);
 
-    legacy_io_bus->register_device(0x0F, gfx); // TODO: Move to Fast I/O
+    fast_io_bus->register_device(0x0F, gfx);
     legacy_io_bus->register_device(0x04, pic);
 
     legacy_dma_controller->register_device(0x0F, gfx);
@@ -183,9 +241,19 @@ int main()
 
     // Test DMA
     cpu_io_bus->out8(0x0F, GFX_FILL_FB);
-    cpu_io_bus->out16(0x0F, 0x0000);
-    cpu_io_bus->out16(0x0F, 0x0001);
-    cpu_io_bus->out8(0x0F, 0x00);
+    cpu_io_bus->out16(0x0F, 0x0303);
+    cpu_io_bus->out16(0x0F, 0x0a0a);
+    cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
+
+    cpu_io_bus->out8(0x0F, GFX_FILL_FB);
+    cpu_io_bus->out16(0x0F, 0x0a0a);
+    cpu_io_bus->out16(0x0F, 0x0a0a);
+    cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
+
+    cpu_io_bus->out8(0x0F, GFX_FILL_FB);
+    cpu_io_bus->out16(0x0F, 0x1111);
+    cpu_io_bus->out16(0x0F, 0x0a0a);
+    cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
 
     while(1) ;
 
