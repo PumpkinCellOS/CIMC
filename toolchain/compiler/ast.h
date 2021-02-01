@@ -61,7 +61,7 @@ public:
     }
 };
 
-// expression ::= [TODO]
+// expression ::= literal
 class Expression : public Node
 {
 public:
@@ -73,8 +73,105 @@ public:
     }
 };
 
-// function-body ::= { [expression ;]... }
-class FunctionBody : public NodeSeq<Expression>
+class Literal : public Expression
+{
+public:
+    virtual bool from_lex(LexOutput& output) { return false; }
+
+    virtual void display() const override
+    {
+        std::cout << "Literal" << std::endl;
+    }
+};
+
+class NumericLiteral : public Expression
+{
+public:
+    virtual bool from_lex(LexOutput& output) { return false; }
+
+    virtual void display() const override
+    {
+        std::cout << "NumericLiteral" << std::endl;
+    }
+};
+
+class IntegerLiteral : public Expression
+{
+public:
+    int value = 0;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display() const override
+    {
+        std::cout << "IntegerLiteral: " << value << std::endl;
+    }
+};
+
+class FunctionCall : public Expression
+{
+public:
+    std::string function_name;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display() const override
+    {
+        std::cout << "FunctionCall: " << function_name << std::endl;
+    }
+};
+
+// statement ::= [expression | return-statement];
+class Statement : public Node
+{
+public:
+    virtual bool from_lex(LexOutput& output) { return false; }
+
+    virtual void display() const override
+    {
+        std::cout << "Statement" << std::endl;
+    }
+};
+
+class ReturnStatement : public Statement
+{
+public:
+    std::shared_ptr<Expression> expression;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display() const override
+    {
+        std::cout << "ReturnStatement: " << std::endl;
+        if(expression)
+            expression->display();
+    }
+};
+
+class ExpressionStatement : public Statement
+{
+public:
+    std::shared_ptr<Expression> expression;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display() const override
+    {
+        std::cout << "ExpressionStatement: " << std::endl;
+        if(expression)
+            expression->display();
+    }
+};
+
+// control-statement :// if, else, switch, for, ...
+class ControlStatement : public Statement
+{
+
+};
+
+// function-body ::= { [statement...] }
+// statement ::= [expression | return-statement | control-statement];
+class FunctionBody : public NodeSeq<Statement>
 {
 public:
     virtual bool from_lex(LexOutput& output);
@@ -122,12 +219,13 @@ class PointerTypeSpecifier : public TypeSpecifier
 {
 public:
     std::shared_ptr<TypeSpecifier> type_specifier;
+    size_t level;
 
     virtual bool from_lex(LexOutput& output);
 
     virtual void display() const override
     {
-        std::cout << "PointerTypeSpecifer: " << std::endl;
+        std::cout << "PointerTypeSpecifer (" << level << ")" << std::endl;
         type_specifier->display();
     }
 };

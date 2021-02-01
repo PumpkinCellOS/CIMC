@@ -12,7 +12,7 @@
             (lexoutput).peek()->display(); \
         else \
             std::cout << "EOF" << std::endl; \
-        return false; \
+        return {}; \
     } while(0)
 
 #define PARSE_WARNING(lexoutput, message) do { \
@@ -21,7 +21,7 @@
             (lexoutput).peek()->display(); \
         else \
             std::cout << "EOF" << std::endl; \
-        return false; \
+        return {}; \
     } while(0)
 
 #define LEX_ERROR(stream, message) do { \
@@ -30,7 +30,7 @@
         (stream).read(nd, 16); \
         std::cout << "error: " << message << std::endl; \
         std::cout << "  near '" << nd << "'" << std::endl; \
-        return false; \
+        return {}; \
     } while(0)
 
 #define LEX_WARNING(stream, message) do { \
@@ -39,7 +39,7 @@
         (stream).read(nd, 16); \
         std::cout << "warning: " << message << std::endl; \
         std::cout << "  near '" << nd << "'" << std::endl; \
-        return false; \
+        return {}; \
     } while(0)
 
 namespace cpp_compiler
