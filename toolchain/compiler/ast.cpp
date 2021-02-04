@@ -6,19 +6,32 @@ namespace cpp_compiler
 namespace AST
 {
 
-// translation-unit ::= declaration ...
+std::shared_ptr<Declaration> parse_declaration(LexOutput& output)
+{
+    std::shared_ptr<Declaration> declaration;
+
+    declaration = std::make_shared<VariableDeclaration>();
+    if(!declaration->from_lex(output))
+    {
+        declaration = std::make_shared<FunctionDefinition>();
+        if(!declaration->from_lex(output))
+        {
+            return nullptr;
+        }
+    }
+    return declaration;
+}
+
+// translation-unit ::= [declaration ... ]
 bool TranslationUnit::from_lex(LexOutput& output)
 {
     while(output.peek())
     {
-        std::shared_ptr<Declaration> declaration;
-
-        if(
-           (declaration = std::make_shared<FunctionDefinition>())->from_lex(output)
-        )
+        std::shared_ptr<Declaration> declaration = parse_declaration(output);
+        if(declaration)
         {
             subnodes.push_back(declaration);
-            return true;
+            continue;
         }
 
         PARSE_ERROR(output, "expected declaration");
@@ -26,25 +39,18 @@ bool TranslationUnit::from_lex(LexOutput& output)
     return true;
 }
 
-// declaration ::= function-definition
-bool Declaration::from_lex(LexOutput& output)
-{
-    auto function_definition = std::make_shared<FunctionDefinition>();
-    if(!function_definition->from_lex(output))
-        PARSE_ERROR(output, "expected function-definition");
-    return true;
-}
-
 bool SimpleTypeSpecifier::from_lex(LexOutput& output)
 {
     auto token = output.consume_token_of_type(Token::TypeName);
     if(!token)
-        PARSE_ERROR(output, "expected type name");
+        return false;
 
     if(token->value == "int")
         simple_type = SimpleType::Int;
     else if(token->value == "char")
         simple_type = SimpleType::Char;
+    else if(token->value == "void")
+        simple_type = SimpleType::Void;
     else
         PARSE_ERROR(output, "invalid simple-type-specifier");
     return true;
@@ -97,17 +103,24 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
         statement = std::make_shared<ExpressionStatement>();
         if(!statement->from_lex(output))
         {
-            return nullptr;
+            statement = std::make_shared<DeclarationStatement>();
+            if(!statement->from_lex(output))
+            {
+                return nullptr;
+            }
         }
     }
 
-    // Semicolon
-    auto semicolon = output.peek();
-    if(semicolon && semicolon->type == Token::Semicolon)
-    {
-        output.consume_token();
+    statement->display();
+
+    // Semicolon (if applicable)
+    if(!statement->need_semicolon())
         return statement;
-    }
+
+    auto semicolon = output.consume_token_of_type(Token::Semicolon);
+    if(semicolon)
+        return statement;
+
     PARSE_ERROR(output, "expected ';' in statement");
 }
 
@@ -158,7 +171,7 @@ bool FunctionCall::from_lex(LexOutput& output)
         output.consume_token();
         auto lc = output.consume_token_of_type(Token::LeftBracket);
         if(!lc)
-            PARSE_ERROR(output, "expected '('");
+            return false;
 
         // TODO: Arguments
 
@@ -187,7 +200,7 @@ bool FunctionBody::from_lex(LexOutput& output)
 
         auto statement = parse_statement(output);
         if(!statement)
-            PARSE_ERROR(output, "expected statement or '}'");
+            PARSE_ERROR(output, "expected statement");
         subnodes.push_back(statement);
     } while(true);
 
@@ -213,6 +226,8 @@ bool ReturnStatement::from_lex(LexOutput& output)
 bool ExpressionStatement::from_lex(LexOutput& output)
 {
     expression = parse_expression(output);
+    if(!expression)
+        return false;
     return true;
 }
 
@@ -220,7 +235,7 @@ bool TypeSpecifier::from_lex(LexOutput& output)
 {
     auto token = output.consume_token_of_type(Token::TypeName);
     if(!token)
-        PARSE_ERROR(output, "expected type name");
+        return false;
     name = token->value;
     return true;
 }
@@ -231,7 +246,7 @@ bool FunctionDefinition::from_lex(LexOutput& output)
     // Type
     type = parse_type_specifier(output);
     if(!type)
-        PARSE_ERROR(output, "expected type-specifier in function-definition");
+        return false;
 
     // Name
     auto name_token = output.consume_token_of_type(Token::Name);
@@ -250,11 +265,14 @@ bool FunctionDefinition::from_lex(LexOutput& output)
     // Arguments
     while(true)
     {
-        auto argument = std::make_shared<ArgDefinition>();
+        auto argument = std::make_shared<VariableDeclaration>();
         if(!argument->from_lex(output))
-            PARSE_ERROR(output, "expected argument");
+            break;
         args.push_back(argument);
-        if(argument->is_last)
+
+        // Comma
+        auto comma = output.consume_token_of_type(Token::Comma);
+        if(!comma)
             break;
     }
 
@@ -267,43 +285,43 @@ bool FunctionDefinition::from_lex(LexOutput& output)
     // Function body
     auto function_body = std::make_shared<FunctionBody>();
     if(!function_body->from_lex(output))
-        PARSE_ERROR(output, "expected function-body");
+        PARSE_ERROR(output, "expected function body");
     body = function_body;
 
     return true;
 }
 
-// arg-definition ::= type-specifier name [= expression] [,]
-bool ArgDefinition::from_lex(LexOutput& output)
+// variable-declaration ::= type-specifier name [= expression]
+bool VariableDeclaration::from_lex(LexOutput& output)
 {
     type = parse_type_specifier(output);
     if(!type)
-        PARSE_ERROR(output, "expected type-specifier in arg-definition");
+        return false;
 
     auto name_token = output.consume_token_of_type(Token::Name);
     if(!name_token)
     {
-        PARSE_ERROR(output, "expected name in arg-definition");
+        PARSE_ERROR(output, "expected name in variable declaration");
     }
     name = name_token->value;
 
     auto default_value_eq = output.consume_token_of_type(Token::Operator);
     if(default_value_eq)
     {
-        // TODO: Parse expressions
-        auto default_value_token = output.consume_token_of_types({Token::Number, Token::String});
-        if(!default_value_token)
-        {
-            PARSE_ERROR(output, "expected expression after '=' in arg-definition");
-        }
-        default_value = default_value_token->value;
+        default_value = parse_expression(output);
+        if(!default_value)
+            PARSE_ERROR(output, "expected expression in initializer");
     }
 
-    auto comma = output.consume_token_of_type(Token::Comma);
-    if(!comma)
-    {
-        is_last = true;
-    }
+    return true;
+}
+
+bool DeclarationStatement::from_lex(LexOutput& output)
+{
+    auto decl = parse_declaration(output);
+    if(!decl)
+        return false;
+    declaration = decl;
     return true;
 }
 

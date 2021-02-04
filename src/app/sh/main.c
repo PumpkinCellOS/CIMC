@@ -16,11 +16,11 @@ int main(u16 argc, char* argv[])
 {
     while(1) {
         puts(PROMPT);
-        char argv[3][8];
+        char _argv[3][8];
         
         // i16 load_split_str(fd_t fd, const char** bufs, u16 bufsz, u16 bufcount, char* delim)
         // returns split count, -1 too many splits, -2 too big splits, -3 system error
-        i16 argc = load_split_str(STDIN, (char**)argv, 8, 3, " \n");
+        i16 _argc = load_split_str(STDIN, (char**)_argv, 8, 3, " \n");
         switch(argc) {
             case -1:
                 puts("too many args\n");
@@ -34,11 +34,11 @@ int main(u16 argc, char* argv[])
             case 0:
                 break;
             default:
-                switch(bsearch(BUILTINS, sizeof(BUILTINS), argv[0])) {
+                switch(bsearch(BUILTINS, sizeof(BUILTINS), _argv[0])) {
                     case 0:
                         if(argc < 1)
                             break;
-                        chdir(argv[1]);
+                        chdir(_argv[1]);
                         break;
                     case 1:
                         return 0;
@@ -48,15 +48,15 @@ int main(u16 argc, char* argv[])
                     case 3:
                         if(argc < 1)
                             break;
-                        open(argv[1], FCREATE | FTOUCH | FDIR);
+                        open(_argv[1], FCREATE | FTOUCH | FDIR);
                         break;
                     case 4:
                         if(argc < 1)
                             break;
-                        open(argv[1], FCREATE | FTOUCH);
+                        open(_argv[1], FCREATE | FTOUCH);
                         break;
                     default:
-                        if(spawn_wait(argv[0], argc, (const char**)(argv + 1)) < 0)
+                        if(spawn_wait(_argv[0], _argc, _argv) < 0)
                             perror("spawn");
                         break;
                 }

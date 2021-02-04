@@ -40,8 +40,6 @@ public:
 class Declaration : public Node
 {
 public:
-    virtual bool from_lex(LexOutput& output);
-
     virtual void display() const override
     {
         std::cout << "Declaration" << std::endl;
@@ -126,6 +124,7 @@ class Statement : public Node
 {
 public:
     virtual bool from_lex(LexOutput& output) { return false; }
+    virtual bool need_semicolon() const { return true; }
 
     virtual void display() const override
     {
@@ -230,23 +229,40 @@ public:
     }
 };
 
-// arg-definition ::= type-specifier name [= expression] [,]
-class ArgDefinition : public Node
+// variable-declaration ::= type-specifier name [= expression]
+class VariableDeclaration : public Declaration
 {
 public:
     std::shared_ptr<TypeSpecifier> type;
     std::string name;
-    //std::shared_ptr<Expression> default_value;
-    std::string default_value;
-    bool is_last = false;
+    std::shared_ptr<Expression> default_value;
 
-    virtual bool from_lex(LexOutput& output);
+    virtual bool from_lex(LexOutput& output) override;
 
     virtual void display() const override
     {
-        std::cout << "ArgDefinition: " << std::endl;
+        std::cout << "VariableDeclaration: " << std::endl;
         type->display();
-        std::cout << name << " = " << default_value << std::endl;
+        std::cout << name;
+        if(default_value)
+        {
+            std::cout << " =";
+            default_value->display();
+        }
+    }
+};
+
+class DeclarationStatement : public Statement
+{
+public:
+    std::shared_ptr<Declaration> declaration;
+
+    virtual bool from_lex(LexOutput& output) override;
+
+    virtual void display() const override
+    {
+        std::cout << "DeclarationStatement: " << std::endl;
+        declaration->display();
     }
 };
 
@@ -256,7 +272,7 @@ class FunctionDefinition : public Declaration
 public:
     std::shared_ptr<TypeSpecifier> type;
     std::string name;
-    std::vector<std::shared_ptr<ArgDefinition>> args;
+    std::vector<std::shared_ptr<VariableDeclaration>> args;
     std::shared_ptr<FunctionBody> body;
 
     virtual bool from_lex(LexOutput& output);
