@@ -37,8 +37,8 @@ int main(u16 argc, char* argv[])
 
 .section data
     __DATA_01 := " \n"
-.section text
 
+.section text
 @function main
 main:
     _argv := *[bp+0]
