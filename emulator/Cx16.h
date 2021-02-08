@@ -16,6 +16,9 @@ public:
 
     virtual void boot() { error(name()) << "Dummy boot called!"; }
 
+    void shutdown() { m_device_destroyed.store(true); }
+    bool running() const { return m_device_destroyed.load(); }
+
 protected:
     Bus* m_bus = nullptr;
     std::thread m_worker;
@@ -91,7 +94,22 @@ protected:
     MemoryAccessNode* m_master_node;
 };
 
-class Memory : public Device, public MemoryAccessNode
+class PMIController;
+
+class PMICapableDevice
+{
+public:
+    virtual void pmi_boot() { debug("PMI") << "PMI boot signal sent"; }
+    virtual void pmi_reboot() { debug("PMI") << "PMI reboot signal sent"; }
+    virtual void pmi_shutdown() { debug("PMI") << "PMI shutdown signal sent"; }
+
+    void set_pmi_controller(PMIController* pmic) { m_pmic = pmic; }
+
+private:
+    PMIController* m_pmic = nullptr;
+};
+
+class Memory : public MemoryAccessNode, public PMICapableDevice, public Device
 {
 public:
     Memory(u16 size)
@@ -126,6 +144,8 @@ private:
     std::map<u8, std::shared_ptr<Cx16Device>> m_devices;
 };
 
+class PMIController;
+
 class Cx16Device : public Device
 {
 public:
@@ -135,7 +155,6 @@ public:
     virtual u8 in8() = 0;
 
     virtual u8 di_caps() const = 0;
-    virtual u8 pmi_command(u8 cmd) { error(name()) << "Unhandled PMI command: " << (int)cmd; return 0; }
 
     virtual std::string name() const override { return "Cx16 Generic Device"; }
 
@@ -147,6 +166,17 @@ public:
 protected:
     Cx16InterruptController* m_irqc = nullptr;
     Cx16DMAController* m_dmac = nullptr;
+};
+
+class Cx16Bus;
+
+class Cx16Master : public Device
+{
+public:
+    virtual void set_slave(Cx16Bus* bus) { m_slave = bus; }
+
+protected:
+    Cx16Bus* m_slave = nullptr;
 };
 
 class Cx16Bus : public Bus
@@ -170,7 +200,7 @@ private:
 #define CX16_REG_READ  0x00
 #define CX16_REG_WRITE 0x01
 
-class Cx16ConventionalDevice : public Cx16Device
+class Cx16ConventionalDevice : public Cx16Device, public PMICapableDevice
 {
     enum State
     {

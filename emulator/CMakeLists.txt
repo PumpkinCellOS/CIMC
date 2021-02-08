@@ -9,6 +9,7 @@ set(SOURCES
 	"Gfx.cpp"
 	"HDD.cpp"
 	"main.cpp"
+	"PMI.cpp"
 )
 
 add_executable(cx16-emulator ${SOURCES})

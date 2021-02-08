@@ -172,7 +172,6 @@ void Cx16ConventionalDevice::out8(u8 val)
                     m_args_needed = get_argc(val);
                     m_current_command.m_command = val;
                     m_state = CommandRq;
-                    trace(name()) << "Switching to commandrq state";
                     break;
             }
         } break;
@@ -197,7 +196,6 @@ void Cx16ConventionalDevice::out16(u16 val)
     switch(m_state)
     {
     case CommandRq:
-        trace(name()) << "commandrq!";
         m_current_command.m_arg_buf.push_back(val);
         {
             std::lock_guard<std::mutex> lock(m_queue_access_mutex);
@@ -205,15 +203,6 @@ void Cx16ConventionalDevice::out16(u16 val)
 
             if(m_args_needed == 0)
             {
-
-                {
-                    auto _l = trace(name());
-                    _l << "Requesting command: " << std::hex << (int)m_current_command.m_command << "[";
-                    for(auto& it: m_current_command.m_arg_buf)
-                        _l << it << " ";
-                    _l << "]" << std::dec;
-                }
-
                 m_pending_commands.push(m_current_command);
                 m_current_command.m_arg_buf.clear();
                 m_state = Ready;
@@ -263,15 +252,6 @@ void Cx16ConventionalDevice::boot()
         while(!m_pending_commands.empty())
         {
             Command& command = m_pending_commands.front();
-
-            {
-                auto _l = trace(name());
-                _l << "Running command: " << std::hex << (int)command.m_command << "[";
-                for(auto& it: command.m_arg_buf)
-                    _l << it << " ";
-                _l << "]" << std::dec;
-            }
-
             m_command_result = do_cmd(command.m_command, command.m_arg_buf);
             m_pending_commands.pop();
         }

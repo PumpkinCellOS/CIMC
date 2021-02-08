@@ -43,14 +43,15 @@
 class MassStorage : public Cx16ConventionalDevice
 {
 public:
-    MassStorage(std::istream& disk_image, u16 _id_counter, u16 _filled_storage)
-    : m_disk_image(disk_image), id_counter(_id_counter), filled_storage(_filled_storage) {}
+    MassStorage(std::istream& disk_image);
 
     virtual u16 do_cmd(u8 cmd, const std::vector<u16>& args) override;
     virtual u8 get_argc(u8 cmd) const override;
     virtual u16* reg(u8 id) override;
 
     virtual u8 di_caps() const override { return 0x3; }
+
+    virtual std::string name() const override { return "Cx16 Mass Storage with FS acceleration"; }
 
 private:
     u16 list_by_id(u16 id);
@@ -70,9 +71,10 @@ private:
 
     u16 rename(u16 id, u16 new_name[4]);
 
-    u16 filled_storage = 0;
-    u16 id_counter = 0;
-    u16 user_address = 0;
+    u16 m_filled_storage = 0;
+    u16 m_all_storage = 0;
+    u16 m_id_counter = 0;
+    u16 m_user_address = 0;
 
     std::istream& m_disk_image;
 };

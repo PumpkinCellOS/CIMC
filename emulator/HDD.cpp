@@ -1,5 +1,16 @@
 #include "HDD.h"
 
+MassStorage::MassStorage(std::istream& disk_image)
+: m_disk_image(disk_image)
+{
+    // TODO: Cross-platform!
+    disk_image.read((char*)&m_id_counter, 2);
+    disk_image.read((char*)&m_filled_storage, 2);
+    disk_image.read((char*)&m_all_storage, 2);
+
+    info("Mass Storage") << m_id_counter << " IDs used, " << std::setprecision(2) << m_filled_storage/1024.0 << " / " << m_all_storage/1024.0 << " KiB space in use";
+}
+
 u16 MassStorage::do_cmd(u8 cmd, const std::vector<u16>& args)
 {
     u16 name[4];
@@ -68,9 +79,9 @@ u16* MassStorage::reg(u8 id)
 {
     switch(id)
     {
-        case HDD_REG_FILLED: return &filled_storage;
-        case HDD_REG_IDC: return &id_counter;
-        case HDD_REG_CWD: return &user_address;
+        case HDD_REG_FILLED: return &m_filled_storage;
+        case HDD_REG_IDC: return &m_id_counter;
+        case HDD_REG_CWD: return &m_user_address;
         default: return nullptr;
     }
 }

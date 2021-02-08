@@ -3,13 +3,13 @@
 #include "Display.h"
 #include "Gfx.h"
 #include "HDD.h"
+#include "PMI.h"
 
 #include <unistd.h>
 
 class LegacyIOBus : public Cx16Bus { public: virtual std::string name() const { return "Legacy I/O Bus"; } };
 class SlowIOBus : public Cx16Bus { public: virtual std::string name() const { return "Slow I/O Bus"; } };
 class FastIOBus : public Cx16Bus { public: virtual std::string name() const { return "Fast I/O Bus"; } };
-class CPUIOBus : public Cx16Bus { public: virtual std::string name() const { return "CPU I/O Bus"; } };
 
 int main()
 {
@@ -26,6 +26,7 @@ int main()
 
     // Create CPU and memory
     auto memory = std::make_shared<Memory>(8192);
+    auto cpu = std::make_shared<CPU>();
 
     // Create devices
     auto cpu_io_bus = std::make_shared<CPUIOBus>();
@@ -35,6 +36,7 @@ int main()
     auto slow_io_bus = std::make_shared<SlowIOBus>();
     auto fast_io_bus = std::make_shared<FastIOBus>();
 
+    cpu_io_bus->set_master(cpu);
     cpu_io_bus->register_io_switch(legacy_io_bus);
     cpu_io_bus->register_io_switch(slow_io_bus);
     cpu_io_bus->register_io_switch(fast_io_bus);
@@ -42,54 +44,43 @@ int main()
     // Create DMA controllers
     auto legacy_dma_controller = std::make_shared<Cx16DMAController>();
     legacy_dma_controller->set_master(memory.get());
+    cpu_io_bus->set_dma_controller(legacy_dma_controller);
 
     // Create end devices
     auto pic = std::make_shared<Cx16InterruptController>();
+    cpu_io_bus->set_interrupt_controller(pic);
+
     auto gfx = std::make_shared<GraphicsCard>();
+    auto pmi = std::make_shared<PMIController>();
+
+    // Load disk image
+    info("main") << "Loading disk image";
+    std::ifstream disk_image("disk.img");
+
+    auto mass_storage = std::make_shared<MassStorage>(disk_image);
 
     // Register devices
-    pic->register_device(0x00, gfx);
+    pic->register_device(0x02, pmi);
+    pic->register_device(0x03, mass_storage);
 
     fast_io_bus->register_device(0x0F, gfx);
+    legacy_io_bus->register_device(0x02, mass_storage);
     legacy_io_bus->register_device(0x04, pic);
+    legacy_io_bus->register_device(0x05, pmi);
 
+    legacy_dma_controller->register_device(0x02, mass_storage);
     legacy_dma_controller->register_device(0x0F, gfx);
 
-    // Do some example code
-    cpu_io_bus->out8(0x0F, GFX_CMD_FILL_RECT);
-    cpu_io_bus->out16(0x0F, 0x0101);
-    cpu_io_bus->out16(0x0F, 0x7f3f);
-    cpu_io_bus->out8(0x0F, 0x01);
+    pmi->register_device(gfx);
+    pmi->register_device(mass_storage);
+    pmi->register_device(memory);
+    pmi->register_device(cpu);
 
-    cpu_io_bus->out8(0x0F, GFX_CMD_FILL_RECT);
-    cpu_io_bus->out16(0x0F, 0x0202);
-    cpu_io_bus->out16(0x0F, 0x7d3d);
-    cpu_io_bus->out8(0x0F, 0x00);
+    // BOOT here.
+    pmi->power_button();
 
-    // Test registers
-    cpu_io_bus->out8(0x0F, CX16_REG_WRITE);
-    cpu_io_bus->out8(0x0F, 0x02);
-    cpu_io_bus->out16(0x0F, 0x1000);
-
-    // Test DMA
-    cpu_io_bus->out8(0x0F, GFX_CMD_FILL_FB);
-    cpu_io_bus->out16(0x0F, 0x0303);
-    cpu_io_bus->out16(0x0F, 0x0a0a);
-    cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
-
-    cpu_io_bus->out8(0x0F, GFX_CMD_FILL_FB);
-    cpu_io_bus->out16(0x0F, 0x0a0a);
-    cpu_io_bus->out16(0x0F, 0x0a0a);
-    cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
-
-    cpu_io_bus->out8(0x0F, GFX_CMD_FILL_FB);
-    cpu_io_bus->out16(0x0F, 0x1111);
-    cpu_io_bus->out16(0x0F, 0x0a0a);
-    cpu_io_bus->out8(0x0F, GFX_FILL_OP_XNOR);
-
-    debug("main") << "Main thread finished";
-
-    while(1) ;
+    info("main") << "Initialization done.";
+    while(true) { sleep(10); pmi->reset_button(); }
 
     return 0;
 }
