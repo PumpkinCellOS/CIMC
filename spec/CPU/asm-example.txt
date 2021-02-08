@@ -41,8 +41,8 @@ int main(u16 argc, char* argv[])
 .section text
 @function main
 main:
-    _argv := *[bp+0]
-    stkalloc 24 ; char _argv[3][8];
+    _argv := [bp+0]
+    cpop -24 ; char _argv[3][8];
     ; {
         push8 0x0 ; fd_t arg01 = STDIN;
         push16 _argv ; char** arg02 = _argv;

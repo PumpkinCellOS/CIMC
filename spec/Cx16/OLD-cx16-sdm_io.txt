@@ -12,11 +12,11 @@
 
    
      
-======================================
--=-=-                            -=-=-
--=-=-=-  Device I/O (16-bit)   -=-=-=-
--=-=-                            -=-=-
-======================================
+====================================
+-=-=-                          -=-=-
+-=-=-=-  Cx16 I/O (16-bit)   -=-=-=-
+-=-=-                          -=-=-
+====================================
 
 
 
@@ -36,19 +36,35 @@
 
 
 
-====================================
+==================================
 
 
 
-   ===== SHORTCUTS =====
+   ===== DEFINITIONS =====
 
    
 
-rt - repeater ticks
-Res - Result
+I/O - Input/Output
 IRQ - Interrupt Request
 ISR - Interrupt Service Routine
-I/O - Input/Output
+Res - Result
+rt - repeater ticks (1 rt = 2 MC ticks = 1/10 sec)
+
+
+
+   ===== OVERVIEW =====
+
+
+
+There are 255 I/O half-duplex port addresses. 16 are connected 
+to real CPU ports due to it's limitations. Each port is assigned
+to specific device.
+
+Every device that needs IRQ has it assigned. There can be up
+to 256 IRQ lines, 8 are connected to CPU due to it's limitations.
+
+All I/O related stuff is handled in southbridge, except Fast I/O
+which is handled in northbridge.
 
 
 
@@ -129,7 +145,7 @@ slave:
  '---'                 |   |=<>=|1|
                        '---'    '-'
  
-The switches can be connected cascading. The port line must
+The switches can be connected cascadically. The port line must
 be wider:
                  
                       Sw. layer1          Sw. layer2         Slaves
@@ -148,44 +164,40 @@ PORT01 line is 16-bit wide.
 
 
 
-   ===== I/O PORTS & IRQs =====
-   
-   
+   ===== I/O PORT ASSIGNMENT IN PROTOTYPE =====
 
-There are 16 I/O half-duplex ports connected to CPU.
-Each port is assigned to specific device. Every device
-can have its own IRQ assigned. It's done in southbridge.
-
-For Graphics Card (which is connected to northbridge), 
-there is 1 port (PORT15) and 1 IRQ (IRQ6) reserved. 
-
-The IRQ7 is reserved as Cascading IRQ. It will be used
-in extended versions of computer.
 
 
 -- Ports --
 
 PORT  Res+Purpose
 ----------------------------------------------
-0     V  Legacy I/O [Programmable Interval Timer]
-1     V  Legacy I/O [Keyboard]
-2     V  Legacy I/O [Mass storage]
-3     V  Legacy I/O [Soundcard]
-4     V  Legacy I/O [Programmable Interrupt Controller]
-5     V  Legacy I/O [Power Management Interface]
-6     V  Legacy I/O [ROM]
-7     V  Legacy I/O [Real Time Clock]
-8     -  Legacy I/O [-]
+0x00  V  Legacy I/O [Programmable Interval Timer]
+0x01  V  Legacy I/O [Keyboard]
+0x02  V  Legacy I/O [Mass storage]
+0x03  V  Legacy I/O [Soundcard]
+0x04  V  Legacy I/O [Programmable Interrupt Controller]
+0x05  V  Legacy I/O [Power Management Interface]
+0x06  -  <Unused>
+0x07  V  Legacy I/O [Real Time Clock]
 ----------------------------------------------
-9     R  Device Info
-10    R  Slow I/O (Port 2) [Reserved]
-11    R  Slow I/O (Port 1) [Reserved]
-12    R  Slow I/O (Port 0) [Reserved]
+0x08  R  <Reserved>
+0x09  R  Device Info
 ----------------------------------------------
-13    R  Fast I/O (Port 2) [Reserved]
-14    R  Fast I/O (Port 1) [Reserved]
-15    V  Fast I/O (Port 0) [GFX]
+0x0a  R  Slow I/O (Port 2)
+0x0b  R  Slow I/O (Port 1)
+0x0c  R  Slow I/O (Port 0)
 ----------------------------------------------
+0x0d  R  Fast I/O (Port 2)
+0x0e  R  Fast I/O (Port 1)
+0x0f  V  Fast I/O (Port 0) [GFX]
+----------------------------------------------
+0x10 - 0xff are all unsupported by CPU
+            but supported by DI.
+----------------------------------------------
+
+For Graphics Card (which is connected to northbridge), 
+there is 1 port (PORT15) and 1 IRQ (IRQ6) reserved. 
 
 
 -- IRQs --
@@ -201,40 +213,77 @@ IRQ  Res+Purpose
 6    V  Fast I/O [Ports 0-2]
 7    R  Cascaded IRQ [Reserved]
 ----------------------------------------------
+8-255 are all unsupported by CPU.
+----------------------------------------------
+
+The IRQ7 is reserved as Cascading IRQ. It will be used
+in extended versions of computer.
+
+
+-- DI Numbers --
+
+PORT  Res+Purpose
+----------------------------------------------
+0x00  V  Legacy I/O [Programmable Interval Timer]
+0x01  V  Legacy I/O [Keyboard]
+0x02  V  Legacy I/O [Mass storage]
+0x03  V  Legacy I/O [Soundcard]
+0x04  V  Legacy I/O [Programmable Interrupt Controller]
+0x05  V  Legacy I/O [Power Management Interface]
+0x06  -  <Unused>
+0x07  V  Legacy I/O [Real Time Clock]
+----------------------------------------------
+0x08  R  <Reserved>
+0x09  R  Device Info
+0x0a  R  Slow I/O (Port 2) [Reserved]
+0x0b  R  Slow I/O (Port 1) [Reserved]
+0x0c  R  Slow I/O (Port 0) [Reserved]
+----------------------------------------------
+0x0d  R  Fast I/O (Port 2) [Reserved]
+0x0e  R  Fast I/O (Port 1) [Reserved]
+0x0f  V  Fast I/O (Port 0) [GFX]
+----------------------------------------------
+0x10 - 0xf9 are all <Unused>
+----------------------------------------------
+0xfa  R  Fast I/O PIC
+0xfb  R  I/O [Legacy]
+0xfc  R  DMA Controller [Slow & Legacy I/O]
+0xfd  R  DMA Switch & Fast I/O Controller
+0xfe  V  RAM0 [RAM]
+0xff  V  Cx16 CPU [CPU]
+----------------------------------------------
 
 
 
-   ===== I/O CONVENTIONS FOR DEVICES =====
+   ===== I/O CONVENTION FOR DEVICES =====
 
 
 
 -- Any I/O --
 
 Synchronous command
--out8 cmd
-[-out16 args...]
-[-in16 results]
+-out8 port, cmd
+[-out16 port, args...]
+[-in16 port, results]
 
 Asynchronous command
--out8 cmd
-[-out16 args...]
-irq
--in8 cmd
-[-in16 results]
+-out8 port, cmd
+[-out16 port, args...]
+ <in irq>
+-in8 port, cmd
+[-in16 port, results]
 
 Register read
--out8 0x00
--out8 register
--in16 value
+-out16 port, 0x00:register
+-in16 port, value
 
 Register write
--out8 0x01
--out8 register
--out16 value
-[-in8 status (0 - Success, 1 - Invalid Operation, ...)]
+-out16 port, 0x01:register
+-out16 port, value
+[-in8 port, status (0 - Success, 1 - Invalid Operation, ...)]
 
 
--- Legacy I/O specific --
+-- Legacy I/O --
 
 Legacy I/O plain interrupt
 - device-specific
@@ -244,47 +293,116 @@ Legacy I/O interrupt with command
 [-in16 port, result]
 
 
--- Slow I/O specific --
+-- Slow I/O --
 
 Slow I/O interrupt with command:
--in8 port, dev
--in8 port, cmd
+-in16 port, dev:cmd
 [-in16 port, result]
 
 
--- Fast I/O specific --
+-- Fast I/O --
 
 Fast I/O interrupt with command:
--in8 port, dev
--in8 port, cmd
+-in16 port, dev:cmd
 [-in16 port, result]
 
 
--- Device Info --
+
+   =====  DEVICE INFO (DI)  =====
+
+   
+   
+The Device Info (DI) interface is used to query
+device-specific static information. It can be used
+to detect devices and it's capabilities along with
+device-specific registers. DI can be thought as
+Plug & Play implementation.
+
+The current version of DI is 1.0.
+
+
+-- Protocol --
 
 Get DI by Device Port:
 -out8 0x9, port
--in8 0x9, status                     // AXCPVVVV / Version-Assigned-eXtendedCaps-knownCaps-Present
-[-in8 0x9, caps] if knownCaps        // xxxxrrrr / (x:device specific)-(reserved)
-[-in16 0x9, excaps] if eXtendedCaps  // xxxxxxxxxxxxxxxx / (x:device specific)
-
-Get Self-DI:
--out 0x9, 0x9
--in8 0x9, status   // 0000101P / Present
--in8 0x9, caps    // 00000000000rVVVV / (reserved for DI2)-Version
-
-Prototype DI version: 0x1 (1.0).
-
+-in8 0x9, status                     // AXCPDDDD / Assigned-eXtendedCaps-knownCaps-Present-DeviceType
+ <break here if not Present>
+[-in8 0x9, caps] if knownCaps        // xxxxVVVV / (x:device specific)-DeviceVersion[0x0 default]
+[-in16 0x9, excaps] if eXtendedCaps  // Mxxxxxxxdddddddd / MoreCaps-(x:device specific)-DeviceExType[if DeviceType=0xe]
+ <1:>
+[-in16 0x9, excaps] if MoreCaps      // Mxxxxxxxxxxxxxxx / MoreCaps-(x:device specific)
+ <jump to 1 if MoreCaps>
+ 
+Enumerate Devices (if 
 
 
-   =====  DEVICES =====
+-- Default Device Types (DDTs) --
+
+The Default Device Type is used to determine interface 
+that will be used to communicate with this device.
+
+It can be *extended* using DeviceVersion.
+
+If DeviceType = 0xe, the real device type is set, 
+if eXtendedCaps, in DeviceExType. Otherwise, it is 
+considered an Invalid Device.
+
+Default device types:
+
+No   Type
+0x0  System timer
+0x1  Key input device
+0x2  Mass storage with FS acceleration
+0x3  Sound adapter
+0x4  Interrupt controller
+0x5  PMI controller
+0x6  Generic stream (non-seekable storage)
+0x7  Real time clock
+0x8  Invalid device
+0x9  <Reserved> for Generic block device (seekable storage)
+0xa  <Unused>
+0xb  DI controller (Self-DI)
+0xc  Not cx16/DI compliant device
+0xd  Graphics adapter
+0xe  Custom device (see eXtendedCaps)
+0xf  Not connected
+
+ 
+-- Self-DI --
+
+Self-DI is used to query info about DI controller itself.
+
+Version -> MajorVersion
+
+Self-DI knownCaps:
+- 1  #AE  Allow Enumerate
+- 0
+- 0
+- 0  #RV  Support for DI2
+
+Self-DI eXtendedCaps:
+- 0
+- 0
+- 0
+- 0
+- 0  #MV  MinorVersion
+- 0  =
+- 0  =
+- 0  =
+
+Prototype DI: eXtendedCaps=1, knownCaps=1, Present=1, MajorVersion=0x1, MinorVersion=0x0 (1.0).
+   
 
 
+   ===== DEFAULT DEVICE TYPES (DDT) SPECIFICATION =====
 
--- Programmable Interval Timer --
+   
+   
+There are basic specification of all of the DDTs below.
 
-- IRQ 0
-- Port 0
+
+-- System timer (0x0) --
+
 - Registers
     RID   Size Acc  Purpose
     0x00  8    RW   Interval in rt
@@ -294,10 +412,8 @@ Prototype DI version: 0x1 (1.0).
     0x00  Timer Tick
 
 
--- Keyboard --
+-- Key input device (0x1) --
 
-- IRQ 1
-- Port 1
 - Registers
     RID   Acc Size  Purpose
     0x00  RW  8(3)  LED State (000000Nr / NumLock-Reserved)
@@ -307,34 +423,8 @@ Prototype DI version: 0x1 (1.0).
     0x00  [scancode(16)]  Key Press
 
 
--- Graphics Card --
+-- Mass storage with FS acceleration (0x2) --
 
-- IRQ 6
-- Port 15
-- DI Capabilities
-    - 0
-    - 1  #DB  Double Buffer
-    - 1  #FO  Fill Operations
-    - 1  #VM  Graphics Video Mode
-- Registers
-    RID   Acc Size  Purpose
-    0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
-    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64)
-    0x02  RW  16    Framebuffer Address
-- Commands
-    color - (0-Black,1-White or ASCII character)
-    CID   Args                          Res  Purpose
-    0x02  [color(8)]                    []   Clear Framebuffer
-    0x03  [x,y(8+8);color(8)]           []   Set Pixel
-    0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
-    0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect
-    0x06  [x,y(8+8);size(16);op(8)]     []   Fill Framebuffer from Memory RAM[fbaddr:size] using op: 0(=) 1(&) 2(|) 3(^) 4(!^)
-
-
--- Mass storage --
-
-- IRQ 3
-- Port 2
 - DI Capabilities
     - 0
     - 0
@@ -370,10 +460,8 @@ Prototype DI version: 0x1 (1.0).
     0x01  [id(16)]  Write Finished
 
 
--- Soundcard --
+-- Sound adapter (0x3) --
 
-- IRQ 4
-- Port 3
 - DI Capabilities
     - 0
     - 0
@@ -381,8 +469,8 @@ Prototype DI version: 0x1 (1.0).
     - 1  #MC  Multi-Channel
 - Registers
     RID   Acc Size  Purpose
-    0x00  R   8     Max Channel Count
-    0x01  RW  8     Channel Mask (used to mute channels)
+    0x00  R   8     Max Channel Count (if #MC)
+    0x01  RW  8     Channel Mask (used to mute channels, if #MC)
     0x02  RW  8     Play Mode (0000000L / Loop)
     0x03  R   16    Buffer Size per Sound
 - Commands
@@ -393,7 +481,7 @@ Prototype DI version: 0x1 (1.0).
     0x05  [chmask(8)]                     []   Pause Playing
 
 
--- Programmable Interrupt Controller --
+-- Interrupt Controller (0x4) --
 
 - Port 4
 - Registers
@@ -404,14 +492,12 @@ Prototype DI version: 0x1 (1.0).
     0x02  []    []   EOI - clears irq lines
 
 
--- Power Management Interface --
+-- PMI controller (0x5) --
 
-- Port 5
-- IRQ 2
 - DI Capabilities
     - 0
     - 1       Reserved (alternatively for PMI2)
-    - 1  #SL  Allow Sleep
+    - 0  #SL  Allow Sleep
     - 1  #RB  Allow Reboot
 - Commands
     CID   Args  Purpose
@@ -423,19 +509,45 @@ Prototype DI version: 0x1 (1.0).
     0x01  no   Reset Button
 
 
--- ROM --
+-- Generic character device (0x6) --
 
-- Port 6
+- Registers
+    RID   Acc Size  Purpose
+    0x00  R   4 (8) Allowed operations (000DICRW / DMA-Init-Clear-Read-Write)
 - Commands
     CID   Args        Res         Purpose
     0x02  [addr(16)]  [size(16)]  Load to RAM
     0x03  []          []          Init Buffer
+    0x04  []          []          Clear Buffer
+    0x05  []          [value(8)]  Read Byte
+    0x06  [value(8)]  []          Write Byte
 
 
--- Real Time Clock --
+-- Real time clock (0x7) --
 
-- Port 7
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  16    MC Days
-    0x01  RW  16    MC Ticks
+    0x00  RW  16    MC Days (1 MC day = 24000 MC ticks = 20 min)
+    0x01  RW  16    MC Ticks (1 MC tick = 1/20 sec)
+
+
+-- Graphics adapter (0xd) --
+
+- DI Capabilities
+    - 0
+    - 1  #DB  Double Buffer
+    - 1  #FO  Fill Operations
+    - 1  #VM  Graphics Video Mode
+- Registers
+    RID   Acc Size  Purpose
+    0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
+    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64)
+    0x02  RW  16    Framebuffer Address
+- Commands
+    color - (0-Black,1-White or ASCII character)
+    CID   Args                          Res  Purpose
+    0x02  [color(8)]                    []   Clear Framebuffer
+    0x03  [x,y(8+8);color(8)]           []   Set Pixel
+    0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
+    0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect if #DB, nothing otherwise
+    0x06  [x,y(8+8);size(16);op(8)]     []   Fill Framebuffer from Memory RAM[fbaddr:size] using op: 0(=) 1(&) 2(|) 3(^) 4(!^) if #FO, (=) default

@@ -24,12 +24,13 @@ __attribute(libc) u16 write(u8 fd, u16* buf, u16 bufsz);
     ); // total size: 11B
 }*/
 
-__attribute(libc) u16 exit(u16 rc);
+__attribute(libc) [[noreturn]] u16 exit(u16 rc);
 /*{
     asm(
-        "XOR ax, ax\n"  1
-        "INT 0x6\n"     1
-    ); // total size: 2B
+        "XOR ax, ax\n"   1
+        "MOV bx, [bp+0]" 2
+        "INT #U1\n"      1
+    ); // total size: 4B
 }*/
 
 __attribute(libc) u16 strlen(const char* str);
@@ -48,7 +49,7 @@ __attribute(libc) u16 strlen(const char* str);
     ); // total size: 11B
 }*/
 
-void _start()
+[[noreturn]] void _start()
 {
     const char* helloworld = "Hello world!";
     write(1, helloworld, strlen(helloworld));
@@ -63,20 +64,14 @@ _0 = "Hello world!" ;12B
 .section .text
 
 .start:
-    mov bp, sp            ;1
     push _0               ;3
-    call 0x060D ; strlen  ;3
-    mov dx, ax            ;1
-    pop ax                ;1
-    mov bp, sp            ;1
+    calla 0x060F ; strlen ;3
+    cpop   2              ;2
     push8 0x1             ;2
-    push ax               ;1
-    push dx               ;1
-    call 0x0600 ; write   ;3
-    pop dx                ;1
-    pop ax                ;1
-    pop8 al               ;1
-    mov bp, sp            ;1
+    push16 [bp+0]         ;2
+    push16 ax             ;1
+    calla 0x0600 ; write  ;3
+    cpop 5                ;2
     push16 0x0            ;3
-    call 0x060B ; exit    ;3
-                        ;27B
+    calla 0x060B ; exit   ;3
+                        ;24B
