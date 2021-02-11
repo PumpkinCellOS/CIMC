@@ -1,0 +1,107 @@
+
+
+             &&
+     ,_____&&&_____,
+    //             \\
+   //               \\
+   |  P u m p k i n  | 
+   |                 | 
+   \\    C e l l    //
+    \\             //
+     '\___________/'
+
+   
+     
+========================================
+-=-=-                              -=-=-
+-=-=-=-  PumpkinCellOS (16-bit)  -=-=-=-
+-=-=-                              -=-=-
+========================================
+
+
+      Default Filesystem Extensions
+   
+               Version 1.0
+   
+   
+   Copyright (c) Adam2004yt 2020-2021
+   Copyright (c) SyberMCd 2021
+   
+   
+   Prototype built by:
+    Adam2004yt
+    PumpkinCell
+    SyberMCd
+
+
+
+=====================================
+
+
+Below is an index of available extensions. It can be managed using 'ext' shell command.
+
+
+-- Real file extensions --
+
+*.txt files
+ID - 0001 0001 - 11
+Text file. Characters saved as ASCII codes, list: http://www.asciitable.com/.
+
+*.msg files
+ID - 0001 0010 - 12
+Short text message.
+
+*.cgr files
+ID - 0001 1010 - 1A
+Simple console graphics (fixed 16x16 size).
+
+*.gif files
+ID - 0001 1011 - 1B
+Simple looped animation (16x16, max 8 frames).
+
+*.cpp files
+ID - 1010 0001 - A1
+Text file, but allows to compile code.
+
+*.sh files
+ID - 1010 0010 - A2
+Batch script.
+
+*.asm files
+ID - 1010 0011 - A3
+Assembler code.
+
+*.mp3 files
+ID - 1011 0001 - B1
+Soundcard-readable music format (SRMF, see Formats/SRMF.txt)
+
+*.sig files
+ID - 1011 0010 - B2
+Short, one-channel sound signal.
+
+*.exe files
+ID - 1111 0001 - F1
+Executable file. See OS/os-exec.txt.
+
+*.ttf files
+ID - 1111 0010 - F2
+Font file. See Formats/Font.txt.
+
+*.obj files
+ID - 1111 0011 - F3
+Object file created from source files. See OS/os-exec.txt > Object File Format
+
+
+-- Special file extensions --
+
+directories
+ID - 1010 1010 - AA
+Stores another files. See Devices/mass-storage.txt
+
+*.lnk files
+ID - 0101 0101 - 55
+Stores localization of another file (as file name) -> symlinks.
+
+*.hlk files
+ID - 0101 0101 - 55
+Stores localization of another file (as file ID) -> hard links.
