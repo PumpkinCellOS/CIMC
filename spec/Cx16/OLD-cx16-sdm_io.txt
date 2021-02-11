@@ -436,28 +436,68 @@ There are basic specification of all of the DDTs below.
     0x01  R   16    ID counter (binary int)
     0x02  RW  16    User address (address of current user's location)
 - Commands
+    All operations returns 0 if error or file ID (non-zero) if success.
+
     CID   Args                            Res  Purpose
-    0x02  [id(16)]                        []   show folder elements by id
-    0x03  [id(16)]                        []   delete element by id
-    0x04  [id(16);addr(16);size(16)]      []   read element by id to RAM[addr:size]
-    0x05  [id(16);addr(16);size(16)]      []   edit element by id to RAM[addr:size]
-    0x06  [fid(16);id(16)]                []   move element by id
+    0x02  [id(16)]                        [id(16)]  show folder elements by id (where they are saved?)
+        Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory.
+        
+    0x03  [id(16)]                        [id(16)]  delete element by id
+        Error codes: NO_FILE if 'id' not found, NOT_EMPTY if 'id' is a non-empty directory.
+        
+    0x04  [id(16);addr(16);size(16)]      [id(16)]  read element by id to RAM[addr:size]
+        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory.
+        
+    0x05  [id(16);addr(16);size(16)]      [id(16)]  edit element by id to RAM[addr:size]
+        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory.
+        
+    0x06  [fid(16);id(16)]                [id(16)]  move element by id
+        Error codes: NO_FILE if 'id' not found, NOT_DIR if 'fid' is not a directory.
+
     
-    0x08  [name(4*16)]                    []   get element's id
-    0x09  [id(16)]                        []   get element's name // How output is returned to user ??
-    0x0a  [name(4*16);ext(8);fid(16)]     []   create element
+    0x08  [name(4*16)]                    [id(16)]   get element's id
+        Error codes: NO_FILE if 'name' not found.
+        
+    0x09  [id(16)]                        [id(16)]   get element's name // How output is returned to user ??
+        Error codes: NO_FILE if 'id' not found.
+        
+    0x0a  [name(4*16);ext(8);fid(16)]     [id(16)]   create element
+        Error codes: NO_FILE if 'fid' not found, NOT_DIR if 'fid' is not a directory, 0 otherwise.
+
     
-    0x12  [name(4*16)]                    []   show folder elements by name
-    0x13  [name(4*16)]                    []   delete element with name
-    0x14  [name(4*16);addr(16);size(16)]  []   read element by name to RAM[addr:size]
-    0x15  [name(4*16);addr(16);size(16)]  []   edit element by name to RAM[addr:size]
-    0x16  [fid(16);name(4*16)]            []   move element by name
+    0x12  [name(4*16)]                    [id(16)]  show folder elements by name
+        Error codes: NO_FILE if 'name' not found, NOT_DIR if 'name' is not a directory.
+        
+    0x13  [name(4*16)]                    [id(16)]  delete element with name
+        Error codes: NO_FILE if 'name' not found, NOT_EMPTY if 'name' is a non-empty directory.
+        
+    0x14  [name(4*16);addr(16);size(16)]  [id(16)]  read element by name to RAM[addr:size]
+        Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
+        
+    0x15  [name(4*16);addr(16);size(16)]  [id(16)]  edit element by name to RAM[addr:size]
+        Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
+        
+    0x16  [fid(16);name(4*16)]            [id(16)]  move element by name
+        Error codes: NO_FILE if 'name' not found, NOT_DIR if 'fid' is not a directory.
     
-    0x17  [id(16);newname(4*16)]          []   rename element by id to newname
+    0x17  [id(16);newname(4*16)]          [id(16)]  rename element by id to newname
+        Error codes: NO_FILE if 'id' not found.
+
+        
+    0x20  []                              [err(16)]  get last error code
+        Returns: error code of last operation.
+        
 - IRQ Commands
     ICID  Res       Purpose
     0x00  [id(16)]  Read Finished
     0x01  [id(16)]  Write Finished
+    
+Error Codes:
+    0x00  SUCCESS    Success
+    0x01  NO_FILE    No such file or directory
+    0x02  IS_DIR     Is a directory
+    0x03  NOT_DIR    Not a directory
+    0x04  NOT_EMPTY  Directory not empty
 
 
 -- Sound adapter (0x3) --
