@@ -114,7 +114,7 @@ class Memory : public MemoryAccessNode, public PMICapableDevice, public Device
 public:
     Memory(u16 size)
     : m_memory_size(size)
-        { m_memory = std::make_unique<u8[]>(size); }
+        { m_memory = std::make_unique<u8[]>(size); info(name()) << "Size: " << (size / 1024) << " kB"; }
 
     virtual u8 read_memory(u16 addr) const override;
     virtual void write_memory(u16 addr, u8 val) override;
@@ -205,9 +205,6 @@ class Cx16ConventionalDevice : public Cx16Device, public PMICapableDevice
     enum State
     {
         Ready,
-        RegisterReadRq,
-        RegisterRead,
-        RegisterWriteRq,
         RegisterWrite,
         CommandRq,
         Working,

@@ -26,8 +26,7 @@ void CPU::boot()
         insn_out8(0x0F, 0x00);
 
         // Test registers
-        insn_out8(0x0F, CX16_REG_WRITE);
-        insn_out8(0x0F, 0x02);
+        insn_out16(0x0F, CX16_REG_WRITE << 8 | 0x02);
         insn_out16(0x0F, 0x1000);
 
         // Test DMA

@@ -3,6 +3,8 @@
 #include "Config.h"
 #include "Cx16.h"
 
+// TODO: Update commands!
+
 #define HDD_REG_FILLED 0x00
 #define HDD_REG_IDC    0x01
 #define HDD_REG_CWD    0x02
@@ -24,6 +26,8 @@
 #define HDD_CMD_MOVENM 0x16
 
 #define HDD_CMD_RENAME 0x17
+
+// TODO: Update extensions!
 
 #define EXT_TXT 0x11
 #define EXT_MSG 0x12

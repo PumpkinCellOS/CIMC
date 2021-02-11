@@ -163,25 +163,9 @@ void Cx16ConventionalDevice::out8(u8 val)
     switch(m_state)
     {
     case Ready:
-        {
-            switch(val)
-            {
-                case 0x00: m_state = RegisterReadRq; break;
-                case 0x01: m_state = RegisterWriteRq; break;
-                default:
-                    m_args_needed = get_argc(val);
-                    m_current_command.m_command = val;
-                    m_state = CommandRq;
-                    break;
-            }
-        } break;
-    case RegisterReadRq:
+        m_args_needed = get_argc(val);
         m_current_command.m_command = val;
-        m_state = RegisterRead;
-        break;
-    case RegisterWriteRq:
-        m_current_command.m_command = val;
-        m_state = RegisterWrite;
+        m_state = CommandRq;
         break;
     case CommandRq:
         out16(val);
@@ -195,6 +179,25 @@ void Cx16ConventionalDevice::out16(u16 val)
     trace(name()) << "out16:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
     switch(m_state)
     {
+    case Ready:
+        // The better way of reading registers.
+        {
+            u8 cmd = (val & 0xFF00) >> 8;
+            u8 reg_id = val & 0xFF;
+            if(cmd == CX16_REG_READ)
+            {
+                u16* _reg = reg(reg_id);
+                if(_reg)
+                    m_command_result = *_reg;
+            }
+            else if(cmd == CX16_REG_WRITE)
+            {
+                m_state = RegisterWrite;
+                m_current_command.m_command = reg_id;
+            }
+            else
+                error(name()) << "Invalid registry command: 0x" << std::hex << (int)cmd << std::dec;
+        } break;
     case CommandRq:
         m_current_command.m_arg_buf.push_back(val);
         {
@@ -215,14 +218,6 @@ void Cx16ConventionalDevice::out16(u16 val)
             u16* _reg = reg(m_current_command.m_command);
             if(_reg)
                 *_reg = val;
-            m_state = Ready;
-        } break;
-    case RegisterRead:
-        {
-            trace(name()) << "Register read: regs[0x" << std::hex << (int)m_current_command.m_command << "]" << std::dec;
-            u16* _reg = reg(m_current_command.m_command);
-            if(_reg)
-                m_command_result = *_reg;
             m_state = Ready;
         } break;
     default:
