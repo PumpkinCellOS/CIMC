@@ -53,7 +53,7 @@ void setup_ivt()
 {
     // Load and enable interrupts.
     asm(
-        "livt 0x0100\n"
+        "livt 0x0160\n"
         // TODO: Consider masking other devices' IRQ lines.
         "_fenbl IF\n" // Flag Enable: Interrupt Flag
     );
