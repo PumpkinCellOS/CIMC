@@ -440,52 +440,52 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 - Commands
     All operations returns 0 if error or file ID (non-zero) if success.
 
-    CID   Args                            Res       Purpose
-    0x02  [id(16);addr(16)]              [id(16)]   list folder elements' ids, save them to RAM[addr:element count]
-        Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory.
+    CID   Args                            Res        Purpose
+    0x02  [id(16);addr(16)]               [id(16)]   list directory 'id' contents, save them to RAM[addr:element count]
+        Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory, FAULT if failed to write data (e.g RAM out of range)
         The RAM space must be prepared by OS.
         
-    0x03  [id(16)]                        [id(16)]   delete element by id
+    0x03  [id(16)]                        [id(16)]   delete file 'id'
         Error codes: NO_FILE if 'id' not found, NOT_EMPTY if 'id' is a non-empty directory.
         
-    0x04  [id(16);addr(16);offset(16);size(16)]      [id(16)]   read element by id to RAM[addr:size]
-        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory.
+    0x04  [id(16);addr(16);offset(16);size(16)]      [id(16)]   read 'size' bytes from file 'id' at 'offset' to RAM[addr:size]
+        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory, OVERFLOW if offset+size exceeds file boundary, FAULT if failed to write data (e.g RAM out of range)
         
-    0x05  [id(16);addr(16);offset(16);size(16)]      [id(16)]   write element by id from RAM[addr:size]
-        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory.
+    0x05  [id(16);addr(16);offset(16);size(16)]      [id(16)]   write 'size' bytes to file 'id' at 'offset' from RAM[addr:size]
+        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory, OVERFLOW if offset+size exceeds file boundary, FAULT if failed to write data (e.g RAM out of range)
         
-    0x06  [fid(16);id(16)]                [id(16)]   move element by id
+    0x06  [fid(16);id(16)]                [id(16)]   move file 'id' to directory 'fid'
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'fid' is not a directory.
 
     
-    0x08  [name(4*16)]                    [id(16)]   get element's id
+    0x08  [name(4*16)]                    [id(16)]   get file's 'name' id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16),size(16)]   get element's info
+    0x09  [id(16)]                        [id(16),size(16)]   get file's 'id' info
         Error codes: NO_FILE if 'id' not found.
         Returns: file size OR file count for folders.
         
-    0x0a  [name(4*16);ext(8);fid(16)]     [id(16)]   create element
+    0x0a  [name(4*16);ext(8);fid(16)]     [id(16)]   create file with name 'name', extension 'ext' in folder 'fid'
         Error codes: NO_FILE if 'fid' not found, NOT_DIR if 'fid' is not a directory, 0 otherwise.
 
     
-    0x12  [name(4*16);addr(16)]           [id(16)]   list folder elements' ids, save them to RAM[addr:element count]
+    0x12  [name(4*16);addr(16)]           [id(16)]   list directory 'name' contents, save them to RAM[addr:element count]
         Error codes: NO_FILE if 'name' not found, NOT_DIR if 'name' is not a directory.
         The RAM space must be prepared by OS.
         
-    0x13  [name(4*16)]                    [id(16)]   delete element with name
+    0x13  [name(4*16)]                    [id(16)]   delete file 'name'
         Error codes: NO_FILE if 'name' not found, NOT_EMPTY if 'name' is a non-empty directory.
         
-    0x14  [name(4*16);addr(16);size(16)]  [id(16)]   read element by name to RAM[addr:size]
+    0x14  [name(4*16);addr(16);size(16)]  [id(16)]   read 'size' bytes from file 'name' at 'offset' to RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
-    0x15  [name(4*16);addr(16);size(16)]  [id(16)]   write element by name from RAM[addr:size]
+    0x15  [name(4*16);addr(16);size(16)]  [id(16)]   write 'size' bytes to file 'name' at 'offset' from RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
-    0x16  [fid(16);name(4*16)]            [id(16)]   move element by name
+    0x16  [fid(16);name(4*16)]            [id(16)]   move file 'name' to directory 'fid'
         Error codes: NO_FILE if 'name' not found, NOT_DIR if 'fid' is not a directory.
     
-    0x17  [id(16);newname(4*16)]          [id(16)]   rename element by id to newname
+    0x17  [id(16);newname(4*16)]          [id(16)]   rename file 'id' to 'newname'
         Error codes: NO_FILE if 'id' not found.
 
         
@@ -498,11 +498,13 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x01  [id(16)]  Write Finished
     
 Error Codes:
-    0x00  SUCCESS    Success
+    0x00  SUCCESS    Success (not an error)
     0x01  NO_FILE    No such file or directory
     0x02  IS_DIR     Is a directory
     0x03  NOT_DIR    Not a directory
     0x04  NOT_EMPTY  Directory not empty
+    0x05  OVERFLOW   File overflow (access out of range)
+    0x06  FAULT      Memory access fault (DMA fault)
 
 
 -- Sound adapter (0x3) --
