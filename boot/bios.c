@@ -111,6 +111,14 @@ void bios_main()
     setup_ivt();
     u16 os_addr = load_os();
     
+    // Initialize Network Interface Controller
+    __cx16_do("init(nic)")
+    __cx16_info("NIC initialized");
+    
+    // Initialize CPU Fan
+    __cx16_do("init(cpu-fan)")
+    __cx16_info("CPU Fan initialized");
+    
     // Give control to OS. The OS is responsible
     // for loading a new IVT, setup paging etc.
     // Note that the OS will get back the BIOS IVT
