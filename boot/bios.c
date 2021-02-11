@@ -53,10 +53,16 @@ void setup_ivt()
 {
     // Setup
     u8* ivt = (u8*)0x0180;
+    
+    // Size
     ivt[0] = 0x0F; // 16-1
     ivt++;
+    
+    // Entries
     u16* ivt_16 = (u16*)ivt;
+    for(u16 i = 0; i < 11; i++) ivt16[i] = 0x0;
     ivt_16[11] = hdd_entry; // Mass Storage
+    for(u16 i = 12; i < 16; i++) ivt16[i] = 0x0;
     
     // Load and enable interrupts.
     asm(
