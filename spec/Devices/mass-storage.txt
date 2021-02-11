@@ -1,55 +1,219 @@
-Charakterystyka pamięci masowej:
 
-Pamięć masowa docelowo będzie mieć 0,5 Mb, czyli 512 kb, czyli 524 288 b lub 65536 B. Adresowanie jest 16 bitowe, 8 bitów na wybór kostki oraz 8 bitów na wybór bajtu w kostce.
-Będzie podzielona na 8 bloków pamięci mogących pracować jednocześnie. Pojemność takiego bloku wynosi 65536 b i jest podzielony na 32 kostki, każda po 2048 b oraz segmenty w obrębie kostek po 32 B.
-Oto spis bloków składających się na pamięć:
 
-000 - blok systemowy
-001 - blok dźwięku
-010 - blok aplikacji
-011 - rejestr nazw
-100 - I blok danych
-101 - II blok danych
-110 - III blok danych
-111 - IV blok danych
+             &&
+     ,_____&&&_____,
+    //             \\
+   //               \\
+   |  P u m p k i n  | 
+   |                 | 
+   \\    C e l l    //
+    \\             //
+     '\___________/'
 
-Blok systemowy ma największy piorytet. Tu są gromadzone pliki systemowe z których korzysta bezpośrednio RAM i procesor, odczyt w tle.
-Blok dźwięku został wyodrębniony ze względu na konieczność równoległego odtwarzania dźwięku razem z działaniem programu. Z niego korzysta wyłącznie karta dźwiękowa.
-Na blokach aplikacji przechowywane są skompilowane pliki wykonywalne napisane kodem maszynowym (assemblerem).
-Bloki danych przechowują wszystkie pliki i foldery w systemie (poza folderem sys) oraz odwołania do plików w innych blokach.
+   
+     
+====================================
+-=-=-                          -=-=-
+-=-=-=-  CIMC Arch (16-bit)  -=-=-=-
+-=-=-                          -=-=-
+====================================
 
-Blok danych ma postać "matrycy" o szerokości i wysokości odpowiednio 8 na 4 kostki. Kostka ma wymiary 24 x 28 bloków z odstępami co 6 bloków wzwyż i co 3 bloki w poprzek. Za adresowanie bloków odpowiadają pierwsze 
-3 bity adresu kostki, a pozostałe 5 służy do wyboru kostki w bloku.
 
-Całym dyskiem zarządza kontroler pamięci, który ma za zadanie odczytywać dane i przekierowywać je na zewnątrz dysku. Posiada on 16-bitowy licznik id zwiększający się o 1 przy każdym utworzeniu obiektu. Jednak przy
-usunięciu obiektu, id przepada i nie może być ponownie użyte. Kontroler ma także "spis elementów" czyli szybką pamięć podręczną służącą do rejestrowania wszystkich obiektów w systemie oraz "rejestr segmentów" czyli
-informacja o zajętości segmentów. Celem tych dwóch rejestrów pomocniczych jest maksymalne usprawnienie dostępu do pliku, żeby kontroler nie musiał szukać elementu po całym dysku. Kontroler korzysta także z zapisu 
-4 bajtów będących ID folderu w którym jesteśmy oraz ID folderu nadrzędnego. Ma także pamięc podręczną, tymczasową o pojemności 2 segmentów. Zapisyawnie na niej odbywa się poprzez nadpisywania kolejnych pustych bitów.
-Jeśli zabraknie miejsca, licznik się zeruje i "leci" od nowa. Jeśli napotka na zapełniony bajt, musi czekać. Odczyt danych postępuje analogicznie tylko wysyła dane i kasuje miejsce. Pamięć podręczna służy jedynie do
-odczytu bloków danych. Inne bloki zczytywane są już przy dostępie do bloku.
+    Cx16 Mass Storage with FS
+           acceleration
+   
+           Version 1.0
+   
+   
+   Copyright (c) Adam2004yt 2020
+   
+   
+   Prototype built by:
+    Adam2004yt
+    PumpkinCell
+    SyberMCd
 
-W spisie elementów jest podział na 16 B segmenty. Sposób zapisu w rejestrze:
+
+
+=====================================
+
+
+
+   ===== DEFINITIONS =====
+   
+   
+   
+Block - MC block, typically considered as 1m x 1m x 1m cube.
+
+
+
+   ===== OVERVIEW =====
+
+
+
+The mass storage will have 64 KiB of capacity. The address size
+is 16-bit.
+
++----+----+
+|Chip|Cell|
++----+----+
+   |    '--- 1-Byte cell selection
+   '-------- Chunk selection
+
+The mass storage is divided into eight 8 KiB blocks that can work
+simultaneously. Each block is further divided into 32 chunks, each
+of 256B size divided finally into 32B-segments.
+
+
+
+   ===== BLOCK REFERENCE =====
+
+
+
+000 - System block      -> /sys
+001 - Sound block       -> /sound
+010 - Application block -> /app
+011 - Name registry
+100 - Data block (I)    -> /data0
+101 - Data block (II)   -> /data1
+110 - Data block (III)  -> /data2
+111 - Data block (IV)   -> /data3
+
+
+-- System block --
+
+The system block has the most priority. Here are stored system
+files used directly by RAM and CPU. They are read in background.
+
+
+-- Sound block --
+
+The sound block was distinguished because of need of parallel
+playing sound along with running program. It is used only by
+soundcard.
+
+
+-- Application block --
+
+The application block stores compiled executable files written
+using machine code (assembler).
+
+
+-- Data block --
+
+Data blocks stores all files and directories in system (except
+/sys) and links to another files in another blocks.
+
+
+
+   ===== CONSTRUCTION OF DATA BLOCK =====
+
+
+
+The data blocks has form of "matrix" of size 8x4 chunks. Every
+chunk has a size of 24x28 MC blocks with spacing 6 MC blocks
+upwards and 3 MC blocks across. The first 3 bits are used for
+adressing blocks in storage, and the last 5 for selecting 
+a chunk in a block.
+
+
+
+   ===== STORAGE CONTROLLER =====
+   
+   
+   
+-- Overview --
+
+The whole disk is managed by storage controller, which task is
+to read data and transfer them outside the disk. It has a 16-bit
+ID counter incremented by 1 on each object creation. Hovewer,
+after object removal, the ID cannot be recycled and is lost.
+
+The IDs can be restored for disks that have #IR (0x2) DI
+capability set.
+
+
+-- Helper segments --
+
+* The controller consists of "element index", the memory used to
+register all objects in the system.
+
+* The controller has also a "segment registry" which stores information
+about occupancy of segments.
+
+The goal of these registries is maximal improvement of file access,
+so that the controller does not have to search file throughout the
+disk.
+
+// TODO ...
+
+Kontroler korzysta
+także z zapisu 4 bajtów będących ID folderu w którym jesteśmy
+oraz ID folderu nadrzędnego. Ma także pamięc podręczną, tymczasową
+o pojemności 2 segmentów. Zapisyawnie na niej odbywa się poprzez
+nadpisywania kolejnych pustych bitów. Jeśli zabraknie miejsca,
+licznik się zeruje i "leci" od nowa. Jeśli napotka na zapełniony
+bajt, musi czekać. Odczyt danych postępuje analogicznie tylko
+wysyła dane i kasuje miejsce. Pamięć podręczna służy jedynie do
+odczytu bloków danych. Inne bloki zczytywane są już przy dostępie
+do bloku.
+
+
+
+   ===== FILESYSTEM =====
+
+
+
+W spisie elementów jest podział na 16 B segmenty. Sposób zapisu
+w rejestrze:
+
 1 i 2 bajt - ID elementu
 Bajty 3 do 11 - nazwa
 12 bajt - kropka czyli 0010 1110
 13 bajt - rozszerzenie
 14 i 15 bajt - adres segmentu początkowego.
-16 bajt - ilość zajmowanych segmentów. Na jej podstawie obliczana jest waga elementu.
-Maksymalną ilością elementów będących na komputerze jest 1024, element po usunięciu traci swoją pozycję, a na jego miejsce wskakuje następny utworzony.
+16 bajt - ilość zajmowanych segmentów. Na jej podstawie obliczana
+          jest waga elementu.
 
-rejestr segmentów podzielony jest na rejestry po 2 bajty. Jest to po prostu adres segmentu w 11 bitach, przerwa 4 zer oraz 1 bit stanu segmentu. Segmentów składających się na cały dysk jest łącznie 2048.
+Maksymalną ilością elementów będących na komputerze jest 1024,
+element po usunięciu traci swoją pozycję, a na jego miejsce wskakuje
+następny utworzony.
+
+Rejestr segmentów podzielony jest na rejestry po 2 bajty. Jest to
+po prostu adres segmentu w 11 bitach, przerwa 4 zer oraz 1 bit
+stanu segmentu. Segmentów składających się na cały dysk jest
+łącznie 2048.
+
+
+
+   ===== PROCESS =====
+
+
+
+-- Object creation --
 
 Tworzenie elementu odbywa się następująco:
-1. Wybranie pierwszego wolnego segmentu w rejestrze i oznaczenie go jako zajęty,
-2. Przypisanie elementowi ID w spisie i pierwszych 2 bajtach segmentu,
+1. Wybranie pierwszego wolnego segmentu w rejestrze i oznaczenie
+   go jako zajęty,
+2. Przypisanie elementowi ID w spisie i pierwszych 2 bajtach
+   segmentu,
 3. Zwiększenie licznika ID o 1,
 4. Nadanie nazwy i wpisanie do rejestru,
-5. Nadanie rozszerzenia elementowi w rejestrze. Jeśli jest to folder, jego rozszerzenie wynosi 1010 1010,
-6. Utworzenie miejsca na dane poprzez nadpisanie 3 bajtu w segmencie na dysku ciągiem jedynek,
-7. Tworzenie danych w bajtach od 4 do 30, jeśli jest mniejsza liczba danych, reszta miejsca uzupełniana jest zerami,
-8. W bicie 31 do 32 należy skierować do następnego segmentu, jeśli kolejne segmenty graniczą ze sobą, dane zapisywane są do bajtu: ilość segmentów w kostce * 8 - 2,
-9. Rozpoczynając kolejny segment należy nadpisać bity na ID oraz rozpoczynający ciąg jedynek,
+5. Nadanie rozszerzenia elementowi w rejestrze. Jeśli jest to
+   folder, jego rozszerzenie wynosi 1010 1010,
+6. Utworzenie miejsca na dane poprzez nadpisanie 3 bajtu w segmencie
+   na dysku ciągiem jedynek,
+7. Tworzenie danych w bajtach od 4 do 30, jeśli jest mniejsza
+   liczba danych, reszta miejsca uzupełniana jest zerami,
+8. W bicie 31 do 32 należy skierować do następnego segmentu, jeśli
+   kolejne segmenty graniczą ze sobą, dane zapisywane
+   są do bajtu: ilość segmentów w kostce * 8 - 2,
+9. Rozpoczynając kolejny segment należy nadpisać bity na ID
+   oraz rozpoczynający ciąg jedynek,
 
+
+-- Directory listing --
+   
 Odczyt elementów folderu:
 1. Wczytanie ID folderu docelowego,
 2. Zdobycie adresu pierwszego segmentu folderu,
@@ -57,66 +221,16 @@ Odczyt elementów folderu:
 4. Odczytanie kolejnego ID i wyszukanie go w rejestrach,
 5. Wczytanie informacji z rejestru,
 
+
+-- Object read --
+
 Odczyt pliku:
 1. Wyszukanie elementu w rejestrze,
 2. Zczytanie danych do pamięci podręcznej,
 3. Sprawdzenie w rejestrach sposobu odczytu danego rejestru,
 4. Odczyt danych i wykonanie instrukcji,
 
-Poniżej spis dostępnych rozszerzeń. Można go wywołać komendą ext
 
-pliki *.txt:
-ID - 0001 0001 - 11
-Plik tekstowy. Znaki zapisywane są w postaci kodów ASCII, lista kodów: http://www.asciitable.com/
+-- Object write --
 
-pliki *.msg:
-ID - 0001 0010 - 12
-Do krótkich komunikatów tekstowych
-
-pliki *.cgr:
-ID - 0001 1010 - 1A
-Do tworzenia prostych grafik konsolowych do 16 x 16
-
-pliki *.gif:
-ID - 0001 1011 - 1B
-Proste zapętlone animacje do 16 x 16 maksymalnie do 8 klatek (8 segmentów)
-
-pliki *.cpp:
-ID - 1010 0001 - A1
-Zapis taki jak przy plikach tekstowych, ale możliwość skompilowania kodu
-
-pliki *.sh:
-ID - 1010 0010 - A2
-Do tworzenia skryptów
-
-pliki *.asm:
-ID - 1010 0011 - A3
-Przechowują język maszynowy
-
-pliki *.mp3:
-ID - 1011 0001 - B1
-Do zapisu muzyki odczytywanej w karcie dźwiękowej
-
-pliki *.sig:
-ID - 1011 0010 - B2
-Dla krótkich, jednokanałowych sygnałów dźwiękowych
-
-pliki *.exe:
-ID - 1111 0001 - F1
-Pliki wykonywalne
-
-pliki *.ttf:
-ID - 1111 0010 - F2
-Do przechowywania symboli używanych w komputerze
-
-pliki *.obj
-ID - 1111 0011 - F3
-Do przechowywania plików obiektowych używanych przy kompilacji
-
-pliki *.lnk
-ID - 0101 0101 - 55
-Przechowuje lokalizację innego pliku (dowiązanie symboliczne)
-
-foldery
-ID - 1010 1010 - AA
-Do przechowywania innych plików
+// TODO
