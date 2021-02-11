@@ -46,22 +46,41 @@
 
 0       4       8      12      16
 +-------+-------#-------+-------+
-|    Magic      |      Arch     |
+|     Magic     |      Arch     |
 +-------+-------#-------+-------+
 |          Entry point          |
-+-+-+---+-------#-------+-------+
-|E|R| Padding   |               |
-+-+-+---+-------#               +
-|          Sections...          |
 +-------+-------#-------+-------+
-   
- * Magic - (0x50 'P')
- * Arch (0x00 - cx16)
- * Entry point
- * E - Exec Type (0-executable, 1-library)
- * R - Reserved (should be 0)
- * Padding is reserved and should be 0
- * Section start adresses (.text,.rodata,.data,.bss)
+| E |  Padding  |               |
++-+-+---+-------#               +
+|     Sections adresses...      |
++-------+-------#-------+-------+
+
+ * Magic - (0x50 'P').
+    Allows to check if it's really an executable file, along with Arch field.
+
+ * Arch (0x80 - cx16).
+    Specifies on what processors can the executable be run.
+
+ * Entry point (base-relative)
+    Speicifes address, which OS will jump to when executing an executable.
+
+ * E - Exec Type (00-executable, 01-static library, 10-object file, 11-shared library)
+    Specifies way in which executable should be handled by OS.
+    - Executables - are typically run using 'exec' syscall. The max size of executable
+      is 2 KiB.
+    - Static libraries - are bundles of object files. They can also store entry points
+      for shared libraries in symbol sections. They are replaced on linking.
+    - Object file - it's the "raw" code. Cannot be run, but stores symbols, which allows
+      it to be linked into normal executable.
+    - Shared libraries - they store code that can be shared by all processes. For now,
+      executable can be linked to only 1 (one) shared library; it's typically LibC. The
+      max size of shared library is 512 B. Shared libraries are mapped to 0x0600. 
+      The static library with symbol map is generated along with shared library.
+
+ * Padding is reserved and should be 0.
+ 
+ * Section start adresses, base-relative (in order: .text, .rodata, .data, .bss, .sym).
+    Set to 0x0 to disable section.
 
 
 
@@ -69,9 +88,20 @@
 
 
 
-Name    Access  Purpose
+Name    UsrAcc  Purpose
 --------------- (base)
+HEADER  ---     Image header, see HEADER
 .text   --x     Executable code
 .rodata r--     Read-only data (e.g hardcoded strings)
 .data   rw-     Initialized memory space
 .bss    rw-     Non-initialized memory space
+.sym    r--     Symbol map (for object files)
+
+
+
+   ===== SYMBOL FORMAT =====
+
+
+
+2B count
+[16B symbol name + 2B symbol address] x count
