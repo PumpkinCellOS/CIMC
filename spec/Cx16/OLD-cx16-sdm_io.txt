@@ -416,7 +416,7 @@ There are basic specification of all of the DDTs below.
 
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  8(3)  LED State (000000Nr / NumLock-Reserved)
+    0x00  RW  8(3)  Lock Key State (000000Nr / NumLock-Reserved)
     0x01  R   8(3)  Control Key State (000000CS / Control-Shift)
 - IRQ Commands
     ICID  Res             Purpose
@@ -491,6 +491,8 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
         
     0x20  []                              [err(16)]  get last error code
         Returns: error code of last operation.
+        
+    // TODO: FS management?
         
 - IRQ Commands
     ICID  Res       Purpose
