@@ -1,4 +1,10 @@
-.text 0x0000
-.stack 0x0100
-.ivt 0x0180
-restrict .data, .rodata, .bss
+mode freestanding
+format raw
+entry 0x0
+size 512
+output "rom.exe"
+sections {
+    .text
+    .ivt
+}
+restrict .data, .bss
