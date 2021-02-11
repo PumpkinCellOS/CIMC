@@ -82,6 +82,7 @@ u16 load_os()
     out16(HDD_IO, 0x0000); // padding
     out16(HDD_IO, 0x0000);
     out16(HDD_IO, 0x0400); // address
+    out16(HDD_IO, 0x0000); // offset
     out16(HDD_IO, 0x0200); // size
     
     // Wait for IRQ. The IRQ handler sets DX to 1.

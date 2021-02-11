@@ -458,10 +458,10 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'fid' is not a directory.
 
     
-    0x08  [name(4*16)]                    [id(16)]   get file's 'name' id
+    0x08  [name(4*16)]                    [id(16)]   get 'name' file's id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16),size(16)]   get file's 'id' info
+    0x09  [id(16)]                        [id(16),size(16)]   get 'id' file's info
         Error codes: NO_FILE if 'id' not found.
         Returns: file size OR file count for folders.
         
@@ -476,10 +476,10 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x13  [name(4*16)]                    [id(16)]   delete file 'name'
         Error codes: NO_FILE if 'name' not found, NOT_EMPTY if 'name' is a non-empty directory.
         
-    0x14  [name(4*16);addr(16);size(16)]  [id(16)]   read 'size' bytes from file 'name' at 'offset' to RAM[addr:size]
+    0x14  [name(4*16);addr(16);offset(16);size(16)]  [id(16)]   read 'size' bytes from file 'name' at 'offset' to RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
-    0x15  [name(4*16);addr(16);size(16)]  [id(16)]   write 'size' bytes to file 'name' at 'offset' from RAM[addr:size]
+    0x15  [name(4*16);addr(16);offset(16);size(16)]  [id(16)]   write 'size' bytes to file 'name' at 'offset' from RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
     0x16  [fid(16);name(4*16)]            [id(16)]   move file 'name' to directory 'fid'
