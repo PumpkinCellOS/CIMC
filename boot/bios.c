@@ -44,18 +44,10 @@ inline __attribute((noreturn)) u16 in16(const reg(imm) u8 port)
 
 asm(
     "hdd_entry:\n"
-        "in8 0x02, ax\n"
-        "mov ax, [bp+0]\n"
-        "calla hdd_handler\n"
+        "in8 0x02, ax\n" // To not hang the HDD
+        "mov dx, 0x0\n"
         "iret\n"
 );
-
-void hdd_handler(u8 cmd)
-{
-    asm(
-        "mov dx, 0x1\n"
-    );
-}
 
 void setup_ivt()
 {
