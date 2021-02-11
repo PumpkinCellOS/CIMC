@@ -184,9 +184,9 @@ PORT  Res+Purpose
 0x08  R  <Reserved>
 0x09  R  Device Info
 ----------------------------------------------
-0x0a  R  Slow I/O (Port 2)
-0x0b  R  Slow I/O (Port 1)
-0x0c  R  Slow I/O (Port 0)
+0x0a  -  <Unused>
+0x0b  -  <Unused>
+0x0c  -  <Unused>
 ----------------------------------------------
 0x0d  R  Fast I/O (Port 2)
 0x0e  R  Fast I/O (Port 1)
@@ -209,7 +209,7 @@ IRQ  Res+Purpose
 2    V  Legacy I/O [Power Management Interface]
 3    V  Legacy I/O [Mass storage]
 4    V  Legacy I/O [Soundcard]
-5    R  Slow I/O [Ports 0-2]
+5    -  <Unused>
 6    V  Fast I/O [Ports 0-2]
 7    R  Cascaded IRQ [Reserved]
 ----------------------------------------------
@@ -235,9 +235,9 @@ PORT  Res+Purpose
 ----------------------------------------------
 0x08  R  <Reserved>
 0x09  R  Device Info
-0x0a  R  Slow I/O (Port 2) [Reserved]
-0x0b  R  Slow I/O (Port 1) [Reserved]
-0x0c  R  Slow I/O (Port 0) [Reserved]
+0x0a  -  <Unused>
+0x0b  -  <Unused>
+0x0c  -  <Unused>
 ----------------------------------------------
 0x0d  R  Fast I/O (Port 2) [Reserved]
 0x0e  R  Fast I/O (Port 1) [Reserved]
@@ -290,13 +290,6 @@ Legacy I/O plain interrupt
 
 Legacy I/O interrupt with command
 -in8 port, cmd
-[-in16 port, result]
-
-
--- Slow I/O --
-
-Slow I/O interrupt with command:
--in16 port, dev:cmd
 [-in16 port, result]
 
 
