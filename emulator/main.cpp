@@ -8,7 +8,6 @@
 #include <unistd.h>
 
 class LegacyIOBus : public Cx16Bus { public: virtual std::string name() const { return "Legacy I/O Bus"; } };
-class SlowIOBus : public Cx16Bus { public: virtual std::string name() const { return "Slow I/O Bus"; } };
 class FastIOBus : public Cx16Bus { public: virtual std::string name() const { return "Fast I/O Bus"; } };
 
 int main()
@@ -33,12 +32,10 @@ int main()
 
     // Create busses
     auto legacy_io_bus = std::make_shared<LegacyIOBus>();
-    auto slow_io_bus = std::make_shared<SlowIOBus>();
     auto fast_io_bus = std::make_shared<FastIOBus>();
 
     cpu_io_bus->set_master(cpu);
     cpu_io_bus->register_io_switch(legacy_io_bus);
-    cpu_io_bus->register_io_switch(slow_io_bus);
     cpu_io_bus->register_io_switch(fast_io_bus);
 
     // Create DMA controllers
