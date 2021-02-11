@@ -36,4 +36,3 @@ section .ivt
     data 0x0B
     skip 22
     data &hdd_entry
-    
