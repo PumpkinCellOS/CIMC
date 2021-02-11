@@ -20,5 +20,7 @@ _start:
     ; Jump to C code
     call bios_main
     
-    ; We shouldn't go here
+    ; We shouldn't go here - hang forever.
+    _emu_dbg "Cheats??"
+    _fdsbl IF
     hlt

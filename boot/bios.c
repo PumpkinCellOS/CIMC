@@ -113,7 +113,7 @@ u16 load_os()
     
     u16* os = (u16*)0x0400;
     if(os[0] != 0x5080) {
-        __cx16_emulator_debug("Invalid file format!");
+        __cx16_emulator_debug("Invalid boot image");
         HALT;
     }
     
