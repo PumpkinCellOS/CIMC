@@ -94,14 +94,14 @@ Object file created from source files. See OS/os-exec.txt > Object File Format
 
 -- Special file extensions --
 
-directories
-ID - 1010 1010 - AA
-Stores another files. See Devices/mass-storage.txt
+*.hlk files
+ID - 0011 0011 - 33
+Stores localization of another file (as file ID) -> hard links.
 
 *.lnk files
 ID - 0101 0101 - 55
 Stores localization of another file (as file name) -> symlinks.
 
-*.hlk files
-ID - 0101 0101 - 55
-Stores localization of another file (as file ID) -> hard links.
+directories
+ID - 1010 1010 - AA
+Stores another files. See Devices/mass-storage.txt
