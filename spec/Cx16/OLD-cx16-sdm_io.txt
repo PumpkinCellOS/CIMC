@@ -345,7 +345,7 @@ It can be *extended* using DeviceVersion.
 
 If DeviceType = 0xe, the real device type is set, 
 if eXtendedCaps, in DeviceExType. Otherwise, it is 
-considered an Invalid Device.
+assumed an Invalid Device.
 
 Default device types:
 
@@ -390,7 +390,10 @@ Self-DI eXtendedCaps:
 - 0  =
 - 0  =
 
-Prototype DI: eXtendedCaps=1, knownCaps=1, Present=1, MajorVersion=0x1, MinorVersion=0x0 (1.0).
+Prototype DI: eXtendedCaps=0, knownCaps=1, Present=1, MajorVersion=0x1, MinorVersion=0x0 (1.0).
+NOTE:
+    * If knownCaps = 0, all flags are assumed false.
+    * If eXtendedCaps = 0, the minor version is assumed 0x0.
    
 
 
@@ -430,7 +433,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 - DI Capabilities
     - 0
     - 0
-    - 1  #IR  ID Recycling
+    - 0  #IR  ID Recycling
     - 1  #DN  Directory-unique Names
 - Registers
     RID   Acc Size  Purpose
@@ -442,17 +445,20 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 
     CID   Args                            Res        Purpose
     0x02  [id(16);addr(16)]               [id(16)]   list directory 'id' contents, save them to RAM[addr:element count]
-        Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory, FAULT if failed to write data (e.g RAM out of range)
-        The RAM space must be prepared by OS.
+        Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory,
+        FAULT if failed to write data (e.g RAM out of range)
+        NOTE: The RAM space must be prepared by OS.
         
     0x03  [id(16)]                        [id(16)]   delete file 'id'
         Error codes: NO_FILE if 'id' not found, NOT_EMPTY if 'id' is a non-empty directory.
         
     0x04  [id(16);addr(16);offset(16);size(16)]      [id(16)]   read 'size' bytes from file 'id' at 'offset' to RAM[addr:size]
-        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory, OVERFLOW if offset+size exceeds file boundary, FAULT if failed to write data (e.g RAM out of range)
+        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory,
+        OVERFLOW if offset+size exceeds file boundary, FAULT if failed to write data (e.g RAM out of range)
         
     0x05  [id(16);addr(16);offset(16);size(16)]      [id(16)]   write 'size' bytes to file 'id' at 'offset' from RAM[addr:size]
-        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory, OVERFLOW if offset+size exceeds file boundary, FAULT if failed to write data (e.g RAM out of range)
+        Error codes: NO_FILE if 'id' not found, IS_DIR if 'id' is a directory,
+        OVERFLOW if offset+size exceeds file boundary, FAULT if failed to write data (e.g RAM out of range)
         
     0x06  [fid(16);id(16)]                [id(16)]   move file 'id' to directory 'fid'
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'fid' is not a directory.
