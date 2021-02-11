@@ -425,6 +425,8 @@ There are basic specification of all of the DDTs below.
 
 -- Mass storage with FS acceleration (0x2) --
 
+See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
+
 - DI Capabilities
     - 0
     - 0
