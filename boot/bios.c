@@ -1,3 +1,4 @@
+typedef unsigned char u8;
 typedef unsigned int u16;
 
 #define HALT asm("hlt\n")
@@ -93,6 +94,7 @@ u16 load_os()
             // Got an IRQ.
             "cmp dx, 0x0\n"
             // If jumped, the IRQ was unrelated to HDD.
+            // TODO: Crash when other IRQs will be masked and only CPU exceptions / NMIs will be allowed.
             "je 1\n"
         "_fdsbl IF\n" //Disable IRQs.
     );
