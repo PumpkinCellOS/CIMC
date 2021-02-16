@@ -489,9 +489,9 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x08  [name(4/2*16)]                    [id(16)]   get 'name' file's id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16);size(16);name(4*16)]   get 'id' file's info
+    0x09  [id(16)]                        [id(16);size(16);name(4*16);ext(1)]   get 'id' file's info
         Error codes: NO_FILE if 'id' not found.
-        Returns: file size OR file count for folders.
+        Returns: size -> file size OR file count for folders. If id==0, DON't read further!
         
     0x0a  [name(4*16);ext(8);fid(16)]     [id(16)]   create file with name 'name', extension 'ext' in folder 'fid'
         Error codes: NO_FILE if 'fid' not found, NOT_DIR if 'fid' is not a directory, 0 otherwise.
