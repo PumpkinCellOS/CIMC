@@ -1,0 +1,78 @@
+PumpkinCellOS Command Line
+
+# Command line syntax
+
+command [arguments...]
+
+# Internal commands
+
+------------------
+cat - Display file
+
+Displays contents of specified file.
+
+- cat <file name>
+
+----------------------------
+df - Query mass storage info
+
+- df [device]
+Device can be one of: sys,snd,app,reg,dt0,dt1,dt2,dt3.
+If not set, display all devices.
+
+--------------------------------------------
+ext - Query and manage filesystem extensions
+
+- ext
+Lists all extensions
+
+- ext [extension]
+Displays info about extension, with name, filesystem ID
+and description.
+
+----------------------------
+ls - List files in directory
+
+- ls [-il] [directory]
+
+Lists contents of 'directory' or current directory if 
+'directory' is not set.
+
+## Options
+
+-i  Display file IDs
+-l  Display long info
+
+--------------------
+lsdev - List devices
+
+- lsdev [-l]
+
+Lists all devices visible in the system.
+
+## Options
+
+-l  Display I/O ports, IRQs and DMA channels.
+
+--------------------------
+sctl - Manage system state
+
+- sctl halt
+Halts the system.
+
+- sctl reboot
+Reboots the system.
+
+- sctl sleep
+Enters sleep state.
+
+-----------------------
+
+# External applications
+
+calc - Calculator
+cmd - Internal command executor (ICE)
+demo - CiMC Demo
+hex - Hex editor
+pnt - Paint
+sh - Shell
