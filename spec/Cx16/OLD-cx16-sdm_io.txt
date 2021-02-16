@@ -489,7 +489,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x08  [name(4/2*16)]                    [id(16)]   get 'name' file's id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16);size(16);name(4*16);ext(1)]   get 'id' file's info
+    0x09  [id(16)]                        [id(16);size(16);name(4*16);ext(8)]   get 'id' file's info
         Error codes: NO_FILE if 'id' not found.
         Returns: size -> file size OR file count for folders. If id==0, DON't read further!
         
@@ -515,6 +515,9 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     
     0x17  [id(16);newname(4*16)]          [id(16)]   rename file 'id' to 'newname'
         Error codes: NO_FILE if 'id' not found.
+        
+    0x18  [id(16),ext(8)]                 [id(16)]   change extension for file 'id' to 'ext'
+        Error codes: NO_FILE if 'id' not found, INVALID if 'ext' is invalid (e.g is a folder or symlink)
 
         
     0x20  []                              [err(16)]  get last error code
@@ -535,6 +538,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x04  NOT_EMPTY  Directory not empty
     0x05  OVERFLOW   File overflow (access out of range)
     0x06  FAULT      Memory access fault (DMA fault)
+    0x07  INVALID    Invalid value
 
 
 -- Sound adapter (0x3) --
