@@ -46,17 +46,16 @@ inline __attribute((noreturn)) u16 in16(const reg(imm) u8 port)
 asm(
     "hdd_entry:\n"
         "in8 0x02, ax\n" // To not hang the HDD
-        "mov dx, 0x0\n"
+        "mov dx, 0x0\n" // Note that we cannot use global variables here, so we use 'dx'.
         "iret\n"
 );
 
 void setup_ivt()
 {
-    // Load and enable interrupts.
+    // Load interrupt table.
     asm(
         "livt 0x0160\n"
         // TODO: Consider masking other devices' IRQ lines.
-        "_fenbl IF\n" // Flag Enable: Interrupt Flag
     );
 }
 
@@ -88,6 +87,7 @@ u16 load_os()
     
     // Wait for IRQ. The IRQ handler sets DX to 1.
     asm(
+        "_fenbl IF\n" // Flag Enable: Interrupt Flag
         "mov dx, 0x0\n"
         "1:\n"
             "hlt\n"
