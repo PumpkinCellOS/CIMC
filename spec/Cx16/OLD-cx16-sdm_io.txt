@@ -498,7 +498,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x00  [id(16)]  Read Finished
     0x01  [id(16)]  Write Finished
     
-Error Codes:
+- Error Codes
     0x00  SUCCESS    Success (not an error)
     0x01  NO_FILE    No such file or directory
     0x02  IS_DIR     Is a directory
@@ -510,6 +510,8 @@ Error Codes:
 
 -- Sound adapter (0x3) --
 
+// TODO: Sound format!
+
 - DI Capabilities
     - 0
     - 0
@@ -517,16 +519,27 @@ Error Codes:
     - 1  #MC  Multi-Channel
 - Registers
     RID   Acc Size  Purpose
-    0x00  R   8     Max Channel Count (if #MC)
-    0x01  RW  8     Channel Mask (used to mute channels, if #MC)
+    0x00  R   8     Max Channel Count (if #MC, 1 otherwise)
+    0x01  RW  8     Channel Mask (used to mute channels, if #MC, 0xFF otherwise)
     0x02  RW  8     Play Mode (0000000L / Loop)
-    0x03  R   16    Buffer Size per Sound
+    0x03  R   16    Buffer Size per Channel
 - Commands
     CID   Args                            Res  Purpose
-    0x02  [addr(16);size(16);channel(8)]  []   Load Sound from RAM(addr:size) to BUF[channel]. If not #MC, do NOT give `channel`.
+    0x02  [addr(16);size(16);channel(8)]  []   Load Sound from RAM(addr:size) to BUF[channel].
+        If not #MC, do NOT give `channel`.
+
     0x03  [chmask(8)]                     []   Start Playing
+        The sound is loaded from buffer and played from beginning.
+        If not #MC, do NOT give `chmask`.
+    
     0x04  [chmask(8)]                     []   Stop Playing
+        The command clears the sound cache and stops playing.
+        If not #MC, do NOT give `chmask`.
+        // Is that command useful?
+    
     0x05  [chmask(8)]                     []   Pause Playing
+        Toggles the pause state. If it is called when already paused, the sound is resumed.
+        If not #MC, do NOT give `chmask`.
 
 
 -- Interrupt Controller (0x4) --
@@ -585,17 +598,27 @@ Error Codes:
     - 0
     - 1  #DB  Double Buffer
     - 1  #FO  Fill Operations
-    - 1  #VM  Graphics Video Mode
+    - 1  #VM  Graphical Video Mode
 - Registers
     RID   Acc Size  Purpose
     0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
-    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64)
+    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64, text mode 25x10)
     0x02  RW  16    Framebuffer Address
 - Commands
     color - (0-Black,1-White or ASCII character)
-    CID   Args                          Res  Purpose
-    0x02  [color(8)]                    []   Clear Framebuffer
-    0x03  [x,y(8+8);color(8)]           []   Set Pixel
-    0x04  [x,y(8+8);w,h(8+8);color(8)]  []   Fill Rect
-    0x05  [x,y(8+8);w,h(8+8)]           []   Flush Rect if #DB, nothing otherwise
-    0x06  [x,y(8+8);size(16);op(8)]     []   Fill Framebuffer from Memory RAM[fbaddr:size] using op: 0(=) 1(&) 2(|) 3(^) 4(!^) if #FO, (=) default
+    CID   Args                                Res  Purpose
+    0x02  [color(8)]                          []   Clear Framebuffer with 'color'.
+    
+    0x03  [x,y(8+8);color(8)]                 []   Set Pixel 'x,y' to 'color'. Only applicable in graphical mode.
+    
+    0x04  [x,y(8+8);w,h(8+8);color(8)]        []   Fill Rect 'x,y:w,h' with 'color'
+    
+    0x05  [x,y(8+8);w,h(8+8)]                 []   Flush Rect if #DB, nothing otherwise
+
+    0x06  [x,y(8+8);w,h(8+8);size(16);op(8)]  []   Fill Framebuffer Region at 'x,y' size 'w,h' from RAM[fbaddr:size] using 'op'
+        Operations: 0(=) 1(&) 2(|) 3(^) 4(!^) if #FO, (=) is used by default if operations are not supported
+        
+    0x07  [x,y,code(4+4+8)]                   []   Set Character 'code' at 'x,y'.
+        Only applicable in text mode.
+        
+    0x08  [code(8);addr(16)]                  []   Load Font Character from 'addr'. // TODO:
