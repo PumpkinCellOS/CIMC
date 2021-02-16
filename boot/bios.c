@@ -109,7 +109,7 @@ u16 load_os()
     return os[1];
 }
 
-void bios_main()
+__attribute((noreturn)) void bios_main()
 {
     setup_ivt();
     u16 os_addr = load_os();
