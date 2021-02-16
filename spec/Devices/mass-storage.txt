@@ -70,14 +70,18 @@ of 256B size divided finally into 32B-segments.
 
 
 
-000 - System block      -> /sys
-001 - Sound block       -> /sound
-010 - Application block -> /app
-011 - Name registry
-100 - Data block (I)    -> /data0
-101 - Data block (II)   -> /data1
-110 - Data block (III)  -> /data2
-111 - Data block (IV)   -> /data3
+The Block name is used for I/O interface and are referred as
+"partition names".
+
+ID         Purpose           Name
+000 (0x0)  System block      /sys
+001 (0x1)  Sound block       /snd
+010 (0x2)  User app block    /app
+011 (0x3)  Name registry     /nam
+100 (0x4)  Data block (I)    /dt0
+101 (0x5)  Data block (II)   /dt1
+110 (0x6)  Data block (III)  /dt2
+111 (0x7)  Data block (IV)   /dt3
 
 
 -- System block --
@@ -99,7 +103,7 @@ The application block stores compiled executable files written
 using machine code (assembler).
 
 
--- Data block --
+-- Data blocks --
 
 Data blocks stores all files and directories in system (except
 /sys) and links to another files in another blocks.

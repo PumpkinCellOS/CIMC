@@ -63,17 +63,9 @@ u16 load_os()
 {
     // Find a file on disk called "/sys/krnl".
     
-    // Read /sys position.
-    out8(HDD_IO, HDD_CMD_GET_ID);
-    out16(HDD_IO, 0x2f73); // "/s"
-    out16(HDD_IO, 0x7973); // "ys"
-    out16(HDD_IO, 0x0000); // padding
-    out16(HDD_IO, 0x0000);
-    u16 sys_id = in16(HDD_IO);
-    
-    // Goto /sys.    
+    // Goto /sys (it has a hardcoded ID 0x0001).
     out16(HDD_IO, 0x0102); //Write Register: User Address
-    out16(HDD_IO, sys_id);
+    out16(HDD_IO, 0x0001);
     
     // Read /krnl.
     out8(HDD_IO, HDD_CMD_READ_BY_NAME);

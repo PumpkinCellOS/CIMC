@@ -425,19 +425,48 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 
 - DI Capabilities
     - 0
-    - 0
+    - 0  #AC  Access Control
     - 0  #IR  ID Recycling
     - 1  #DN  Directory-unique Names
 - Registers
-    RID   Acc Size  Purpose
-    0x00  R   16    Filled storage (in B)
-    0x01  R   16    ID counter (binary int)
-    0x02  RW  16    User address (address of current user's location)
+    RID   Acc Size  Mm      Purpose
+    0x00  R   16    HDD_FS  Filled storage (in B)
+    0x01  R   16    HDD_IC  ID counter (binary int)
+    0x02  RW  16    HDD_UA  User address (address of current user's location)
 - Commands
     All operations returns 0 if error or file ID (non-zero) if success.
+    
+    File ID 0 is reserved as invalid ID. Listing ID 0 returns partition
+    data.
+    
+    Note for file names:
+    All file names are HDD_UA relative. If HDD_UA == 0, the name is
+    used as partition name. You don't need then to give the full
+    file name for 0x08 (get file ID) call - give only first 4 characters
+    (two I/O operations)
+    
+    Access -> sector write/read/write/delete/create
+    
+    Available partition names:
+
+  | Name |  ID  |  HexName  | Access | Purpose/optimization
+  +------+------+-----------+--------+------------------------------
+  | /sys | 0001 | 2f73 7973 |  r---  | System binaries
+  | /snd | 0002 | 2f73 6e64 |  r--c  | Sounds
+  | /app | 0003 | 2f61 7070 |  r---  | User applications
+  | /dt0 | 0004 | 2f64 7430 |  rwdc  | Data
+  | /dt1 | 0005 | 2f64 7431 |  rwdc  | Data
+  | /dt2 | 0006 | 2f64 7432 |  rwdc  | Data
+  | /dt3 | 0007 | 2f64 7433 |  rwdc  | Data
+  +------+------+-----------+--------+------------------------------
+   
+    The Access can be bypassed by special hardware switch. It is
+    not applied for devices without #AC DI capability.
+    
+    See Devices/mass-storage.txt for more details.
 
     CID   Args                            Res        Purpose
-    0x02  [id(16);addr(16)]               [id(16)]   list directory 'id' contents, save them to RAM[addr:element count]
+    0x02  [id(16);addr(16)]               [id(16)]   list directory 'id' contents, save their IDs to RAM[addr:element count]
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory,
         FAULT if failed to write data (e.g RAM out of range)
         NOTE: The RAM space must be prepared by OS.
@@ -457,10 +486,10 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'fid' is not a directory.
 
     
-    0x08  [name(4*16)]                    [id(16)]   get 'name' file's id
+    0x08  [name(4/2*16)]                    [id(16)]   get 'name' file's id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16),size(16)]   get 'id' file's info
+    0x09  [id(16)]                        [id(16);size(16);name(4*16)]   get 'id' file's info
         Error codes: NO_FILE if 'id' not found.
         Returns: file size OR file count for folders.
         
@@ -468,7 +497,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
         Error codes: NO_FILE if 'fid' not found, NOT_DIR if 'fid' is not a directory, 0 otherwise.
 
     
-    0x12  [name(4*16);addr(16)]           [id(16)]   list directory 'name' contents, save them to RAM[addr:element count]
+    0x12  [name(4*16);addr(16)]           [id(16)]   list directory 'name' contents, save their IDs to RAM[addr:element count]
         Error codes: NO_FILE if 'name' not found, NOT_DIR if 'name' is not a directory.
         The RAM space must be prepared by OS.
         
