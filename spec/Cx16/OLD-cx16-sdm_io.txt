@@ -446,7 +446,9 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     All file names are HDD_UA relative. If HDD_UA == 0, the name is
     used as partition name.
 
-    The last byte of name determines an extension.
+    The last byte of name determines an extension. The notation '(<=6*16)'
+    indicates that the read stops when data MSB == 0x00, or if 6 words
+    are already loaded. The LSB is then an extension of the file.
     
     Access -> sector write/read/write/delete/create
     
@@ -493,11 +495,11 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x08  [name(<=6*16)]                    [id(16)]   get 'name' file's id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16);size(16);name(6*16);ext(8)]   get 'id' file's info
+    0x09  [id(16)]                        [id(16);size(16);name(6*16)]   get 'id' file's info
         Error codes: NO_FILE if 'id' not found.
         Returns: size -> file size OR file count for folders. If id==0, DON't read further!
         
-    0x0a  [name(<=6*16);fid(16)]     [id(16)]   create file with name 'name', extension 'ext' in folder 'fid'
+    0x0a  [name(<=6*16);fid(16)]     [id(16)]   create file with name 'name', in folder 'fid'
         Error codes: NO_FILE if 'fid' not found, NOT_DIR if 'fid' is not a directory, 0 otherwise.
 
     
@@ -514,10 +516,10 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x15  [name(<=6*16);addr(16);offset(16);size(16)]  [id(16)]   write 'size' bytes to file 'name' at 'offset' from RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
-    0x16  [fid(16);name(6*16)]            [id(16)]   move file 'name' to directory 'fid'
+    0x16  [fid(16);name(<=6*16)]            [id(16)]   move file 'name' to directory 'fid'
         Error codes: NO_FILE if 'name' not found, NOT_DIR if 'fid' is not a directory.
     
-    0x17  [id(16);newname(6*16)]          [id(16)]   rename file 'id' to 'newname'
+    0x17  [id(16);newname(<=6*16)]          [id(16)]   rename file 'id' to 'newname'
         Error codes: NO_FILE if 'id' not found.
 
         
