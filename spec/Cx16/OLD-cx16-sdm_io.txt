@@ -433,38 +433,42 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x00  R   16    HDD_FS  Filled storage (in B)
     0x01  R   16    HDD_IC  ID counter (binary int)
     0x02  RW  16    HDD_UA  User address (address of current user's location)
-- Commands
+
+- Description
     All operations returns 0 if error or file ID (non-zero) if success.
     
     File ID 0 is reserved as invalid ID. Listing ID 0 returns partition
     data.
     
     Note for file names:
+    File name length is 12B.
+    
     All file names are HDD_UA relative. If HDD_UA == 0, the name is
-    used as partition name. You don't need then to give the full
-    file name for 0x08 (get file ID) call - give only first 4 characters
-    (two I/O operations)
+    used as partition name.
+
+    The last byte of name determines an extension.
     
     Access -> sector write/read/write/delete/create
     
     Available partition names:
 
-  | Name |  ID  |  HexName  | Access | Purpose/optimization
-  +------+------+-----------+--------+------------------------------
-  | /sys | 0001 | 2f73 7973 |  r---  | System binaries
-  | /snd | 0002 | 2f73 6e64 |  r--c  | Sounds
-  | /app | 0003 | 2f61 7070 |  r---  | User applications
-  | /dt0 | 0004 | 2f64 7430 |  rwdc  | Data
-  | /dt1 | 0005 | 2f64 7431 |  rwdc  | Data
-  | /dt2 | 0006 | 2f64 7432 |  rwdc  | Data
-  | /dt3 | 0007 | 2f64 7433 |  rwdc  | Data
-  +------+------+-----------+--------+------------------------------
+  | Name |  ID  |    Hex Name    | Access | Purpose/optimization
+  +------+------+----------------+--------+------------------------------
+  | /sys | 0001 | 2f73 7973 0000 |  r---  | System binaries
+  | /snd | 0002 | 2f73 6e64 0000 |  r--c  | Sounds
+  | /app | 0003 | 2f61 7070 0000 |  r---  | User applications
+  | /dt0 | 0004 | 2f64 7430 0000 |  rwdc  | Data
+  | /dt1 | 0005 | 2f64 7431 0000 |  rwdc  | Data
+  | /dt2 | 0006 | 2f64 7432 0000 |  rwdc  | Data
+  | /dt3 | 0007 | 2f64 7433 0000 |  rwdc  | Data
+  +------+------+----------------+--------+------------------------------
    
     The Access can be bypassed by special hardware switch. It is
     not applied for devices without #AC DI capability.
     
     See Devices/mass-storage.txt for more details.
-
+    
+- Commands
     CID   Args                            Res        Purpose
     0x02  [id(16);addr(16)]               [id(16)]   list directory 'id' contents, save their IDs to RAM[addr:element count]
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'id' is not a directory,
@@ -486,38 +490,35 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
         Error codes: NO_FILE if 'id' not found, NOT_DIR if 'fid' is not a directory.
 
     
-    0x08  [name(4/2*16)]                    [id(16)]   get 'name' file's id
+    0x08  [name(<=6*16)]                    [id(16)]   get 'name' file's id
         Error codes: NO_FILE if 'name' not found.
         
-    0x09  [id(16)]                        [id(16);size(16);name(4*16);ext(8)]   get 'id' file's info
+    0x09  [id(16)]                        [id(16);size(16);name(6*16);ext(8)]   get 'id' file's info
         Error codes: NO_FILE if 'id' not found.
         Returns: size -> file size OR file count for folders. If id==0, DON't read further!
         
-    0x0a  [name(4*16);ext(8);fid(16)]     [id(16)]   create file with name 'name', extension 'ext' in folder 'fid'
+    0x0a  [name(<=6*16);fid(16)]     [id(16)]   create file with name 'name', extension 'ext' in folder 'fid'
         Error codes: NO_FILE if 'fid' not found, NOT_DIR if 'fid' is not a directory, 0 otherwise.
 
     
-    0x12  [name(4*16);addr(16)]           [id(16)]   list directory 'name' contents, save their IDs to RAM[addr:element count]
+    0x12  [name(<=6*16);addr(16)]           [id(16)]   list directory 'name' contents, save their IDs to RAM[addr:element count]
         Error codes: NO_FILE if 'name' not found, NOT_DIR if 'name' is not a directory.
         The RAM space must be prepared by OS.
         
-    0x13  [name(4*16)]                    [id(16)]   delete file 'name'
+    0x13  [name(<=6*16)]                    [id(16)]   delete file 'name'
         Error codes: NO_FILE if 'name' not found, NOT_EMPTY if 'name' is a non-empty directory.
         
-    0x14  [name(4*16);addr(16);offset(16);size(16)]  [id(16)]   read 'size' bytes from file 'name' at 'offset' to RAM[addr:size]
+    0x14  [name(<=6*16);addr(16);offset(16);size(16)]  [id(16)]   read 'size' bytes from file 'name' at 'offset' to RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
-    0x15  [name(4*16);addr(16);offset(16);size(16)]  [id(16)]   write 'size' bytes to file 'name' at 'offset' from RAM[addr:size]
+    0x15  [name(<=6*16);addr(16);offset(16);size(16)]  [id(16)]   write 'size' bytes to file 'name' at 'offset' from RAM[addr:size]
         Error codes: NO_FILE if 'name' not found, IS_DIR if 'name' is a directory.
         
-    0x16  [fid(16);name(4*16)]            [id(16)]   move file 'name' to directory 'fid'
+    0x16  [fid(16);name(6*16)]            [id(16)]   move file 'name' to directory 'fid'
         Error codes: NO_FILE if 'name' not found, NOT_DIR if 'fid' is not a directory.
     
-    0x17  [id(16);newname(4*16)]          [id(16)]   rename file 'id' to 'newname'
+    0x17  [id(16);newname(6*16)]          [id(16)]   rename file 'id' to 'newname'
         Error codes: NO_FILE if 'id' not found.
-        
-    0x18  [id(16),ext(8)]                 [id(16)]   change extension for file 'id' to 'ext'
-        Error codes: NO_FILE if 'id' not found, INVALID if 'ext' is invalid (e.g is a folder or symlink)
 
         
     0x20  []                              [err(16)]  get last error code
@@ -539,6 +540,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x05  OVERFLOW   File overflow (access out of range)
     0x06  FAULT      Memory access fault (DMA fault)
     0x07  INVALID    Invalid value
+    0x08  ACCESS     
 
 
 -- Sound adapter (0x3) --

@@ -61,7 +61,7 @@ void setup_ivt()
 
 u16 load_os()
 {
-    // Find a file on disk called "/sys/krnl".
+    // Find a file on disk called "/sys/krnl.EXE".
     
     // Goto /sys (it has a hardcoded ID 0x0001).
     out16(HDD_IO, 0x0102); //Write Register: User Address
@@ -71,8 +71,7 @@ u16 load_os()
     out8(HDD_IO, HDD_CMD_READ_BY_NAME);
     out16(HDD_IO, 0x6b72); // "kr"
     out16(HDD_IO, 0x6e6c); // "nl"
-    out16(HDD_IO, 0x0000); // padding
-    out16(HDD_IO, 0x0000);
+    out16(HDD_IO, 0x00f1); // stop reading + EXE extension
     out16(HDD_IO, 0x0400); // address
     out16(HDD_IO, 0x0000); // offset
     out16(HDD_IO, 0x0200); // size
