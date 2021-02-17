@@ -1,0 +1,74 @@
+// Stack frames
+
+int main(int argc)
+{
+    int i = argc;
+    {
+        int j = 5;
+        {
+            int k = 10;
+            j += k;
+        }
+        i += j;
+    }
+    return i;
+}
+
+cpop -2 ; int i;
+mov dx, [bp-2] ; dx=argc;
+mov [sp-2], dx ; i=dx;
+_MKSTFR ; {
+    cpop -2 ; int j;
+    mov dx, 5 ; dx=5;
+    mov [sp-2], dx ; j=dx;
+    _MKSTFR ; {
+        cpop -2; int k;
+        
+        mov dx, 0xa ; dx=10
+        mov [sp-2], dx ; k=dx
+        
+        mov cx, dx ; cx=dx
+        mov dx, [bp-2]; dx=j
+        mov ax, dx ; ax=dx
+        mov dx, cx;  dx=cx
+        add ax, dx ; ax+=k
+        mov dx, ax ; dx=ax
+        mov [bp-2], dx ; j=dx
+        
+        cpop 2; delete k
+    _RMSTFR ; }
+   
+    mov dx, [sp-2] ; dx=j;
+        
+    mov cx, dx ; cx=dx
+    mov dx, [bp-2]; dx=i
+    mov ax, dx ; ax=dx
+    mov dx, cx;  dx=cx
+    add ax, dx ; ax+=j
+    mov dx, ax ; dx=ax
+    mov [bp-2], dx ; i=dx
+    
+    cpop 2; delete j;
+_RMSTFR ; }
+mov dx, [sp-2]
+mov ax, dx ; :>0
+cpop 2 ; }
+ret ; return
+
+// Function call with local variable argument
+
+int main(char* argv)
+{
+    int c = 0;
+    return printf(c, argv)
+}
+
+cpop -2 ; int c
+mov dx, 0x0 ; dx=0
+mov [bp-2], dx ; c=dx
+push [sp-2] ; :< c
+push [bp-2] ; :< argv
+calla printf ; printf(), creates stack frame
+_RMSTFR ; remove stack frame
+cpop 6 ; :>, delete c
+ret ; return value is already stored in ax

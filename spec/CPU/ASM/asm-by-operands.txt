@@ -1,0 +1,141 @@
+# I/O Operations
+0x  OUT16  ax -> *x
+1x  OUT8   al -> *x  N
+2x  IN16  ax <- *x  2(b)
+8x  IN8  al <- *x
+
+# AX/AL as Source/Destination Operand
+30  MOV ax <= bx      none
+31  MOV ax <= dx      none
+3B  MOV ax <= flags   none
+3C  MOV ax <= val     2(a)
+9B  MOV ax <= [bp+x]  1(x)
+47  JMP ax    none
+48  CMP ax =? dx
+4C  CMP ax =? val  2(b)
+6E  OR  ax <| val     2(b)
+6F  OR  ax <| bx
+70  NEG ax    Byte Negate
+71  NOT ax    Logic Negate
+..  CALLA ax  none
+76  LIVT ax    none
+90  SHL ax << val  1(b)
+91  SHR ax >> val  1(b)
+92  XOR  ax <^ val  2(b)
+93  XOR  ax <^ bx   N
+94  XOR  ax <^ ax   N     Clear ax
+9A  PGE ax
+A1  XCHG ax <> bx   N
+A2  XCHG ax <> cx   N
+A3  XCHG ax <> dx   N
+50  PUSH16   ax
+55  POP16  ax    2 bytes
+
+58  ADD ax <+ val  2(b)
+59  ADD ax <+ bx   
+5A  ADD ax <+ dx
+60  SUB ax <- val  2(b)
+61  SUB ax <- bx   
+62  SUB ax <- dx
+68  MUL ax <* val %> dx  2(b)
+69  MUL ax <* bx %> dx
+6A  DIV ax </ val %> dx  2(b)
+6B  DIV ax </ bx %> dx
+6C  AND ax <& val     2(b)
+6D  AND ax <& bx
+
+# Other...
+
+32  MOV bx <= ax      none
+33  MOV bx <= dx      none
+3D  MOV bx <= val     2(a)
+9C  MOV bx <= [bp+x]  1(x)
+
+34  MOV cx <= ax      none
+35  MOV cx <= dx      none
+3E  MOV cx <= val     2(a)
+9D  MOV cx <= [bp+x]  1(x)
+
+36  MOV dx <= ax      none
+37  MOV dx <= [bx]    none  Read RAM at bx
+38  MOV dx <= [val]   2(b)  Read RAM at mem
+3F  MOV dx <= val     2(a)
+9E  MOV dx <= [bp+x]  1(x)
+
+39  MOV [val] <= dx   2(a)  Write RAM at mem
+3A  MOV [bx] <= dx    none  Write RAM at bx
+
+9F  MOV bp <= sp      none
+
+40  JMP ia    2(a)  Unconditional  
+41  JZ  ia    2(a)  If ZF is set        JE
+42  JG  ia    2(a)  If GF is set
+43  JL  ia    2(a)  If OF is set
+44  JNE ia    2(a)  If ZF is not set
+45  JGE ia    2(a)  If ZF or GF is set
+46  JLE ia    2(a)  If ZF or OF is set
+
+49  CMP bx =? dx
+4D  CMP bx =? val  2(b)
+4A  CMP cx =? dx
+4E  CMP cx =? val  2(b)
+4F  CMP dx =? val  2(b)
+
+53  PUSH16   dx
+
+52  PUSHA               All registries (ax,bx,cx,dx,sp,flags)
+53  PUSH8  val    1(a)  1 byte
+54  PUSH16 val    2(a)  2 bytes
+??  PUSH8  [bp+a] 1(a)
+??  PUSH16 [bp+a] 1(a)
+
+56  POP8   al    1 bytes
+57  POPA         All registries (ax,bx,cx,dx,sp,flags)
+
+5B  ADD cx <+ val  2(b)
+5C  ADD cx <+ bx   
+5D  ADD cx <+ dx
+
+5E  ADD sp <+ val  2(b)
+5F  ADD bp <+ val  2(b)
+
+63  SUB cx <- val  2(b)
+64  SUB cx <- bx   
+65  SUB cx <- dx
+
+66  SUB sp <- val  2(b)
+67  SUB bp <- val  2(b)  CPOP val
+
+98  AND flags <& val  2(b)
+
+99  OR  flags <| val  2(b)
+
+74  CALL  ia    2(a)
+77  CALLA ia  2(ia)
+
+76  LIVT ia    2(a)
+
+90  INC cx
+91  DEC cx
+
+95  XOR  bx <^ bx   N     Clear bx
+96  XOR  cx <^ cx   N     Clear cx
+97  XOR  dx <^ dx   N     Clear dx
+
+A5  XCHG bx <> bx   N     Debug
+A6  XCHG bx <> cx   N
+A7  XCHG bx <> dx   N
+
+AA  XCHG cx <> cx   N     Debug
+AB  XCHG cx <> dx   N
+
+AF  XCHG dx <> dx   N     Debug
+
+# No Operands
+72  RET  
+73  IRET Return from Interrupt; clears: EF if it is set, IIF otherwise.
+78  HLT
+79  ... (extended)
+7A  INT #U1
+7B  INT #U2
+??  CPUID

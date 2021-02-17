@@ -1,0 +1,203 @@
+
+
+# {00} -> I/O Operations
+# {OPCODE}{I|O}{Bt}{Port}
+{00}{0}{0}{xxxx}  0x  OUT16  x, ax
+{00}{0}{1}{xxxx}  1x  OUT8   x, al  none
+{00}{1}{0}{xxxx}  2x  IN16   x, ax
+{00}{1}{1}{xxxx}  3x  IN8    x, al
+
+# {010} -> I/O Output (Immediate)
+# {OPCODE}{Bt}{Port}
+{010}{0}{xxxx}  4x  OUT16  x, val  2(b)
+{010}{1}{xxxx}  5x  OUT8   x, val  1(b)
+
+# {0110} -> Store  {00} -> ax
+# {OPCODE}{Dst}{Src}
+{0110}{00==00}  60  MOV ax, val     2(a)
+{0110}{00}{01}  61  MOV ax, bx      none
+{0110}{00}{10}  62  MOV ax, cx      none
+{0110}{00}{11}  63  MOV ax, dx      none
+{0110}{01}{00}  64  MOV bx, ax      none
+{0110}{01==01}  65  MOV bx, val     2(a)
+{0110}{01}{10}  66  MOV bx, cx      none
+{0110}{01}{11}  67  MOV bx, dx      none
+{0110}{10}{00}  68  MOV cx, ax      none
+{0110}{10}{01}  69  MOV cx, bx      none
+{0110}{10==10}  6a  MOV cx, val     2(a)
+{0110}{10}{11}  6b  MOV cx, dx      none
+{0110}{11}{00}  6c  MOV dx, ax      none
+{0110}{11}{01}  6d  MOV dx, bx      none
+{0110}{11}{10}  6e  MOV dx, cx      none
+{0110}{11==11}  6f  MOV dx, val     2(a)
+
+# {01110} -> Jump
+# {OPCODE}{Type}
+{01110}{0==00}  70  JMP ax    none  Unconditional Far Jump to Pointer
+{01110}{001}    71  JMP ia    2(a)  Unconditional Far Jump to Fixed Address
+{01110}{010}    72  JZ  ia    1(a)  If ZF is set (JE) - Conditional Near Jump (Offset)
+{01110}{011}    73  JG  ia    1(a)  If GF is set - Conditional Near Jump (Offset)
+{01110}{100}    74  JL  ia    1(a)  If OF is set - Conditional Near Jump (Offset)
+{01110}{101}    75  JNE ia    1(a)  If ZF is not set - Conditional Near Jump (Offset)
+{01110}{110}    76  JGE ia    1(a)  If ZF or GF is set - Conditional Near Jump (Offset)
+{01110}{111}    77  JLE ia    1(a)  If ZF or OF is set - Conditional Near Jump (Offset)
+
+# {01111} -> Compare
+# {OPCODE}{Op1}{Op2}
+{01111}{00}{0}  78  CMP ax, dx
+{01111}{00}{1}  79  CMP ax, val  2(b)
+{01111}{01}{0}  7a  CMP bx, dx
+{01111}{01}{1}  7b  CMP bx, val  2(b)
+{01111}{10}{0}  7c  CMP cx, dx
+{01111}{10}{1}  7d  CMP cx, val  2(b)
+..............  7e  .. Reserved ..
+{01111}{11}{1}  7f  CMP dx, val  2(b)
+
+# {10000} -> Stack Push
+# {OPCODE}{Bt}{Reg}
+{10000}{0}{00}  80  PUSH16  ax
+{10000}{0}{01}  81  PUSH16  val    2(a)  2 bytes
+{10000}{0}{10}  82  PUSH16  [bp+a] 1(a)
+{10000}{0}{11}  83  PUSH16  [sp+a] 1(a)
+{10000}{1}{00}  84  PUSH8   al
+{10000}{1}{01}  85  PUSH8   val    1(a)  1 byte
+{10000}{1}{10}  86  PUSH8   [bp+a] 1(a)
+{10000}{1}{11}  87  PUSH8   [sp+a] 1(a)
+
+# {10001} -> Stack Special
+# {OPCODE}{Pop|All}{SpOp}{R}
+{10001}{0}{0}{0}  88  POP16  ax    2 bytes
+..............    89  .. Reserved ..
+{10001}{0}{1}{0}  8a  POP8   al    1 bytes
+..............    8b  .. Reserved ..
+{10001}{1}{0}{0}  8c  PUSHA        All registries (ax,bx,cx,dx,sp,flags)
+..............    8d  .. Reserved ..
+{10001}{1}{1}{0}  8e  POPA         All registries (ax,bx,cx,dx,sp,flags)
+..............    8f  .. Reserved ..
+
+# {10010} -> Add
+# {OPCODE}{Dst:As|Cb}{SrcOp}
+{10010}{0}{00}  90  ADD ax, val  2(b)
+{10010}{0}{01}  91  ADD ax, bx
+{10010}{0}{10}  92  ADD ax, dx
+{10010}{0}{11}  93  ADD sp, val  2(b)
+
+{10010}{1}{00}  94  ADD cx, val  2(b)
+{10010}{1}{01}  95  ADD cx, bx
+{10010}{1}{10}  96  ADD cx, dx
+{10010}{1}{11}  97  ADD bp, val  2(b)
+
+# {10011} -> Subtract
+# {OPCODE}{Dst:As|Cb}{SrcOp}
+{10011}{0}{00}  98  SUB ax, val  2(b)
+{10011}{0}{01}  99  SUB ax, bx
+{10011}{0}{10}  9a  SUB ax, dx
+{10011}{0}{11}  9b  SUB sp, val  2(b)
+
+{10011}{1}{00}  9c  SUB cx, val  2(b)
+{10011}{1}{01}  9d  SUB cx, bx
+{10011}{1}{10}  9e  SUB cx, dx
+{10011}{1}{11}  9f  SUB bp, val  2(b)  _CPOP (val);  _RMSTFR - Remove Stack Frame (_CPOP 2)
+
+# {101000} -> Multiply/Divide
+# {OPCODE}{M|D}{imm|bx}
+{101000}{0}{0}  a0  MUL ax, val, dx  2(b)
+{101000}{0}{1}  a1  MUL ax, bx, dx
+{101000}{1}{0}  a2  DIV ax, val, dx  2(b)
+{101000}{1}{1}  a3  DIV ax, bx, dx
+
+# {101001} -> And
+# {OPCODE}{Dst}{Src}
+{101001}{0}{0}  a4  AND ax, val     2(b)
+{101001}{0}{1}  a5  AND ax, bx
+{101001}{1}{0}  a6  AND flags, val  2(b)   _FDSBL (~(<<val))
+..............  a7  .. Reserved ..
+
+# {101010} -> Or
+# {OPCODE}{Dst}{Src}
+{101010}{0}{0}  a8  OR  ax, val     2(b)
+{101010}{0}{1}  a9  OR  ax, bx
+{101010}{1}{0}  aa  OR  flags, val  2(b)   _FENBL (<<val)
+..............  ab  .. Reserved ..
+
+# {101011} -> Other Byte/Logic Operation
+# {OPCODE}{N|S}{Type}
+{101011}{0}{0}  ac  NEG ax    Byte Negate
+{101011}{0}{1}  ad  NOT ax    Logic Negate
+{101011}{1}{0}  ae  SHL ax, val  1(b)
+{101011}{1}{1}  af  SHR ax, val  1(b)
+
+# {101100} -> Call
+# {OPCODE}{SF}{Op}
+{101100}{0}{0}  b0  CALL  ia   2(ia)
+{101100}{0}{1}  b1  CALL  ax   none
+{101100}{1}{0}  b2  CALLA ia   2(ia)
+{101100}{1}{1}  b3  CALLA ax   none
+
+# {101101} -> Interrupt-Related
+# {OPCODE}{L|I}{Op}
+{101101}{0}{0}  b4  LIVT ax    none
+{101101}{0}{1}  b5  LIVT ia    2(a)
+{101101}{1}{0}  b6  INT #U1
+{101101}{1}{1}  b7  INT #U2
+
+# {101110} -> Random Block 1
+# {OPCODE}{I|R}{Op}
+{101110}{0}{0}  b8  INC cx
+{101110}{0}{1}  b9  DEC cx
+{101110}{1}{0}  ba  RET
+{101110}{1}{1}  bb  IRET
+
+# {101111} -> Random Block 2
+# {OPCODE}{Op}
+{101111}{00}  bc  HLT
+{101111}{01}  bd  _MKSTFR - Make Stack Frame (PUSH bp, MOV sp, bp)
+{101111}{10}  be  CPUID
+{101111}{11}  bf  PGE ax
+
+# {11000} -> Exclusive OR
+# {OPCODE}{Cl}{Op}
+{11000}{0==00}  c0  XOR  ax, val  2(b)
+{11000}{0}{01}  c1  XOR  ax, bx   N
+..............  c2  .. Reserved ..
+..............  c3  .. Reserved ..
+{11000}{1}{00}  c4  XOR  ax, ax   N     _CLR ax - Clear ax
+{11000}{1}{01}  c5  XOR  bx, bx   N     _CLR bx - Clear bx (CLR bx)
+{11000}{1}{10}  c6  XOR  cx, cx   N     _CLR cx - Clear cx (CLR cx)
+{11000}{1}{11}  c7  XOR  dx, dx   N     _CLR dx - Clear dx (CLR dx)
+
+# {110010} -> Memory and Stack Store
+# {OPCODE}{St}{Op}
+{110010}{0}{0}  c8  MOV [bx], dx    none  Write RAM at bx   _STORE bx
+{110010}{0}{1}  c9  MOV [val], dx   2(a)  Write RAM at mem  _STORE val
+{110010}{1}{0}  ca  MOV [bp+x], dx  1(x)                    _STORE bp+x
+{110010}{1}{1}  ca  MOV [sp+x], dx  1(x)                    _STORE sp+x
+
+# {110011} -> dx Store Special
+# {OPCODE}{Src}
+{110011}{00}  cc  MOV dx, [bx]    none  Read RAM at bx   _LOAD bx
+{110011}{01}  cd  MOV dx, [val]   2(b)  Read RAM at mem  _LOAD val
+{110011}{10}  ce  MOV dx, [bp+x]  1(x)                   _LOAD bp+x
+{110011}{11}  cf  MOV dx, [sp+x]  1(x)                   _LOAD sp+x
+
+# {1101} -> Exchange
+# {OPCODE}{op1}{op2}
+{1101}{00==00}  d0  XCHG ax, ax   N     Debug
+{1101}{00}{01}  d1  XCHG ax, bx   N
+{1101}{00}{10}  d2  XCHG ax, cx   N
+{1101}{00}{11}  d3  XCHG ax, dx   N
+..............  d4  .. Reserved ..
+{1101}{01==01}  d5  XCHG bx, bx   N     Debug
+{1101}{01}{10}  d6  XCHG bx, cx   N
+{1101}{01}{11}  d7  XCHG bx, dx   N
+..............  d8  .. Reserved ..
+..............  d9  .. Reserved ..
+{1101}{10==10}  da  XCHG cx, cx   N     Debug
+{1101}{10}{11}  db  XCHG cx, dx   N
+..............  dc  .. Reserved ..
+..............  dd  .. Reserved ..
+..............  de  .. Reserved ..
+{1101}{11==11}  df  XCHG dx, dx   N     Debug
+
+# {1110} -> Extended Operations
+{1110}xxxx      ex  .. Extended Operations ..
