@@ -1,6 +1,6 @@
 # {00} -> I/O Operations
 # {OPCODE}{I|O}{Bt}{Port}
-# I|O - (Input, Output)
+# I|O - (Output, Input)
 # Bt - Width (16-bit, 8-bit)
 {00}{0}{0}{xxxx}  0x  OUT16  x, ax
 {00}{0}{1}{xxxx}  1x  OUT8   x, al  none
@@ -13,7 +13,7 @@
 {010}{0}{xxxx}  4x  OUT16  x, val  2(b)
 {010}{1}{xxxx}  5x  OUT8   x, val  1(b)
 
-# {0110} -> Store  {00} -> ax
+# {0110} -> Store
 # {OPCODE}{Dst}{Src}
 # Dst - Destination (ax,bx,cd,dx)
 # Src - Source (ax,bx,cd,dx; if Dst==Src, then Src=val)
@@ -36,7 +36,7 @@
 
 # {01110} -> Jump
 # {OPCODE}{Type}
-{01110}{000}  70  JMP ax    none  Unconditional Far Jump to Pointer
+{01110}{000}    70  JMP ax    none  Unconditional Far Jump to Pointer
 {01110}{001}    71  JMP ia    2(a)  Unconditional Far Jump to Fixed Address
 {01110}{010}    72  JZ  ia    1(a)  If ZF is set (JE) - Conditional Near Jump (Offset)
 {01110}{011}    73  JG  ia    1(a)  If GF is set - Conditional Near Jump (Offset)
@@ -47,7 +47,7 @@
 
 # {01111} -> Compare
 # {OPCODE}{Op1}{Op2}
-# Op1 - Operand1 (ax,bx,cd,dx; if Op1==dx & Op2==dx, then Reserved)
+# Op1 - Operand1 (ax,bx,cd,dx; if Op1==dx & Op2==dx, then Reserved/Redundant)
 # Op2 - Operand2 (dx, val)
 {01111}{00}{0}  78  CMP ax, dx
 {01111}{00}{1}  79  CMP ax, val  2(b)
@@ -87,36 +87,35 @@
 
 # {10010} -> Add
 # {OPCODE}{Dst:As|Cb}{SrcOp}
-# Dst - Destination ((ax, cx); if SrcOp==11, then (sp, bp))
-# SrcOp - Source (val, bx, dx, val)
+# Dst - Destination ((ax, cx); if 1 and SrcOp==11, then (bx))
+# SrcOp - Source (for SrcOp==0: val,bx,cx,dx, for SrcOp==1: val,bx,dx,dx)
 {10010}{0}{00}  90  ADD ax, val  2(b)
 {10010}{0}{01}  91  ADD ax, bx
-{10010}{0}{10}  92  ADD ax, dx
-{10010}{0}{11}  93  ADD sp, val  2(b)
-
+{10010}{0}{10}  92  ADD ax, cx
+{10010}{0}{11}  93  ADD ax, dx
 {10010}{1}{00}  94  ADD cx, val  2(b)
 {10010}{1}{01}  95  ADD cx, bx
 {10010}{1}{10}  96  ADD cx, dx
-{10010}{1}{11}  97  ADD bp, val  2(b)  _CPUSH val;
+{10010}{1}{11}  97  ADD bx, dx
 
 # {10011} -> Subtract
 # {OPCODE}{Dst:As|Cb}{SrcOp}
-# Dst - Destination ((ax, cx); if SrcOp==11, then (sp, bp))
-# SrcOp - Source (val, bx, dx, val)
+# Dst - Destination ((ax, cx); if SrcOp==11, then (bx, bp))
+# SrcOp - Source (for SrcOp==0: val,bx,cx,val, for SrcOp==1: val,bx,dx,dx)
 {10011}{0}{00}  98  SUB ax, val  2(b)
 {10011}{0}{01}  99  SUB ax, bx
 {10011}{0}{10}  9a  SUB ax, dx
-{10011}{0}{11}  9b  SUB sp, val  2(b)
-
+{10011}{0}{11}  9b  SUB sp, val  2(b)  _CPOP val; _CPUSH -val; _RMSTFR - Remove Stack Frame (_CPOP 2)
 {10011}{1}{00}  9c  SUB cx, val  2(b)
 {10011}{1}{01}  9d  SUB cx, bx
 {10011}{1}{10}  9e  SUB cx, dx
-{10011}{1}{11}  9f  SUB bp, val  2(b)  _CPOP val;  _RMSTFR - Remove Stack Frame (_CPOP 2)
+{10010}{1}{11}  9f  SUB bx, dx
 
 # {101000} -> Multiply/Divide
 # {OPCODE}{M|D}{U|I}
 # M|D - (Multiply, Divide)
 # U|I - (Unsigned, Signed)
+# :: NOTE: dx stores MSW for multiply and remainder for divide.
 {101000}{0}{0}  a0  MUL ax, bx, dx
 {101000}{0}{1}  a1  IMUL ax, bx, dx
 {101000}{1}{0}  a2  DIV ax, bx, dx
