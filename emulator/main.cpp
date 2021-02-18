@@ -3,6 +3,7 @@
 #include "Display.h"
 #include "Gfx.h"
 #include "HDD.h"
+#include "PIT.h"
 #include "PMI.h"
 
 #include <unistd.h>
@@ -47,8 +48,9 @@ int main()
     auto pic = std::make_shared<Cx16InterruptController>();
     cpu_io_bus->set_interrupt_controller(pic);
 
-    auto gfx = std::make_shared<GraphicsCard>();
-    auto pmi = std::make_shared<PMIController>();
+    auto pit = std::make_shared<PIT>(); // 0x00
+    auto pmi = std::make_shared<PMIController>(); // 0x05
+    auto gfx = std::make_shared<GraphicsCard>();  // 0x0F
 
     // Load disk image
     info("main") << "Loading disk image";
@@ -57,10 +59,12 @@ int main()
     auto mass_storage = std::make_shared<MassStorage>(disk_image);
 
     // Register devices
+    pic->register_device(0x00, pit);
     pic->register_device(0x02, pmi);
     pic->register_device(0x03, mass_storage);
 
     fast_io_bus->register_device(0x0F, gfx);
+    legacy_io_bus->register_device(0x00, pit);
     legacy_io_bus->register_device(0x02, mass_storage);
     legacy_io_bus->register_device(0x04, pic);
     legacy_io_bus->register_device(0x05, pmi);
@@ -77,6 +81,8 @@ int main()
     pmi->power_button();
 
     info("main") << "Initialization done.";
+
+    // Reboot test.
     while(true) { sleep(10); pmi->reset_button(); }
 
     return 0;

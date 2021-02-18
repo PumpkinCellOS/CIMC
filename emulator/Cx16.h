@@ -109,6 +109,7 @@ private:
     PMIController* m_pmic = nullptr;
 };
 
+// TODO: Allow specyfing image for memory
 class Memory : public MemoryAccessNode, public PMICapableDevice, public Device
 {
 public:

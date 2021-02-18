@@ -141,7 +141,7 @@ u8 Memory::read_memory(u16 addr) const
 {
     if(addr >= m_memory_size)
     {
-        error(name()) << name() << "read: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
+        error(name()) << "read: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
         return 0;
     }
     return m_memory[addr];
@@ -150,7 +150,7 @@ void Memory::write_memory(u16 addr, u8 val)
 {
     if(addr >= m_memory_size)
     {
-        error(name()) << name() << "write: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
+        error(name()) << "write: Physical address out of range 0x" << std::hex << addr << " > 0x" << m_memory_size << std::dec;
         return;
     }
     m_memory[addr] = val;

@@ -39,7 +39,7 @@ private:
     std::ostream& m_stream;
 };
 
-LogStream info(std::string module);
 LogStream error(std::string module);
+LogStream info(std::string module);
 LogStream debug(std::string module);
 LogStream trace(std::string module);

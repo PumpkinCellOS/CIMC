@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cx16.h"
+#include "ControlUnit.h"
 
 class CPUIOBus : public Cx16Bus
 {
@@ -31,6 +32,7 @@ public:
 
     Cx16InterruptController* interrupt_controller() { return m_interrupt_controller.get(); }
     Cx16DMAController* dma_controller() { return m_dma_controller.get(); }
+    const Cx16DMAController* dma_controller() const { return m_dma_controller.get(); }
 
 private:
     std::shared_ptr<Cx16Master> m_master;
@@ -41,32 +43,36 @@ private:
 class CPU : public Cx16Master, public PMICapableDevice
 {
 public:
+    class ROMMemory : Memory
+    {
+    public:
+        ROMMemory()
+        : Memory(384) {}
+
+        virtual std::string name() const override { return "ROM"; }
+    };
+
     virtual std::string name() const { return "PumpkinCellOS cx16 Emulated CPU"; }
 
     virtual void boot() override;
 
     // Instructions
-    void insn_out8(u8 id, u8 val);
-    void insn_out16(u8 id, u16 val);
-    u8 insn_in8(u8 id);
-    u16 insn_in16(u8 id);
-    // ...
-    void insn_hlt();
 
     bool irq_raised() { return slave()->interrupt_controller()->irq_raised(); }
 
     // TODO
-    void write_virtual_memory(u16 addr, u8 value) { write_physical_memory(addr, value); }
-    u8 read_virtual_memory(u16 addr) { return read_virtual_memory(addr); }
+    u16 map_virtual_to_physical(u16 virt) const { return virt; }
 
     void pmi_boot();
     void pmi_reboot();
 
-private:
-    void write_physical_memory(u16 addr, u8 value) { slave()->dma_controller()->write_memory(addr, value); }
-    u8 read_physical_memory(u16 addr) { return slave()->dma_controller()->read_memory(addr); }
-
     CPUIOBus* slave() { return (CPUIOBus*)m_slave; }
+    ROMMemory& rom() { return m_rom; }
 
+private:
     bool m_ready = false;
+
+    ControlUnit m_control_unit = { *this };
+
+    ROMMemory m_rom;
 };
