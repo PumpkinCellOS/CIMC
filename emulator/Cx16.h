@@ -115,7 +115,7 @@ class Memory : public MemoryAccessNode, public PMICapableDevice, public Device
 public:
     Memory(u16 size)
     : m_memory_size(size)
-        { m_memory = std::make_unique<u8[]>(size); info(name()) << "Size: " << (size / 1024) << " kB"; }
+        { m_memory = std::make_unique<u8[]>(size); info(name()) << "Size: " << std::setprecision(2) << (size / 1024.0) << " kB"; }
 
     virtual u8 read_memory(u16 addr) const override;
     virtual void write_memory(u16 addr, u8 val) override;
@@ -123,6 +123,8 @@ public:
     virtual void boot() override {}
 
     virtual std::string name() const override { return "Main Memory"; }
+
+    size_t size() const { return m_memory_size; }
 
 private:
     std::unique_ptr<u8[]> m_memory;

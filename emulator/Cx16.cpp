@@ -247,6 +247,7 @@ void Cx16ConventionalDevice::boot()
         while(!m_pending_commands.empty())
         {
             Command& command = m_pending_commands.front();
+            info("Cx16") << "running command " << (int)command.m_command;
             m_command_result = do_cmd(command.m_command, command.m_arg_buf);
             m_pending_commands.pop();
         }

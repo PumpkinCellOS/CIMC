@@ -43,13 +43,19 @@ private:
 class CPU : public Cx16Master, public PMICapableDevice
 {
 public:
+    CPU(std::istream& rom_image)
+    : m_rom(rom_image) {}
+
     class ROMMemory : Memory
     {
     public:
-        ROMMemory()
-        : Memory(384) {}
+        ROMMemory(std::istream& image)
+        : Memory(384) { init_with_image(image); }
 
         virtual std::string name() const override { return "ROM"; }
+
+    private:
+        void init_with_image(std::istream& image);
     };
 
     virtual std::string name() const { return "PumpkinCellOS cx16 Emulated CPU"; }

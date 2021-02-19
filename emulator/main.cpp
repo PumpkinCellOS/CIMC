@@ -24,9 +24,20 @@ int main()
 
     display::init(128, 64);
 
+    // Load ROM image
+    info("main") << "Loading ROM image";
+    std::ifstream rom_image("rom.img");
+
     // Create CPU and memory
     auto memory = std::make_shared<Memory>(8192);
-    auto cpu = std::make_shared<CPU>();
+    auto cpu = std::make_shared<CPU>(rom_image);
+    if(!rom_image.good())
+    {
+        error("main") << "Failed to load ROM image. Try adding rom.img file in current directory.";
+        return 1;
+    }
+
+    rom_image.close();
 
     // Create devices
     auto cpu_io_bus = std::make_shared<CPUIOBus>();
@@ -55,6 +66,12 @@ int main()
     // Load disk image
     info("main") << "Loading disk image";
     std::ifstream disk_image("disk.img");
+    if(!disk_image.good())
+    {
+        // TODO: In this case, simply disable the disk.
+        error("main") << "Failed to load disk image. Try adding disk.img file in current directory.";
+        return 1;
+    }
 
     auto mass_storage = std::make_shared<MassStorage>(disk_image);
 

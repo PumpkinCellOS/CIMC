@@ -5,33 +5,77 @@
 
 class CPU;
 
+inline std::string to_binary_string(u8 data)
+{
+    std::string str;
+    u8 mask = 0x80;
+    for(int i = 0; i < 8; i++)
+    {
+        str += (data & mask ? "1" : "0");
+        mask >>= 1;
+    }
+    return str;
+}
+
 class Bitfield
 {
 public:
-    Bitfield(u16 data)
+    Bitfield(u8 data)
     : m_data(data) {}
 
-    u16 sub(size_t start, size_t len) const
+    static u8 flip(u8 data)
     {
-        // TODO: Find out a better way to generate a mask!
-        u16 mask = 0xFFFF;
+        u8 ndata = 0x0;
+        for(size_t s = 0; s < 8; s++)
+            ndata |= ((data & (0x1 << s)) >> s) << (7 - s);
+        //std::cerr << "=" << to_binary_string(ndata) << std::endl;
+        return ndata;
+    }
+
+
+    // Get bytes, starting from LSB (right in notation)
+    static u8 sub_lsb(u8 data, size_t start, size_t len)
+    {
+        std::cerr << "sub_lsb: " << start << ":" << len << std::endl;
+        u8 mask = 0xFF;
+
+        mask >>= 8-len;
         mask <<= start;
-        mask >>= start;
-        u8 b = (16-start-len);
-        mask >>= b;
-        mask <<= b;
-        return (m_data & mask) << start;
+        u8 ret = (data & mask) >> start;
+        std::cerr << "sub_lsb: " << to_binary_string(ret) << std::endl;
+        return ret;
+    }
+
+    // Get bytes, starting from MSB (left in notation)
+    static u8 sub_msb(u8 data, size_t start, size_t len)
+    {
+        // We must to flip the data to maintain valid bit order!
+        return sub_lsb(flip(data), start, len);
+    }
+
+
+    // Get bytes, starting from MSB (left in notation)
+    u8 sub_msb(size_t start, size_t len) const
+    {
+        // We must to flip the data to maintain valid bit order!
+        return sub_msb(m_data, start, len);
+    }
+
+    // Get bytes, starting from LSB (right in notation)
+    u8 sub_lsb(size_t start, size_t len) const
+    {
+        return sub_lsb(m_data, start, len);
     }
 
     bool operator[](size_t index) const
     {
-        return m_data & (1 << index);
+        return m_data & (0x80 >> index);
     }
 
-    u16 data() const { return m_data; }
+    u8 data() const { return m_data; }
 
 private:
-    u16 m_data;
+    u8 m_data;
 };
 
 class Destination
@@ -228,6 +272,8 @@ public:
     Register& base_pointer() { return m_bp; }
 
     CPU& cpu() { return m_cpu; }
+
+    void dump_registers();
 
 private:
     CPU& m_cpu;

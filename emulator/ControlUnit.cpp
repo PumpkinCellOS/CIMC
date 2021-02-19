@@ -31,8 +31,9 @@ void ControlUnit::cycle()
     // TODO: Check interrupts!
 
     MemorySource opcode = read_insn();
-    trace("CU") << "cycle: 0x" << std::hex << (int)opcode.read8() << std::dec;
-    do_insn(Bitfield(opcode.read8()));
+    u8 opcode_read = opcode.read8();
+    trace("CU") << "cycle: 0x" << std::hex << (int)opcode_read << std::dec;
+    do_insn(Bitfield(opcode_read));
 }
 
 MemorySource ControlUnit::read_insn()
@@ -64,41 +65,53 @@ MemoryDestination ControlUnit::virtual_memory_writable(u16 addr)
     return MemoryDestination(node, m_cpu.map_virtual_to_physical(addr));
 }
 
+void ControlUnit::dump_registers()
+{
+    debug("CU") << "---- Register dump ----" << std::hex << std::uppercase << std::setfill('0');
+    debug("CU") << "AX=" << std::setw(4) << m_ax.value() << " BX=" << std::setw(4) << m_bx.value();
+    debug("CU") << "CX=" << std::setw(4) << m_cx.value() << " DX=" << std::setw(4) << m_dx.value();
+    debug("CU") << "SP=" << std::setw(4) << m_sp.value() << " BP=" << std::setw(4) << m_bp.value();
+    debug("CU") << "IP=" << std::setw(4) << m_ip.value() << std::nouppercase << std::dec;
+}
+
 void ControlUnit::do_insn(Bitfield opcode)
 {
+    trace("CU") << "Opcode: " << to_binary_string(opcode.data());
+    trace("CU") << "Sub: " << to_binary_string(opcode.sub_msb(0, 3));
+
     // I/O Operations
-    if(opcode.sub(0, 2) == 0b00)
+    if(opcode.sub_msb(0, 2) == 0b00)
     {
         bool io = opcode[2];
         bool width = opcode[3];
-        u8 port = opcode.sub(4, 4);
-        trace("CU") << "I/O: io=" << io << " width=" << width << " port=" << (int)port;
+        u8 port = opcode.sub_msb(4, 4);
         if(io)
             m_executor._INSN_IN(width, port, m_ax.as_destination());
         else
             m_executor._INSN_OUT(width, port, m_ax.as_source());
     }
     // I/O Output (Immediate)
-    else if(opcode.sub(0, 3) == 0b010)
+    else if(opcode.sub_msb(0, 3) == 0b010)
     {
         bool width = opcode[3];
-        u8 port = opcode.sub(4, 4);
-        m_executor._INSN_OUT(width, port, read_insn());
+        u8 port = opcode.sub_msb(4, 4);
+        m_executor._INSN_OUT(width, port, width ? read_insn() : read_2_insns());
     }
     // Store
-    else if(opcode.sub(0, 4) == 0b0110)
+    else if(opcode.sub_msb(0, 4) == 0b0110)
     {
-        u8 dst = opcode.sub(4, 2);
-        u8 src = opcode.sub(6, 2);
+        u8 dst = opcode.sub_msb(4, 2);
+        u8 src = opcode.sub_msb(6, 2);
+        trace("CU") << "Store: dst=" << (int)dst << " src=" << (int)src;
         if(dst == src)
             m_executor._INSN_MOV(common_destination(dst), read_2_insns());
         else
             m_executor._INSN_MOV(common_destination(dst), common_source(src));
     }
     // Jump
-    else if(opcode.sub(0, 5) == 0b01110)
+    else if(opcode.sub_msb(0, 5) == 0b01110)
     {
-        u8 type = opcode.sub(5, 3);
+        u8 type = opcode.sub_msb(5, 3);
         switch(type)
         {
             case 0x0: m_executor._INSN_JMP(m_ax.as_source()); break;
@@ -112,9 +125,9 @@ void ControlUnit::do_insn(Bitfield opcode)
         }
     }
     // Compare
-    else if(opcode.sub(0, 5) == 0b01111)
+    else if(opcode.sub_msb(0, 5) == 0b01111)
     {
-        u8 op1 = opcode.sub(5, 2);
+        u8 op1 = opcode.sub_msb(5, 2);
         bool op2 = opcode[7];
 
         if(op1 == 0b11 && op2 == false)
@@ -127,10 +140,10 @@ void ControlUnit::do_insn(Bitfield opcode)
             m_executor._INSN_CMP(reg, read_2_insns());
     }
     // Push
-    else if(opcode.sub(0, 5) == 0b10000)
+    else if(opcode.sub_msb(0, 5) == 0b10000)
     {
         bool width = opcode[5];
-        u8 operand = opcode.sub(6, 2);
+        u8 operand = opcode.sub_msb(6, 2);
         switch(operand)
         {
             case 0b00: m_executor._INSN_PUSH(width, m_ax.as_source()); break;
@@ -142,6 +155,7 @@ void ControlUnit::do_insn(Bitfield opcode)
     // TODO....
     else
     {
+        error("CU") << "Invalid opcode: " << std::hex << (int)opcode.data() << std::dec;
         exit(-1);
     }
 }
