@@ -242,3 +242,12 @@ MSB at left!
 # x - Extended Opcode
 # :: NOTE: These instructions resets addb registry.
 {1110}xxxx      ex  .. Extended Operations ..
+
+# {111100} -> Store Stack
+# {OPCODE}{S|B}{A|V}
+# S|B - (sp, bp)
+# A|V - (ax, val16)
+{111100}{0}{0}  f0  MOV sp, ax     none
+{111100}{0}{1}  f1  MOV sp, val16  2(a)
+{111100}{1}{0}  f2  MOV bp, ax     none
+{111100}{1}{1}  f3  MOV bp, val16  2(a)
