@@ -632,7 +632,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 -- Graphics adapter (0xd) --
 
 - DI Capabilities
-    - 0
+    - 1  #MF  Multi Font
     - 1  #DB  Double Buffer
     - 1  #FO  Fill Operations
     - 1  #VM  Graphical Video Mode
@@ -642,20 +642,19 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64, text mode 25x10)
     0x02  RW  16    Framebuffer Address
 - Commands
-    color - (0-Black,1-White or ASCII character)
     CID   Args                                Res  Purpose
-    0x02  [color(8)]                          []   Clear Framebuffer with 'color'.
+    0x02  [color(8)]                          []   Clear Framebuffer with 'color'. 'color' only applicable in graphical mode. In text mode, always clears with empty (0x00) character.
     
     0x03  [x,y(8+8);color(8)]                 []   Set Pixel 'x,y' to 'color'. Only applicable in graphical mode.
     
-    0x04  [x,y(8+8);w,h(8+8);color(8)]        []   Fill Rect 'x,y:w,h' with 'color'
+    0x04  [x,y(8+8);w,h(8+8);color(8)]        []   Fill Rect 'x,y:w,h' with 'color' Only applicable in graphical mode.
     
-    0x05  [x,y(8+8);w,h(8+8)]                 []   Flush Rect if #DB, nothing otherwise
+    0x05  [x,y(8+8);w,h(8+8)]                 []   Flush Rect. Supported only if #DB.
 
     0x06  [x,y(8+8);w,h(8+8);size(16);op(8)]  []   Fill Framebuffer Region at 'x,y' size 'w,h' from RAM[fbaddr:size] using 'op'
         Operations: 0(=) 1(&) 2(|) 3(^) 4(!^) if #FO, (=) is used by default if operations are not supported
         
-    0x07  [x,y,code(4+4+8)]                   []   Set Character 'code' at 'x,y'.
+    0x07  [x,y(8+8);font,code(8+8)]           []   Set Character 'code' at 'x,y' using 'font' if #MF.
         Only applicable in text mode.
         
-    0x08  [code(8);addr(16)]                  []   Load Font Character from 'addr'. // TODO: font character format...
+    0x08  [font,code(8+8);addr(16)]           []   Load Font Character from 'addr' to 'font'. // TODO: font character format...
