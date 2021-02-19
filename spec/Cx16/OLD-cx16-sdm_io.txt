@@ -411,9 +411,9 @@ There are basic specification of all of the DDTs below.
 -- Key input device (0x1) --
 
 - Registers
-    RID   Acc Size  Purpose
-    0x00  RW  8(3)  Lock Key State (000000Cr / CapsLock-Reserved)
-    0x01  R   8(3)  Control Key State (00000ACS / Alt-Control-Shift)
+    RID   Acc Size  Mm        Purpose
+    0x00  RW  8(3)  KBD_LOCK  Lock Key State (000000Cr / CapsLock-Reserved)
+    0x01  R   8(3)  KBD_CTRL  Control Key State (00000ACS / Alt-Control-Shift)
 - IRQ Commands
     ICID  Res             Purpose
     0x00  [scancode(16)]  Key Press
@@ -555,11 +555,11 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     - 0  
     - 1  #MC  Multi-Channel
 - Registers
-    RID   Acc Size  Purpose
-    0x00  R   8     Max Channel Count (if #MC, 1 otherwise)
-    0x01  RW  8     Channel Mask (used to mute channels, if #MC, 0xFF otherwise)
-    0x02  RW  8     Play Mode (0000000L / Loop)
-    0x03  R   16    Buffer Size per Channel
+    RID   Acc Size  Mm            Purpose
+    0x00  R   8     SND_MAXCH     Max Channel Count (if #MC, 1 otherwise)
+    0x01  RW  8     SND_CHMASK    Channel Mask (used to mute channels, if #MC, 0xFF otherwise)
+    0x02  RW  8     SND_PLAYMODE  Play Mode (0000000L / Loop)
+    0x03  R   16    SND_BUFSIZE   Buffer Size per Channel
 - Commands
     CID   Args                            Res  Purpose
     0x02  [addr(16);size(16);channel(8)]  []   Load Sound from RAM(addr:size) to BUF[channel].
@@ -583,8 +583,8 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 
 - Port 4
 - Registers
-    RID   Acc Size  Purpose
-    0x00  RW  8     IRQ mask
+    RID   Acc Size  Mm        Purpose
+    0x00  RW  8     PIC_MASK  IRQ mask
 - Commands
     CID   Args  Res  Purpose
     0x02  []    []   EOI - clears irq lines
@@ -594,7 +594,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 
 - DI Capabilities
     - 0
-    - 1       Reserved (alternatively for PMI2)
+    - 0       Reserved (alternatively for PMI2)
     - 0  #SL  Allow Sleep
     - 1  #RB  Allow Reboot
 - Commands
@@ -610,8 +610,8 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 -- Generic character device (0x6) --
 
 - Registers
-    RID   Acc Size  Purpose
-    0x00  R   4 (8) Allowed operations (000DICRW / DMA-Init-Clear-Read-Write)
+    RID   Acc Size  Mm           Purpose
+    0x00  R   4 (8) GCD_ALLOWED  Allowed operations (000DICRW / DMA-Init-Clear-Read-Write)
 - Commands
     CID   Args        Res         Purpose
     0x02  [addr(16)]  [size(16)]  Load to RAM
@@ -624,24 +624,25 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 -- Real time clock (0x7) --
 
 - Registers
-    RID   Acc Size  Purpose
-    0x00  RW  16    MC Days (1 MC day = 24000 MC ticks = 20 min)
-    0x01  RW  16    MC Ticks (1 MC tick = 1/20 sec)
+    RID   Acc Size  Mm         Purpose
+    0x00  RW  16    RTC_DAYS   MC Days (1 MC day = 24000 MC ticks = 20 min)
+    0x01  RW  16    RTC_TICKS  MC Ticks (1 MC tick = 1/20 sec)
 
 
 -- Graphics adapter (0xd) --
 
 - DI Capabilities
-    - 1  #MF  Multi Font
-    - 1  #DB  Double Buffer
-    - 1  #FO  Fill Operations
-    - 1  #VM  Graphical Video Mode
+    - 0  #MF  Multi Font
+    - 0  #DB  Double Buffer
+    - 0  #FO  Fill Operations
+    - 0  #VM  Graphical Video Mode
 - Registers
-    RID   Acc Size  Purpose
-    0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
-    0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64, text mode 25x10)
-    0x02  RW  16    Framebuffer Address
-    0x03  R   8     Maximum Fonts (If not #MF, it's set to 1)
+    RID   Acc Size  Mm            Purpose
+    0x00  RW  8(1)  GFX_VM        Video Mode (0000000T / TextMode). Default: 0x1 (T)
+    0x01  R   16    GFX_SCREENSZ  Graphical Mode Screen Size (xxxxxxxxyyyyyyyy - prototype: 128x64)
+    0x01  R   16    GFX_SCREENSZ  Text Mode Screen Size (xxxxxxxxyyyyyyyy - prototype: 25x10, padding: 2px left, 1px right, 2px top, 2px bottom)
+    0x02  RW  16    GFX_FBADDR    Framebuffer Address
+    0x03  R   8     GFX_MAXFONTS  Maximum Fonts (If not #MF, it's set to 1)
 - Commands
     CID   Args                                Res  Purpose
     0x02  [color(8)]                          []   Clear Framebuffer with 'color'. 'color' only applicable in graphical mode. In text mode, always clears with empty (0x00) character.
