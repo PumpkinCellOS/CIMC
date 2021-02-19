@@ -37,20 +37,18 @@ void ControlUnit::cycle()
 
 MemorySource ControlUnit::read_insn()
 {
-    auto& ip = m_executor.instruction_pointer();
-    MemorySource source = virtual_memory_readable(ip.value());
-    ip.set_value(ip.value() + 1);
-    trace("CU") << "read_insn at " << ip.value() << ": 0x" << std::hex << (int)source.read8() << std::dec;
+    MemorySource source = virtual_memory_readable(m_ip.value());
+    m_ip.set_value(m_ip.value() + 1);
+    trace("CU") << "read_insn at " << m_ip.value() << ": 0x" << std::hex << (int)source.read8() << std::dec;
     return source;
 }
 
 MemorySource ControlUnit::read_2_insns()
 {
     // NOTE: The value is automatically 16-bit!
-    auto& ip = m_executor.instruction_pointer();
-    MemorySource source = virtual_memory_readable(ip.value());
-    ip.set_value(ip.value() + 2);
-    trace("CU") << "read_2_insns at " << ip.value() << ": 0x" << std::hex << (int)source.read() << std::dec;
+    MemorySource source = virtual_memory_readable(m_ip.value());
+    m_ip.set_value(m_ip.value() + 2);
+    trace("CU") << "read_2_insns at " << m_ip.value() << ": 0x" << std::hex << (int)source.read() << std::dec;
     return source;
 }
 
@@ -113,17 +111,37 @@ void ControlUnit::do_insn(Bitfield opcode)
             case 0x7: m_executor._INSN_JLE(read_insn()); break;
         }
     }
-    else
-    {
-        exit(-1);
-    }
-    /*
     // Compare
     else if(opcode.sub(0, 5) == 0b01111)
     {
         u8 op1 = opcode.sub(5, 2);
         bool op2 = opcode[7];
-        // TODO
-    }*/
+
+        if(op1 == 0b11 && op2 == false)
+            exit(-1);
+
+        auto& reg = common_source(op1);
+        if(op2)
+            m_executor._INSN_CMP(reg, m_dx.as_source());
+        else
+            m_executor._INSN_CMP(reg, read_2_insns());
+    }
+    // Push
+    else if(opcode.sub(0, 5) == 0b10000)
+    {
+        bool width = opcode[5];
+        u8 operand = opcode.sub(6, 2);
+        switch(operand)
+        {
+            case 0b00: m_executor._INSN_PUSH(width, m_ax.as_source()); break;
+            case 0b01: m_executor._INSN_PUSH(width, width ? read_insn() : read_2_insns()); break;
+            case 0b10: m_executor._INSN_PUSH(width, m_bp.as_source_with_offset((i8)(read_insn().read8()))); break;
+            case 0b11: m_executor._INSN_PUSH(width, m_sp.as_source_with_offset((i8)(read_insn().read8()))); break;
+        }
+    }
     // TODO....
+    else
+    {
+        exit(-1);
+    }
 }

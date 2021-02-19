@@ -71,13 +71,14 @@ public:
     class RegSrc : public Source
     {
     public:
-        RegSrc(const Register& reg)
-        : m_register(reg) {}
+        RegSrc(const Register& reg, int offset = 0)
+        : m_register(reg), m_offset(offset) {}
 
-        virtual u16 read() const override { return m_register.value(); }
+        virtual u16 read() const override { return m_register.value() + m_offset; }
 
     private:
         const Register& m_register;
+        int m_offset;
     };
 
     class RegDst : public Destination
@@ -90,10 +91,13 @@ public:
 
     private:
         Register& m_register;
+        int m_offset;
     };
 
     const Source& as_source() const { return m_source; }
     Destination& as_destination() { return m_destination; }
+
+    RegSrc as_source_with_offset(int off) const { return RegSrc(*this, off); }
 
     u16 value() const { return m_value; }
     void set_value(u16 value) { m_value = value; }
@@ -112,11 +116,13 @@ private:
 #define FLAG_PAGING    0x20
 #define FLAG_EXCEPTION 0x40
 
+class ControlUnit;
+
 class Executor
 {
 public:
-    Executor(CPU& cpu)
-    : m_cpu(cpu) {}
+    Executor(ControlUnit& control)
+    : m_control(control) {}
 
     // Instructions CANNOT see registers directly (they don't know their operands).
     void _INSN_OUT(bool width, u8 port, const Source& src);
@@ -129,15 +135,14 @@ public:
     void _INSN_JNE(const Source& ioff);
     void _INSN_JGE(const Source& ioff);
     void _INSN_JLE(const Source& ioff);
-
-    Register& instruction_pointer() { return m_ip; }
+    void _INSN_CMP(const Source& op1, const Source& op2);
+    void _INSN_PUSH(bool width, const Source& value);
 
 private:
     void jmp_helper(const Source& ioff);
 
-    CPU& m_cpu;
+    ControlUnit& m_control;
     u16 m_flags = 0;
-    Register m_ip;
 };
 
 // Memory
@@ -208,7 +213,7 @@ class ControlUnit
 {
 public:
     ControlUnit(CPU& cpu)
-    : m_cpu(cpu), m_executor(cpu) {}
+    : m_cpu(cpu), m_executor(*this) {}
 
     MemorySource read_insn();
     MemorySource read_2_insns();
@@ -218,6 +223,12 @@ public:
     MemorySource virtual_memory_readable(u16 addr);
     MemoryDestination virtual_memory_writable(u16 addr);
 
+    Register& instruction_pointer() { return m_ip; }
+    Register& stack_pointer() { return m_sp; }
+    Register& base_pointer() { return m_bp; }
+
+    CPU& cpu() { return m_cpu; }
+
 private:
     CPU& m_cpu;
     Executor m_executor;
@@ -225,6 +236,8 @@ private:
     Register m_bx;
     Register m_cx;
     Register m_dx;
+
+    Register m_ip;
     Register m_sp;
     Register m_bp;
 
