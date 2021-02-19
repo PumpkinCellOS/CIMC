@@ -641,6 +641,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x00  RW  8(1)  Video Mode (0000000T / TextMode) [???]
     0x01  R   16    Screen Size (xxxxxxxxyyyyyyyy - default: 128x64, text mode 25x10)
     0x02  RW  16    Framebuffer Address
+    0x03  R   8     Maximum Fonts (If not #MF, it's set to 1)
 - Commands
     CID   Args                                Res  Purpose
     0x02  [color(8)]                          []   Clear Framebuffer with 'color'. 'color' only applicable in graphical mode. In text mode, always clears with empty (0x00) character.
