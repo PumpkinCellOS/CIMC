@@ -1,3 +1,6 @@
+Notation:
+MSB at left!
+
 # {00} -> I/O Operations
 # {OPCODE}{I|O}{Bt}{Port}
 # I|O - (Output, Input)
@@ -145,8 +148,8 @@
 # Type - for Negate: (Byte, Logic), for Shift: (Left, Right)
 {101011}{0}{0}  ac  NEG ax    Byte Negate
 {101011}{0}{1}  ad  NOT ax    Logic Negate
-{101011}{1}{0}  ae  SHL ax, val  1(b)
-{101011}{1}{1}  af  SHR ax, val  1(b)
+{101011}{1}{0}  ae  SHL ax, bx
+{101011}{1}{1}  af  SHR ax, bx
 
 # {101100} -> Call
 # {OPCODE}{SF}{Op}
