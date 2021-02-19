@@ -412,8 +412,8 @@ There are basic specification of all of the DDTs below.
 
 - Registers
     RID   Acc Size  Purpose
-    0x00  RW  8(3)  Lock Key State (000000Nr / NumLock-Reserved)
-    0x01  R   8(3)  Control Key State (000000CS / Control-Shift)
+    0x00  RW  8(3)  Lock Key State (000000Cr / CapsLock-Reserved)
+    0x01  R   8(3)  Control Key State (00000ACS / Alt-Control-Shift)
 - IRQ Commands
     ICID  Res             Purpose
     0x00  [scancode(16)]  Key Press
@@ -542,7 +542,7 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x05  OVERFLOW   File overflow (access out of range)
     0x06  FAULT      Memory access fault (DMA fault)
     0x07  INVALID    Invalid value
-    0x08  ACCESS     
+    0x08  ACCESS     Access denied
 
 
 -- Sound adapter (0x3) --
@@ -658,4 +658,4 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x07  [x,y,code(4+4+8)]                   []   Set Character 'code' at 'x,y'.
         Only applicable in text mode.
         
-    0x08  [code(8);addr(16)]                  []   Load Font Character from 'addr'. // TODO:
+    0x08  [code(8);addr(16)]                  []   Load Font Character from 'addr'. // TODO: font character format...
