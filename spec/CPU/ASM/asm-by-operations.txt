@@ -96,9 +96,9 @@ MSB at left!
 {10010}{0}{01}  91  ADD ax, bx
 {10010}{0}{10}  92  ADD ax, cx
 {10010}{0}{11}  93  ADD ax, dx
-{10010}{1}{00}  94  ADD cx, val  2(b)
-{10010}{1}{01}  95  ADD cx, bx
-{10010}{1}{10}  96  ADD cx, dx
+{10010}{1}{00}  94  ADD dx, val  2(b)
+{10010}{1}{01}  95  ADD dx, bx
+{10010}{1}{10}  96  ADD dx, cx
 {10010}{1}{11}  97  ADD bx, dx
 
 # {10011} -> Subtract
@@ -109,9 +109,9 @@ MSB at left!
 {10011}{0}{01}  99  SUB ax, bx
 {10011}{0}{10}  9a  SUB ax, dx
 {10011}{0}{11}  9b  SUB sp, val  2(b)  _CPOP val; _CPUSH -val; _RMSTFR - Remove Stack Frame (_CPOP 2)
-{10011}{1}{00}  9c  SUB cx, val  2(b)
-{10011}{1}{01}  9d  SUB cx, bx
-{10011}{1}{10}  9e  SUB cx, dx
+{10011}{1}{00}  9c  SUB dx, val  2(b)
+{10011}{1}{01}  9d  SUB dx, bx
+{10011}{1}{10}  9e  SUB dx, cx
 {10010}{1}{11}  9f  SUB bx, dx
 
 # {101000} -> Multiply/Divide
