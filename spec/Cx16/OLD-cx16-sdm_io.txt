@@ -178,7 +178,7 @@ PORT  Res+Purpose
 0x03  V  Legacy I/O [Soundcard]
 0x04  V  Legacy I/O [Programmable Interrupt Controller]
 0x05  V  Legacy I/O [Power Management Interface]
-0x06  -  <Unused>
+0x06  V  Legacy I/O [Randomizer (Generic Character Device)]
 0x07  V  Legacy I/O [Real Time Clock]
 ----------------------------------------------
 0x08  R  <Reserved>
@@ -189,7 +189,7 @@ PORT  Res+Purpose
 0x0c  -  <Unused>
 ----------------------------------------------
 0x0d  R  Fast I/O (Port 2)
-0x0e  R  Fast I/O (Port 1)
+0x0e  V  Fast I/O (Port 1) [Printer]
 0x0f  V  Fast I/O (Port 0) [GFX]
 ----------------------------------------------
 0x10 - 0xff are all unsupported by CPU
@@ -230,7 +230,7 @@ PORT  Res+Purpose
 0x03  V  Legacy I/O [Soundcard]
 0x04  V  Legacy I/O [Programmable Interrupt Controller]
 0x05  V  Legacy I/O [Power Management Interface]
-0x06  -  <Unused>
+0x06  V  Legacy I/O [Randomizer (Generic Character Device)]
 0x07  V  Legacy I/O [Real Time Clock]
 ----------------------------------------------
 0x08  R  <Reserved>
@@ -240,7 +240,7 @@ PORT  Res+Purpose
 0x0c  -  <Unused>
 ----------------------------------------------
 0x0d  R  Fast I/O (Port 2) [Reserved]
-0x0e  R  Fast I/O (Port 1) [Reserved]
+0x0e  V  Fast I/O (Port 1) [Printer]
 0x0f  V  Fast I/O (Port 0) [GFX]
 ----------------------------------------------
 0x10 - 0xf9 are all <Unused>
@@ -353,7 +353,7 @@ No   Type
 0x7  Real time clock
 0x8  Invalid device
 0x9  <Reserved> for Generic block device (seekable storage)
-0xa  <Unused>
+0xa  Printer
 0xb  DI controller (Self-DI)
 0xc  Not cx16/DI compliant device
 0xd  Graphics adapter
@@ -629,6 +629,9 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
     0x01  RW  16    RTC_TICKS  MC Ticks (1 MC tick = 1/20 sec)
 
 
+-- Printer (0xa) --
+// TODO
+    
 -- Graphics adapter (0xd) --
 
 - DI Capabilities
