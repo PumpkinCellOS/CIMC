@@ -164,9 +164,21 @@ PORT01 line is 16-bit wide.
 
 
 
+   ===== INTERRUPT REQUESTS =====
+   
+   
+   
+[TODO]
+There are maximum of 256 interrupts supported by ...
+Master PIC, Slave PIC, ....
+
+
+
    ===== I/O PORT ASSIGNMENT IN PROTOTYPE =====
 
 
+   
+// TODO: Document DMA channels!
 
 -- Ports --
 
@@ -186,8 +198,8 @@ PORT  Res+Purpose
 ----------------------------------------------
 0x0a  -  <Unused>
 0x0b  -  <Unused>
-0x0c  -  <Unused>
 ----------------------------------------------
+0x0c  V  Fast I/O (PIC)
 0x0d  R  Fast I/O (Port 2)
 0x0e  V  Fast I/O (Port 1) [Printer]
 0x0f  V  Fast I/O (Port 0) [GFX]
@@ -202,22 +214,22 @@ there is 1 port (PORT15) and 1 IRQ (IRQ6) reserved.
 
 -- IRQs --
 
-IRQ  Res+Purpose
+IRQ  INT  Res+Purpose
 ----------------------------------------------
-0    V  Legacy I/O [Programmable Interval Timer]
-1    V  Legacy I/O [Keyboard]
-2    V  Legacy I/O [Power Management Interface]
-3    V  Legacy I/O [Mass storage]
-4    V  Legacy I/O [Soundcard]
-5    -  <Unused>
-6    V  Fast I/O [Ports 0-2]
-7    R  Cascaded IRQ [Reserved]
+0    8    V  Legacy I/O [Programmable Interval Timer]
+1    9    V  Legacy I/O [Keyboard]
+2    10   V  Legacy I/O [Power Management Interface]
+3    11   V  Legacy I/O [Mass storage]
+4    12   V  Legacy I/O [Soundcard]
+5    13   R  Cascading IRQ from Slave (Legacy) PIC
+6    14   R  Reserved.
+7    15   V  Spurious IRQ
+8    16   R  Fast I/O (Port 2)
+9    17   V  Fast I/O (Port 1) [Printer]
+10   18   V  Fast I/O (Port 0) [GFX]
 ----------------------------------------------
-8-255 are all unsupported by CPU.
+11 - 255 <Unused>
 ----------------------------------------------
-
-The IRQ7 is reserved as Cascading IRQ. It will be used
-in extended versions of computer.
 
 
 -- DI Numbers --
@@ -237,15 +249,14 @@ PORT  Res+Purpose
 0x09  R  Device Info
 0x0a  -  <Unused>
 0x0b  -  <Unused>
-0x0c  -  <Unused>
 ----------------------------------------------
+0x0c  V  Fast I/O (PIC)
 0x0d  R  Fast I/O (Port 2) [Reserved]
 0x0e  V  Fast I/O (Port 1) [Printer]
 0x0f  V  Fast I/O (Port 0) [GFX]
 ----------------------------------------------
-0x10 - 0xf9 are all <Unused>
+0x10 - 0xfa are all <Unused>
 ----------------------------------------------
-0xfa  R  Fast I/O PIC
 0xfb  R  I/O [Legacy]
 0xfc  R  DMA Controller [Slow & Legacy I/O]
 0xfd  R  DMA Switch & Fast I/O Controller
@@ -326,7 +337,7 @@ Get DI by Device Port:
 [-in16 0x9, excaps] if MoreCaps      // Mxxxxxxxxxxxxxxx / MoreCaps-(x:device specific)
  <jump to 1 if MoreCaps>
  
-Enumerate Devices (if 
+Enumerate Devices [TODO]
 
 
 -- Default Device Types (DDTs) --
@@ -581,13 +592,16 @@ See Devices/mass-storage.txt and OS/os-extensions.txt for more information.
 
 -- Interrupt Controller (0x4) --
 
+Each Interrupt Controller (PIC) has 16 device IRQ inputs.
+
 - Port 4
 - Registers
     RID   Acc Size  Mm        Purpose
-    0x00  RW  8     PIC_MASK  IRQ mask
+    0x00  RW  16    PIC_MASK  IRQ mask
 - Commands
-    CID   Args  Res  Purpose
-    0x02  []    []   EOI - clears irq lines
+    CID   Args         Res  Purpose
+    0x02  []           []   EOI - clears irq lines
+    0x03  [offset(8)]  []   Remap (Specify offset)
 
 
 -- PMI controller (0x5) --
