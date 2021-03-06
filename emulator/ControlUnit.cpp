@@ -45,14 +45,12 @@ void ControlUnit::cycle()
 void ControlUnit::raise_interrupt(u16 int_number, bool internal, u16* arg)
 {
     debug("CU") << "Trying to raise " << (internal ? "internal" : "external") << " interrupt: " << int_number;
+
+    // Wake up processor
+    m_is_halted = false;
+
     bool ef = get_flag(FLAG_EXCEPTION);
     bool iif = get_flag(FLAG_IN_IRQ);
-
-    // Set flags
-    if(internal)
-        set_flag(FLAG_EXCEPTION);
-    else
-        set_flag(FLAG_IN_IRQ);
 
     // Double fault check
     if(internal && ef)
@@ -61,16 +59,30 @@ void ControlUnit::raise_interrupt(u16 int_number, bool internal, u16* arg)
         double_fault();
     }
 
+    // Set flags now (it CANNOT be ignored)
+    if(internal)
+        set_flag(FLAG_EXCEPTION);
+
     // IVT check
     if(int_number >= m_ivt.size())
     {
-        info("CU") << "INT number out of bounds: " << int_number << ", ignoring";
+        if(internal)
+        {
+            error("CU") << "ISR number out of bounds: " << int_number;
+            u16 arg = UE_REALLY << 8;
+            raise_interrupt(INT_UNSPECIFIED, true, &arg);
+        }
+        else
+            info("CU") << "IRQ number out of bounds: " << int_number << ", ignoring";
         return;
     }
 
     // Here everything should work properly. If something faults when pushing values
     // on stack, we should try to raise a next interrupt.
     debug("CU") << (internal ? "Internal" : "External") << " Interrupt Raised! " << int_number;
+
+    if(!internal)
+        set_flag(FLAG_IN_IRQ);
 
     // Setup stack
     m_executor._INSN_PUSH(false, m_ip.as_source());
@@ -139,6 +151,15 @@ void ControlUnit::dump_registers()
     debug("CU") << "SP=" << std::setw(4) << m_sp.value() << " BP=" << std::setw(4) << m_bp.value();
     debug("CU") << "IP=" << std::setw(4) << m_ip.value() << " FL=" << std::setw(4) << m_flags;
     debug("CU") <<  std::nouppercase << std::dec;
+}
+
+void ControlUnit::cpuid()
+{
+    // Revision: none
+    // ALU: present
+    // Major Version: cx16 (0x4)
+    // Minor Version: Initial Release (0x0)
+    m_ax.set_value(0x0840);
 }
 
 void ControlUnit::do_insn(Bitfield opcode)
@@ -221,6 +242,20 @@ void ControlUnit::do_insn(Bitfield opcode)
         }
     }
     // TODO....
+    // Random Block 2
+    else if(opcode.sub_msb(0, 6) == 0b101111)
+    {
+        u8 op = opcode.sub_msb(6, 2);
+        switch(op)
+        {
+            case 0b00: m_executor._INSN_HLT(); break;
+            case 0b10: m_executor._INSN_CPUID(); break;
+            default:
+                error("CU") << "Invalid opcode: " << std::hex << (int)opcode.data() << std::dec;
+                raise_interrupt(INT_INVALID_INSTRUCTION, true);
+                break;
+        }
+    }
     else
     {
         error("CU") << "Invalid opcode: " << std::hex << (int)opcode.data() << std::dec;

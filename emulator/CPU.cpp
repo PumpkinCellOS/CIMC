@@ -9,17 +9,23 @@ void CPU::boot()
 {
     info("CPU") << "Booting up CPU #0";
 
+    // wait for all devices to boot...
+    // TODO: It should be a responsibility of BIOS
+    // to wait for devices!
+    sleep(1);
+
     while(!running())
     {
+        // TODO: Work on reboot...
+        // Probably we should use multiprocess architecture, with new
+        // process for each boot.
         while(!m_ready) ;
         m_ready = false;
 
-        // wait for all devices to boot...
-        sleep(1);
-
         info("CPU") << "Devices ready, starting ROM execution.";
 
-        while(true)
+        m_control_unit.wake();
+        while(!m_control_unit.is_halted())
         {
             m_control_unit.cycle();
             m_control_unit.dump_registers();
@@ -29,11 +35,13 @@ void CPU::boot()
 
 void CPU::pmi_boot()
 {
+    debug("CPU") << "PMI Boot!";
     m_ready = true;
 }
 
 void CPU::pmi_reboot()
 {
+    debug("CPU") << "PMI Reboot!";
     m_ready = false;
 }
 

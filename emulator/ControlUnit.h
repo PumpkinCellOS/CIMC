@@ -181,6 +181,14 @@ public:
     void _INSN_JLE(const Source& ioff);
     void _INSN_CMP(const Source& op1, const Source& op2);
     void _INSN_PUSH(bool width, const Source& value);
+    // TODO: Stack Special
+    // TODO: Add, Subtract, Multiply/Divice, And, Or, Other Byte, Call
+    void _INSN_LIVT(const Source& addr);
+    void _INSN_INT(u8 int_number);
+    // TODO: Random Block 1
+    void _INSN_HLT();
+    // TODO: _MKSTFR
+    void _INSN_CPUID();
 
 private:
     void jmp_helper(const Source& ioff);
@@ -296,6 +304,15 @@ public:
     void raise_interrupt(u16 int_number, bool internal, u16* arg = nullptr);
     void return_from_interrupt();
 
+    bool is_halted() const { return m_is_halted; }
+    void halt() { info("CU") << "Halt!"; m_is_halted = true; }
+    void wake() { info("CU") << "Wake!"; m_is_halted = false; }
+
+    void set_ivt_size(u8 sz) { m_ivt.resize(sz); }
+    void set_isr(u8 int_number, u16 address) { m_ivt[int_number] = address; }
+
+    void cpuid();
+
 private:
     void double_fault() { error("CU") << "Double fault :("; exit(-1); }
 
@@ -309,6 +326,8 @@ private:
     Register m_ip;
     Register m_sp;
     Register m_bp;
+
+    bool m_is_halted = false;
 
     u16 m_flags = 0;
     std::vector<u16> m_ivt;

@@ -103,3 +103,31 @@ void Executor::_INSN_PUSH(bool width, const Source& value)
         stack_pointer.set_value(stack_pointer.value() + 2);
     }
 }
+
+void Executor::_INSN_LIVT(const Source& addr)
+{
+    u16 addr_num = addr.read();
+    u8 size = m_control.virtual_memory_readable(addr_num).read8();
+    m_control.set_ivt_size(size + 1);
+    addr_num++;
+    for(size_t s = 0; s <= size; s++)
+    {
+        m_control.set_isr(s, m_control.virtual_memory_readable(addr_num).read());
+        addr_num += 2;
+    }
+}
+
+void Executor::_INSN_INT(u8 int_number)
+{
+    m_control.raise_interrupt(int_number, true);
+}
+
+void Executor::_INSN_HLT()
+{
+    m_control.halt();
+}
+
+void Executor::_INSN_CPUID()
+{
+    m_control.cpuid();
+}
