@@ -54,8 +54,11 @@ public:
 
         virtual std::string name() const override { return "ROM"; }
 
+        virtual void write_memory(u16 addr, u8 val) override;
+
     private:
         void init_with_image(std::istream& image);
+        bool m_unlocked = true;
     };
 
     virtual std::string name() const { return "PumpkinCellOS cx16 Emulated CPU"; }

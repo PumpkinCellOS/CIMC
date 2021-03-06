@@ -23,11 +23,11 @@ public:
     Bitfield(u8 data)
     : m_data(data) {}
 
-    static u8 flip(u8 data)
+    static u8 flip(u8 data, u8 size = 8)
     {
         u8 ndata = 0x0;
-        for(size_t s = 0; s < 8; s++)
-            ndata |= ((data & (0x1 << s)) >> s) << (7 - s);
+        for(size_t s = 0; s < size; s++)
+            ndata |= ((data & (0x1 << s)) >> s) << (size-1 - s);
         //std::cerr << "=" << to_binary_string(ndata) << std::endl;
         return ndata;
     }
@@ -36,13 +36,13 @@ public:
     // Get bytes, starting from LSB (right in notation)
     static u8 sub_lsb(u8 data, size_t start, size_t len)
     {
-        std::cerr << "sub_lsb: " << start << ":" << len << std::endl;
+        //std::cerr << "sub_lsb: " << start << ":" << len << std::endl;
         u8 mask = 0xFF;
 
         mask >>= 8-len;
         mask <<= start;
         u8 ret = (data & mask) >> start;
-        std::cerr << "sub_lsb: " << to_binary_string(ret) << std::endl;
+        //std::cerr << "sub_lsb: " << to_binary_string(ret) << std::endl;
         return ret;
     }
 
@@ -50,7 +50,7 @@ public:
     static u8 sub_msb(u8 data, size_t start, size_t len)
     {
         // We must to flip the data to maintain valid bit order!
-        return sub_lsb(flip(data), start, len);
+        return flip(sub_lsb(flip(data), start, len), len);
     }
 
 
@@ -186,7 +186,6 @@ private:
     void jmp_helper(const Source& ioff);
 
     ControlUnit& m_control;
-    u16 m_flags = 0;
 };
 
 // Memory
@@ -252,6 +251,16 @@ private:
     u16 m_value;
 };
 
+#define INT_INVALID_MATH 0
+#define INT_INVALID_INSTRUCTION 1
+#define INT_UNSPECIFIED 2
+#define INT_PAGE_FAULT 3
+#define INT_USER1 6
+#define INT_USER2 7
+
+#define UE_REALLY 0x0
+#define UE_INVALID_IRET 0x1
+#define UE_NMI 0x2
 
 class ControlUnit
 {
@@ -271,11 +280,25 @@ public:
     Register& stack_pointer() { return m_sp; }
     Register& base_pointer() { return m_bp; }
 
+    u16 flags() const { return m_flags; }
+    void set_flag(u16 flag) { m_flags |= flag; }
+
+    // TODO: Find out a better way to set flags!
+    void set_flag_to(u16 flag, bool data) { if(data) set_flag(flag); else clear_flag(flag); }
+
+    void clear_flag(u16 flag) { m_flags &= ~flag; }
+    bool get_flag(u16 flag) const { return m_flags & flag; }
+
     CPU& cpu() { return m_cpu; }
 
     void dump_registers();
 
+    void raise_interrupt(u16 int_number, bool internal, u16* arg = nullptr);
+    void return_from_interrupt();
+
 private:
+    void double_fault() { error("CU") << "Double fault :("; exit(-1); }
+
     CPU& m_cpu;
     Executor m_executor;
     Register m_ax;
@@ -286,6 +309,9 @@ private:
     Register m_ip;
     Register m_sp;
     Register m_bp;
+
+    u16 m_flags = 0;
+    std::vector<u16> m_ivt;
 
     class ErrorSource : public Source
     {

@@ -7,6 +7,8 @@ class Bus;
 class Device
 {
 public:
+    static std::vector<Device*> all_devices;
+
     Device();
     virtual ~Device();
 
@@ -15,6 +17,7 @@ public:
     void set_master_bus(Bus* bus) { m_bus = bus; }
 
     virtual void boot() { error(name()) << "Dummy boot called!"; }
+    void power_on();
 
     void shutdown() { m_device_destroyed.store(true); }
     bool running() const { return m_device_destroyed.load(); }
@@ -64,23 +67,6 @@ private:
 };
 
 class Cx16Device;
-
-class Cx16InterruptController : public Device
-{
-public:
-    void register_device(u8 irq, std::shared_ptr<Cx16Device> device);
-
-    virtual void boot();
-
-    virtual bool irq_raised() const { return m_irq_raised; }
-
-    virtual std::string name() const override { return "Cx16 Interrupt Controller"; }
-
-private:
-    std::mutex m_irq_access_mutex;
-    std::map<u8, std::shared_ptr<Cx16Device>> m_devices;
-    bool m_irq_raised = false;
-};
 
 class MemoryAccessNode
 {
@@ -148,6 +134,7 @@ private:
 };
 
 class PMIController;
+class Cx16InterruptController;
 
 class Cx16Device : public Device
 {
@@ -245,4 +232,39 @@ private:
     Command m_current_command;
     u16 m_command_result;
     std::mutex m_queue_access_mutex;
+};
+
+class Cx16InterruptController : public Cx16ConventionalDevice
+{
+public:
+    void register_device(u8 irq, std::shared_ptr<Cx16Device> device);
+
+    virtual void boot();
+
+    virtual bool irq_raised() const
+    {
+        return m_irq_raised || (m_irqc && m_irqc->irq_raised());
+    }
+
+    u8 number() const { return m_current_irq + m_offset; }
+
+    virtual std::string name() const override { return "Cx16 Interrupt Controller"; }
+
+    // TODO: Commands
+    virtual u8 di_caps() const { return 0x0; }
+
+protected:
+    virtual u16* reg(u8 id);
+    virtual u16 do_cmd(u8 cmd, const std::vector<u16>& args);
+    virtual u8 get_argc(u8 cmd) const;
+
+private:
+    void eoi();
+
+    std::mutex m_irq_access_mutex;
+    std::map<u8, std::shared_ptr<Cx16Device>> m_devices;
+    u8 m_current_irq = 0x7; // Cascaded IRQ
+    u8 m_offset = 8;
+    u16 m_mask = 0xFFFF;
+    bool m_irq_raised = false;
 };

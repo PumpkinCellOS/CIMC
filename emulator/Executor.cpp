@@ -47,45 +47,45 @@ void Executor::jmp_helper(const Source& ioff)
 
 void Executor::_INSN_JZ(const Source& ioff)
 {
-    if(m_flags & FLAG_ZERO)
+    if(m_control.get_flag(FLAG_ZERO))
         jmp_helper(ioff);
 }
 
 void Executor::_INSN_JG(const Source& ioff)
 {
-    if(m_flags & FLAG_GREATER)
+    if(m_control.get_flag(FLAG_GREATER))
         jmp_helper(ioff);
 }
 
 void Executor::_INSN_JL(const Source& ioff)
 {
-    if(m_flags & FLAG_OVERFLOW)
+    if(m_control.get_flag(FLAG_OVERFLOW))
         jmp_helper(ioff);
 }
 
 void Executor::_INSN_JNE(const Source& ioff)
 {
-    if(!(m_flags & FLAG_ZERO))
+    if(!m_control.get_flag(FLAG_ZERO))
         jmp_helper(ioff);
 }
 
 void Executor::_INSN_JGE(const Source& ioff)
 {
-    if(m_flags & FLAG_ZERO || m_flags & FLAG_GREATER)
+    if(m_control.get_flag(FLAG_ZERO) || m_control.get_flag(FLAG_GREATER))
         jmp_helper(ioff);
 }
 
 void Executor::_INSN_JLE(const Source& ioff)
 {
-    if(m_flags & FLAG_ZERO || m_flags & FLAG_OVERFLOW)
+    if(m_control.get_flag(FLAG_ZERO) || m_control.get_flag(FLAG_OVERFLOW))
         jmp_helper(ioff);
 }
 
 void Executor::_INSN_CMP(const Source& op1, const Source& op2)
 {
-    m_flags &= (op1.read() == op2.read()) << FLAG_ZERO;
-    m_flags &= (op1.read() < op2.read()) << FLAG_OVERFLOW;
-    m_flags &= (op1.read() > op2.read()) << FLAG_GREATER;
+    m_control.set_flag_to(FLAG_ZERO, (op1.read() == op2.read()));
+    m_control.set_flag_to(FLAG_OVERFLOW, (op1.read() < op2.read()));
+    m_control.set_flag_to(FLAG_GREATER, (op1.read() > op2.read()));
 }
 
 void Executor::_INSN_PUSH(bool width, const Source& value)

@@ -29,18 +29,84 @@ Destination& ControlUnit::common_destination(u8 type)
 void ControlUnit::cycle()
 {
     // TODO: Check interrupts!
+    Cx16InterruptController* pic = m_cpu.slave()->interrupt_controller();
+    if(pic->irq_raised() && !get_flag(FLAG_IN_IRQ) && !get_flag(FLAG_EXCEPTION))
+    {
+        u8 number = pic->number();
+        raise_interrupt(number, false);
+    }
 
     MemorySource opcode = read_insn();
     u8 opcode_read = opcode.read8();
-    trace("CU") << "cycle: 0x" << std::hex << (int)opcode_read << std::dec;
+    trace("CU") << "cycle: 0x" << std::hex << (int)opcode_read << " (" << to_binary_string(opcode_read) << ")" << std::dec;
     do_insn(Bitfield(opcode_read));
+}
+
+void ControlUnit::raise_interrupt(u16 int_number, bool internal, u16* arg)
+{
+    debug("CU") << "Trying to raise " << (internal ? "internal" : "external") << " interrupt: " << int_number;
+    bool ef = get_flag(FLAG_EXCEPTION);
+    bool iif = get_flag(FLAG_IN_IRQ);
+
+    // Set flags
+    if(internal)
+        set_flag(FLAG_EXCEPTION);
+    else
+        set_flag(FLAG_IN_IRQ);
+
+    // Double fault check
+    if(internal && ef)
+    {
+        error("CU") << "Raised an " << (internal ? "internal" : "external") << " interrupt " << int_number << " while already in interrupt!";
+        double_fault();
+    }
+
+    // IVT check
+    if(int_number >= m_ivt.size())
+    {
+        info("CU") << "INT number out of bounds: " << int_number << ", ignoring";
+        return;
+    }
+
+    // Here everything should work properly. If something faults when pushing values
+    // on stack, we should try to raise a next interrupt.
+    debug("CU") << (internal ? "Internal" : "External") << " Interrupt Raised! " << int_number;
+
+    // Setup stack
+    m_executor._INSN_PUSH(false, m_ip.as_source());
+    m_executor._INSN_PUSH(false, ImmediateSource(m_flags));
+    if(arg)
+        m_executor._INSN_PUSH(false, ImmediateSource(*arg));
+
+    // Jump to specified location basing on IVT.
+    m_executor._INSN_JMP(ImmediateSource(m_ivt[int_number]));
+}
+
+void ControlUnit::return_from_interrupt()
+{
+    bool ef = get_flag(FLAG_EXCEPTION);
+    bool iif = get_flag(FLAG_IN_IRQ);
+
+    // Clear flags or raise an exception
+    if(ef)
+        clear_flag(FLAG_EXCEPTION);
+    else if(iif)
+        clear_flag(FLAG_IN_IRQ);
+    else
+    {
+        error("CU") << "Invalid IRET: Interrupt Underflow";
+        u16 arg = UE_INVALID_IRET << 8;
+        raise_interrupt(INT_UNSPECIFIED, true, &arg);
+    }
+
+    // TODO: Pop stack and return to previous location.
 }
 
 MemorySource ControlUnit::read_insn()
 {
     MemorySource source = virtual_memory_readable(m_ip.value());
     m_ip.set_value(m_ip.value() + 1);
-    trace("CU") << "read_insn at " << m_ip.value() << ": 0x" << std::hex << (int)source.read8() << std::dec;
+    //trace("CU") << "read_insn at " << m_ip.value() << ": 0x" << std::hex << (int)source.read8() << std::dec;
     return source;
 }
 
@@ -49,7 +115,7 @@ MemorySource ControlUnit::read_2_insns()
     // NOTE: The value is automatically 16-bit!
     MemorySource source = virtual_memory_readable(m_ip.value());
     m_ip.set_value(m_ip.value() + 2);
-    trace("CU") << "read_2_insns at " << m_ip.value() << ": 0x" << std::hex << (int)source.read() << std::dec;
+    //trace("CU") << "read_2_insns at " << m_ip.value() << ": 0x" << std::hex << (int)source.read() << std::dec;
     return source;
 }
 
@@ -67,17 +133,18 @@ MemoryDestination ControlUnit::virtual_memory_writable(u16 addr)
 
 void ControlUnit::dump_registers()
 {
-    debug("CU") << "---- Register dump ----" << std::hex << std::uppercase << std::setfill('0');
+    debug("CU") << "---- GPR dump ----" << std::hex << std::uppercase << std::setfill('0');
     debug("CU") << "AX=" << std::setw(4) << m_ax.value() << " BX=" << std::setw(4) << m_bx.value();
     debug("CU") << "CX=" << std::setw(4) << m_cx.value() << " DX=" << std::setw(4) << m_dx.value();
     debug("CU") << "SP=" << std::setw(4) << m_sp.value() << " BP=" << std::setw(4) << m_bp.value();
-    debug("CU") << "IP=" << std::setw(4) << m_ip.value() << std::nouppercase << std::dec;
+    debug("CU") << "IP=" << std::setw(4) << m_ip.value() << " FL=" << std::setw(4) << m_flags;
+    debug("CU") <<  std::nouppercase << std::dec;
 }
 
 void ControlUnit::do_insn(Bitfield opcode)
 {
-    trace("CU") << "Opcode: " << to_binary_string(opcode.data());
-    trace("CU") << "Sub: " << to_binary_string(opcode.sub_msb(0, 3));
+    //trace("CU") << "Opcode: " << to_binary_string(opcode.data());
+    //trace("CU") << "Sub: " << to_binary_string(opcode.sub_msb(0, 3));
 
     // I/O Operations
     if(opcode.sub_msb(0, 2) == 0b00)
@@ -112,6 +179,7 @@ void ControlUnit::do_insn(Bitfield opcode)
     else if(opcode.sub_msb(0, 5) == 0b01110)
     {
         u8 type = opcode.sub_msb(5, 3);
+        trace("CU") << "Jump: type=" << to_binary_string(type);
         switch(type)
         {
             case 0x0: m_executor._INSN_JMP(m_ax.as_source()); break;
@@ -156,6 +224,6 @@ void ControlUnit::do_insn(Bitfield opcode)
     else
     {
         error("CU") << "Invalid opcode: " << std::hex << (int)opcode.data() << std::dec;
-        exit(-1);
+        raise_interrupt(INT_INVALID_INSTRUCTION, true);
     }
 }

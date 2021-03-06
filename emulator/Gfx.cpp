@@ -61,7 +61,7 @@ u16 GraphicsCard::fill_rect(u16 coords, u16 size, u8 color)
     u8 ys = coords & 0xFF;
     u8 xe = (size & 0xFF00) >> 8;
     u8 ye = size & 0xFF;
-    trace("Gfx") << "fill_rect: " << (int)xs << "," << (int)ys << ":" << (int)xe << "," << (int)ye;
+    trace("Gfx") << "fill_rect: " << (int)xs << "," << (int)ys << ":" << (int)xe << "," << (int)ye << " = " << (int)color;
 
     for(u8 x = xs; x < xs + xe; x++)
     for(u8 y = ys; y < ys + ye; y++)

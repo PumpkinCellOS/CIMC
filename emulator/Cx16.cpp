@@ -18,9 +18,11 @@ private:
     Device& m_device;
 };
 
+std::vector<Device*> Device::all_devices;
+
 Device::Device()
-: m_worker(DeviceBootstrapper(*this))
 {
+    all_devices.push_back(this);
 }
 
 Device::~Device()
@@ -29,19 +31,64 @@ Device::~Device()
     m_worker.join();
 }
 
+void Device::power_on()
+{
+    m_worker = std::thread(DeviceBootstrapper(*this));
+}
+
 void Cx16InterruptController::boot()
 {
     while(!m_device_destroyed.load())
     {
         std::lock_guard<std::mutex> lock(m_irq_access_mutex);
-        m_irq_raised = false;
-        for(auto it: m_devices)
+
+        // Find next device that has raised IRQ.
+        m_current_irq = 0x0;
+        eoi();
+    }
+}
+
+u16 Cx16InterruptController::do_cmd(u8 cmd, const std::vector<u16>& args)
+{
+    switch(cmd)
+    {
+    case 0x02: eoi(); break;
+    case 0x03: m_offset = args[0]; break;
+    }
+    return 0x0;
+}
+
+u8 Cx16InterruptController::get_argc(u8 cmd) const
+{
+    switch(cmd)
+    {
+    case 0x02: return 0;
+    case 0x03: return 1;
+    }
+    return 0;
+}
+
+u16* Cx16InterruptController::reg(u8 id)
+{
+    if(id == 0)
+        return &m_mask;
+    return nullptr;
+}
+
+void Cx16InterruptController::eoi()
+{
+    m_irq_raised = false;
+    for(; m_current_irq < 0x7; m_current_irq++)
+    {
+        auto it = m_devices.find(m_current_irq);
+        if(it != m_devices.end() && it->second->irq_raised() && (m_mask & (1 << m_current_irq)))
         {
-            Cx16Device& device = *it.second;
-            if(device.irq_raised())
-                m_irq_raised = true;
+            m_irq_raised = true;
+            return;
         }
     }
+    // We end up with Spurious Interrupt here.
+    m_irq_raised = false;
 }
 
 void Cx16Bus::out8(u8 id, u8 val)
