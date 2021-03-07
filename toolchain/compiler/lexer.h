@@ -69,6 +69,9 @@ public:
 
     const Token* peek() const { return m_index < m_tokens.size() ? &m_tokens[m_index] : nullptr; }
 
+    size_t index() const { return m_index; }
+    void set_index(size_t index) { m_index = index; }
+
     std::istream* stream = nullptr;
 
 private:

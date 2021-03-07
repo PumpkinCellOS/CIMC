@@ -10,10 +10,12 @@ std::shared_ptr<Declaration> parse_declaration(LexOutput& output)
 {
     std::shared_ptr<Declaration> declaration;
 
-    declaration = std::make_shared<VariableDeclaration>();
+    size_t position = output.index();
+    declaration = std::make_shared<FunctionDefinition>();
     if(!declaration->from_lex(output))
     {
-        declaration = std::make_shared<FunctionDefinition>();
+        output.set_index(position);
+        declaration = std::make_shared<VariableDeclaration>();
         if(!declaration->from_lex(output))
         {
             return nullptr;
@@ -258,9 +260,7 @@ bool FunctionDefinition::from_lex(LexOutput& output)
 
     // Arguments open
     if(!output.consume_token_of_type(Token::LeftBracket))
-    {
-        PARSE_ERROR(output, "expected '(' in function-definition");
-    }
+        return false;
 
     // Arguments
     while(true)
