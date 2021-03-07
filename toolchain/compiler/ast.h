@@ -110,12 +110,16 @@ class FunctionCall : public Expression
 {
 public:
     std::string function_name;
+    std::vector<std::shared_ptr<Expression>> arguments;
 
     virtual bool from_lex(LexOutput& output);
 
     virtual void display() const override
     {
         std::cout << "FunctionCall: " << function_name << std::endl;
+        std::cout << "Arguments:" << std::endl;
+        for(auto it : arguments)
+            it->display();
     }
 };
 

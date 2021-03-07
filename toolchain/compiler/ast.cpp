@@ -100,11 +100,14 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
     // Statement
     std::shared_ptr<Statement> statement;
     statement = std::make_shared<ReturnStatement>();
+    size_t position = output.index();
     if(!statement->from_lex(output))
     {
+        output.set_index(position);
         statement = std::make_shared<ExpressionStatement>();
         if(!statement->from_lex(output))
         {
+            output.set_index(position);
             statement = std::make_shared<DeclarationStatement>();
             if(!statement->from_lex(output))
             {
@@ -132,8 +135,10 @@ std::shared_ptr<Expression> parse_expression(LexOutput& output)
 {
     std::shared_ptr<Expression> expression;
     expression = std::make_shared<IntegerLiteral>();
+    size_t position = output.index();
     if(!expression->from_lex(output))
     {
+        output.set_index(position);
         expression = std::make_shared<FunctionCall>();
         if(!expression->from_lex(output))
         {
@@ -175,7 +180,27 @@ bool FunctionCall::from_lex(LexOutput& output)
         if(!lc)
             return false;
 
-        // TODO: Arguments
+        // Arguments
+        bool is_first = true;
+        while(true)
+        {
+            auto expression = parse_expression(output);
+            if(!expression)
+            {
+                if(is_first)
+                    break;
+                else
+                    PARSE_ERROR(output, "expected expression in function call");
+            }
+
+            arguments.push_back(expression);
+
+            auto comma = output.consume_token_of_type(Token::Comma);
+            if(!comma)
+                break;
+
+            is_first = false;
+        }
 
         auto rc = output.consume_token_of_type(Token::RightBracket);
         if(!rc)
