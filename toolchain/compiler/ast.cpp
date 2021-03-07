@@ -140,24 +140,31 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
     PARSE_ERROR(output, "expected ';' in statement");
 }
 
-// expression ::= numeric-literal | identifier | function-call
+// expression ::= comma-expression | ( expression ) | function-call | numeric-literal | identifier
 // TODO: operators
 std::shared_ptr<Expression> parse_expression(LexOutput& output)
 {
+    // TODO: Make FunctionCall a postfix-expression
     std::shared_ptr<Expression> expression;
-    expression = std::make_shared<IntegerLiteral>();
+    expression = std::make_shared<FunctionCall>();
     size_t position = output.index();
     if(!expression->from_lex(output))
     {
         output.set_index(position);
-        expression = std::make_shared<FunctionCall>();
+        expression = std::make_shared<UnaryExpression>();
         if(!expression->from_lex(output))
         {
             output.set_index(position);
-            expression = std::make_shared<Identifier>();
+            expression = std::make_shared<IntegerLiteral>();
             if(!expression->from_lex(output))
             {
-                return nullptr;
+                output.set_index(position);
+                expression = std::make_shared<Identifier>();
+                if(!expression->from_lex(output))
+                {
+                    output.set_index(position);
+                    return nullptr;
+                }
             }
         }
     }
@@ -235,6 +242,52 @@ bool FunctionCall::from_lex(LexOutput& output)
         return true;
     }
     return false;
+}
+
+// unary-expression ::= unary-operator expression
+bool UnaryExpression::from_lex(LexOutput& output)
+{
+    // Operator
+    auto oper = output.consume_token_of_type(Token::Operator);
+    if(!oper)
+        return false;
+
+    /*
+        Address, // &
+        Dereference, // *
+        Plus, // +
+        Minus, // -
+        BitNegate, // ~
+        LogicNegate, // !
+        Increment, // ++
+        Decrement // --
+    */
+
+    if(oper->value == "&")
+        type = Type::Address;
+    else if(oper->value == "*")
+        type = Type::Dereference;
+    else if(oper->value == "+")
+        type = Type::Plus;
+    else if(oper->value == "-")
+        type = Type::Minus;
+    else if(oper->value == "~")
+        type = Type::BitNegate;
+    else if(oper->value == "!")
+        type = Type::LogicNegate;
+    else if(oper->value == "++")
+        type = Type::Increment;
+    else if(oper->value == "--")
+        type = Type::Decrement;
+
+    // TODO: Casts
+
+    // Expression
+    expression = parse_expression(output);
+    if(!expression)
+        return false;
+
+    return true;
 }
 
 bool FunctionBody::from_lex(LexOutput& output)

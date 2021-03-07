@@ -116,6 +116,34 @@ public:
     }
 };
 
+class UnaryExpression : public Expression
+{
+public:
+    enum class Type
+    {
+        Address, // &
+        Dereference, // *
+        Plus, // +
+        Minus, // -
+        BitNegate, // ~
+        LogicNegate, // !
+        Increment, // ++
+        Decrement // --
+        // TODO:
+        // Cast // ( type-specifier )
+    } type;
+
+    std::shared_ptr<Expression> expression;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display(size_t depth) const override
+    {
+        std::cout << indent(depth) << "UnaryExpression: " << (int)type << std::endl;
+        expression->display(depth + 1);
+    }
+};
+
 // statement ::= [expression | return-statement];
 class Statement : public Node
 {
