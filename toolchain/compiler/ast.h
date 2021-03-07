@@ -13,11 +13,13 @@ namespace cpp_compiler
 namespace AST
 {
 
+std::string indent(size_t depth, std::string _fill = "|   ", std::string _lastfill = "|-- ");
+
 class Node
 {
 public:
     virtual bool from_lex(LexOutput& output) = 0;
-    virtual void display() const = 0;
+    virtual void display(size_t depth) const = 0;
 };
 
 template<class T>
@@ -26,12 +28,12 @@ class NodeSeq : public Node
 public:
     std::vector<std::shared_ptr<T>> subnodes;
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "<NodeSeq>:" << std::endl;
+        std::cout << indent(depth) << "<NodeSeq>:" << std::endl;
         for(auto it : subnodes)
         {
-            it->display();
+            it->display(depth + 1);
         }
     }
 };
@@ -40,9 +42,9 @@ public:
 class Declaration : public Node
 {
 public:
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "Declaration" << std::endl;
+        std::cout << indent(depth) << "Declaration" << std::endl;
     }
 };
 
@@ -52,10 +54,10 @@ class TranslationUnit : public NodeSeq<Declaration>
 public:
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "TranslationUnit:" << std::endl;
-        NodeSeq::display();
+        std::cout << indent(depth) << "TranslationUnit:" << std::endl;
+        NodeSeq::display(depth + 1);
     }
 };
 
@@ -65,31 +67,9 @@ class Expression : public Node
 public:
     virtual bool from_lex(LexOutput& output) { return false; }
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "Expression" << std::endl;
-    }
-};
-
-class Literal : public Expression
-{
-public:
-    virtual bool from_lex(LexOutput& output) { return false; }
-
-    virtual void display() const override
-    {
-        std::cout << "Literal" << std::endl;
-    }
-};
-
-class NumericLiteral : public Expression
-{
-public:
-    virtual bool from_lex(LexOutput& output) { return false; }
-
-    virtual void display() const override
-    {
-        std::cout << "NumericLiteral" << std::endl;
+        std::cout << indent(depth) << "Expression" << std::endl;
     }
 };
 
@@ -100,9 +80,22 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "IntegerLiteral: " << value << std::endl;
+        std::cout << indent(depth) << "IntegerLiteral: " << value << std::endl;
+    }
+};
+
+class Identifier : public Expression
+{
+public:
+    std::string name;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display(size_t depth) const override
+    {
+        std::cout << indent(depth) << "Identifier: " << name << std::endl;
     }
 };
 
@@ -114,12 +107,12 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "FunctionCall: " << function_name << std::endl;
-        std::cout << "Arguments:" << std::endl;
+        std::cout << indent(depth) << "FunctionCall: " << function_name << std::endl;
+        std::cout << indent(depth) << "Arguments:" << std::endl;
         for(auto it : arguments)
-            it->display();
+            it->display(depth + 1);
     }
 };
 
@@ -130,9 +123,9 @@ public:
     virtual bool from_lex(LexOutput& output) { return false; }
     virtual bool need_semicolon() const { return true; }
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "Statement" << std::endl;
+        std::cout << indent(depth) << "Statement" << std::endl;
     }
 };
 
@@ -143,11 +136,11 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "ReturnStatement: " << std::endl;
+        std::cout << indent(depth) << "ReturnStatement: " << std::endl;
         if(expression)
-            expression->display();
+            expression->display(depth + 1);
     }
 };
 
@@ -158,11 +151,11 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "ExpressionStatement: " << std::endl;
+        std::cout << indent(depth) << "ExpressionStatement: " << std::endl;
         if(expression)
-            expression->display();
+            expression->display(depth + 1);
     }
 };
 
@@ -179,10 +172,10 @@ class FunctionBody : public NodeSeq<Statement>
 public:
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "FunctionBody:" << std::endl;
-        NodeSeq::display();
+        std::cout << indent(depth) << "FunctionBody:" << std::endl;
+        NodeSeq::display(depth + 1);
     }
 };
 
@@ -194,9 +187,9 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "TypeSpecifier: " << name << std::endl;
+        std::cout << indent(depth) << "TypeSpecifier: " << name << std::endl;
     }
 };
 
@@ -211,9 +204,9 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "SimpleTypeSpecifier: " << (int)simple_type << std::endl;
+        std::cout << indent(depth) << "SimpleTypeSpecifier: " << (int)simple_type << std::endl;
     }
 };
 
@@ -226,10 +219,10 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "PointerTypeSpecifer (" << level << ")" << std::endl;
-        type_specifier->display();
+        std::cout << indent(depth) << "PointerTypeSpecifer (" << level << ")" << std::endl;
+        type_specifier->display(depth + 1);
     }
 };
 
@@ -243,16 +236,18 @@ public:
 
     virtual bool from_lex(LexOutput& output) override;
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "VariableDeclaration: " << std::endl;
-        type->display();
-        std::cout << name;
+        std::cout << indent(depth) << "VariableDeclaration: " << std::endl;
+        type->display(depth + 1);
+        std::cout << indent(depth + 1) << name;
         if(default_value)
         {
-            std::cout << " =";
-            default_value->display();
+            std::cout << " = " << std::endl;
+            default_value->display(depth + 2);
         }
+        else
+            std::cout << std::endl;
     }
 };
 
@@ -263,10 +258,10 @@ public:
 
     virtual bool from_lex(LexOutput& output) override;
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "DeclarationStatement: " << std::endl;
-        declaration->display();
+        std::cout << indent(depth) << "DeclarationStatement: " << std::endl;
+        declaration->display(depth + 1);
     }
 };
 
@@ -281,17 +276,16 @@ public:
 
     virtual bool from_lex(LexOutput& output);
 
-    virtual void display() const override
+    virtual void display(size_t depth) const override
     {
-        std::cout << "FunctionDefinition: ";
-        type->display();
-        std::cout << name << " (" << std::endl;
+        std::cout << indent(depth) << "FunctionDefinition: " << std::endl;
+        type->display(depth + 1);
+        std::cout << indent(depth) << name << std::endl;
         for(auto it : args)
         {
-            it->display();
+            it->display(depth + 1);
         }
-        std::cout << ")" << std::endl;
-        body->display();
+        body->display(depth + 1);
     }
 };
 

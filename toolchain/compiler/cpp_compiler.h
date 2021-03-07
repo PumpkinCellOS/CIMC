@@ -7,7 +7,7 @@
 #define STREAM_MAX std::numeric_limits<std::streamsize>::max()
 
 #define PARSE_ERROR(lexoutput, message) do { \
-        std::cout << "error: " << message << std::endl << "  near "; \
+        std::cout << "error: " << message << std::endl << "  token " << (lexoutput).index() << ", near "; \
         if((lexoutput).peek()) \
             (lexoutput).peek()->display(); \
         else \

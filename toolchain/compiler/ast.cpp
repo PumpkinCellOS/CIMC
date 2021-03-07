@@ -6,6 +6,19 @@ namespace cpp_compiler
 namespace AST
 {
 
+std::string indent(size_t depth, std::string _fill, std::string _lastfill)
+{
+    std::string str;
+    for(size_t s = 0; s < depth; s++)
+    {
+        if(s == depth - 1)
+            str += _lastfill;
+        else
+            str += _fill;
+    }
+    return str;
+}
+
 std::shared_ptr<Declaration> parse_declaration(LexOutput& output)
 {
     std::shared_ptr<Declaration> declaration;
@@ -116,8 +129,6 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
         }
     }
 
-    statement->display();
-
     // Semicolon (if applicable)
     if(!statement->need_semicolon())
         return statement;
@@ -129,7 +140,7 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
     PARSE_ERROR(output, "expected ';' in statement");
 }
 
-// expression ::= numeric-literal | function-call
+// expression ::= numeric-literal | identifier | function-call
 // TODO: operators
 std::shared_ptr<Expression> parse_expression(LexOutput& output)
 {
@@ -142,7 +153,12 @@ std::shared_ptr<Expression> parse_expression(LexOutput& output)
         expression = std::make_shared<FunctionCall>();
         if(!expression->from_lex(output))
         {
-            return nullptr;
+            output.set_index(position);
+            expression = std::make_shared<Identifier>();
+            if(!expression->from_lex(output))
+            {
+                return nullptr;
+            }
         }
     }
     return expression;
@@ -165,6 +181,16 @@ bool IntegerLiteral::from_lex(LexOutput& output)
         return true;
     }
     return false;
+}
+
+bool Identifier::from_lex(LexOutput& output)
+{
+    auto name_token = output.consume_token_of_type(Token::Name);
+    if(!name_token)
+        return false;
+
+    name = name_token->value;
+    return true;
 }
 
 // function-call ::= function-name ( [expression,...] )

@@ -26,7 +26,7 @@ bool compile_to_asm(convert::InputFile& input, convert::OutputFile& output, cons
     {
         return false;
     }
-    translation_unit->display();
+    translation_unit->display(0);
 
     return true;
 }
