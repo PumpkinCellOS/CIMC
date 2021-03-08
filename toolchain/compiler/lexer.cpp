@@ -83,7 +83,6 @@ bool consume_c_comment(std::istream& stream)
 
 bool consume_word(std::istream& stream, std::string& value)
 {
-    stream >> std::ws;
     std::string word;
     while(true)
     {
@@ -95,7 +94,6 @@ bool consume_word(std::istream& stream, std::string& value)
         else
         {
             value = word;
-            stream >> std::ws;
             return true;
         }
         word += ch;
@@ -151,7 +149,6 @@ bool consume_operator(std::istream& stream, std::string& value)
 
 bool consume_number(std::istream& stream, std::string& value)
 {
-    stream >> std::ws;
     std::string word;
     size_t c = 0;
     while(true)
@@ -165,7 +162,6 @@ bool consume_number(std::istream& stream, std::string& value)
         else
         {
             value = word;
-            stream >> std::ws;
             return true;
         }
         word += ch;
@@ -188,7 +184,6 @@ bool consume_string(std::istream& stream, std::string& value)
         {
             stream.ignore(1);
             value = word;
-            stream >> std::ws;
             return true;
         }
         else
@@ -298,6 +293,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
             }
             token.type = Token::String;
             m_tokens.push_back(token);
+            input.stream >> std::ws;
         }
         else if(ch == ',') // comma
         {
@@ -324,6 +320,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
                 {
                     LEX_ERROR(input.stream, "invalid operator");
                 }
+                input.stream >> std::ws;
                 m_tokens.push_back(token);
             }
         }
@@ -335,6 +332,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
             }
 
             token.type = Token::Number;
+            input.stream >> std::ws;
             m_tokens.push_back(token);
         }
         else if(isalnum(ch) || ch == '_')
@@ -345,6 +343,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
             }
 
             token.type = parse_helpers::token_type_from_word(token.value);
+            input.stream >> std::ws;
             m_tokens.push_back(token);
         }
         else
