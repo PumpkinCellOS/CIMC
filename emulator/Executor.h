@@ -24,6 +24,8 @@ public:
     void _INSN_POP(bool width, Destination& value);
     // TODO: PUSHA, POPA
     // TODO: Add, Subtract, Multiply/Divice, And, Or, Other Byte, Call
+    void _INSN_ADD(Data& dst, const Source& src);
+    void _INSN_SUB(Data& dst, const Source& src);
     void _INSN_LIVT(const Source& addr);
     void _INSN_INT(u8 int_number);
     // TODO: Random Block 1

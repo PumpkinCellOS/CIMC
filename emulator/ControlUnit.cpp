@@ -243,12 +243,14 @@ void ControlUnit::do_insn(Bitfield opcode)
             case 0b11: m_executor._INSN_PUSH(width, m_sp.as_source_with_offset((i8)(read_insn().read8()))); break;
         }
     }
+    // Pop
     else if(opcode.sub_msb(0, 5) == 0b10001)
     {
         bool pop_all = opcode[5];
         bool spop = opcode[6];
         bool reserved = opcode[7];
 
+        // TODO: Remove Stack Frame
         if(pop_all)
         {
             error("CU") << "Stack Special not implemented: " << std::hex << (int)opcode.data() << std::dec;
@@ -260,7 +262,37 @@ void ControlUnit::do_insn(Bitfield opcode)
             m_executor._INSN_POP(spop, m_ax.as_destination());
         }
     }
-    // TODO....
+    // Add
+    else if(opcode.sub_msb(0, 5) == 0b10010)
+    {
+        bool dst = opcode[5];
+        u8 src = opcode.sub_msb(6, 2);
+
+        Data data = (dst ? (src == 0b11 ? m_bx : m_dx) : m_ax).as_data();
+        m_executor._INSN_ADD(data,
+                             src == 0b00 ? (const Source&)read_2_insns() : (const Source&)common_source(src));
+    }
+    // Subtract
+    else if(opcode.sub_msb(0, 5) == 0b10011)
+    {
+        bool dst = opcode[5];
+        u8 src = opcode.sub_msb(6, 2);
+
+        Data data = (dst ? (src == 0b11 ? m_bx : m_dx) : (src == 0b11 ? m_sp : m_ax)).as_data();
+        m_executor._INSN_SUB(data,
+                             src == 0b00 || (src == 0b11 && !dst) ? (const Source&)read_2_insns() : (const Source&)common_source(src));
+    }
+    // TODO.... Multiply/Divide, And, Or, Other Byte, Call
+    else if(opcode.sub_msb(0, 6) == 0b101101)
+    {
+        bool li = opcode[6];
+        bool op = opcode[7];
+        if(li)
+            m_executor._INSN_LIVT(op ? m_ax.as_source() : (const Source&)read_2_insns());
+        else
+            m_executor._INSN_INT(op ? INT_USER1 : INT_USER2);
+    }
+    // TODO: Random Block 2
     // Random Block 2
     else if(opcode.sub_msb(0, 6) == 0b101111)
     {
@@ -275,6 +307,7 @@ void ControlUnit::do_insn(Bitfield opcode)
                 break;
         }
     }
+    // TODO: XOR, Memory & Stack Store, dx Store Special, Exchange, Extended, Store Stack
     else
     {
         error("CU") << "Invalid opcode: " << std::hex << (int)opcode.data() << std::dec;

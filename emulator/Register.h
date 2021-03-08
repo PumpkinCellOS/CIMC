@@ -37,6 +37,7 @@ public:
 
     const Source& as_source() const { return m_source; }
     Destination& as_destination() { return m_destination; }
+    Data as_data() { return Data(m_source, m_destination); }
 
     RegSrc as_source_with_offset(int off) const { return RegSrc(*this, off); }
 

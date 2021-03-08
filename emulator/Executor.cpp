@@ -121,6 +121,34 @@ void Executor::_INSN_POP(bool width, Destination& value)
     }
 }
 
+void Executor::_INSN_ADD(Data& dst, const Source& src)
+{
+    int a = dst.source().read();
+    int b = src.read();
+    int sum = a + b;
+    dst.destination().write(sum);
+    if(sum > 65535 || sum < 0)
+        m_control.set_flag(FLAG_OVERFLOW);
+    else if(sum > 0)
+        m_control.set_flag(FLAG_GREATER);
+    if(sum == 0)
+        m_control.set_flag(FLAG_ZERO);
+}
+
+void Executor::_INSN_SUB(Data& dst, const Source& src)
+{
+    int a = dst.source().read();
+    int b = src.read();
+    int sum = a - b;
+    dst.destination().write(sum);
+    if(sum > 65535 || sum < 0)
+        m_control.set_flag(FLAG_OVERFLOW);
+    else if(sum > 0)
+        m_control.set_flag(FLAG_GREATER);
+    else if(sum == 0)
+        m_control.set_flag(FLAG_ZERO);
+}
+
 void Executor::_INSN_LIVT(const Source& addr)
 {
     u16 addr_num = addr.read();
