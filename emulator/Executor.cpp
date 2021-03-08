@@ -104,6 +104,23 @@ void Executor::_INSN_PUSH(bool width, const Source& value)
     }
 }
 
+void Executor::_INSN_POP(bool width, Destination& value)
+{
+    auto& stack_pointer = m_control.stack_pointer();
+    if(width)
+    {
+        stack_pointer.set_value(stack_pointer.value() - 1);
+        auto stack_top = m_control.virtual_memory_readable(stack_pointer.value());
+        value.write8(stack_top.read8());
+    }
+    else
+    {
+        stack_pointer.set_value(stack_pointer.value() - 2);
+        auto stack_top = m_control.virtual_memory_readable(stack_pointer.value());
+        value.write(stack_top.read());
+    }
+}
+
 void Executor::_INSN_LIVT(const Source& addr)
 {
     u16 addr_num = addr.read();

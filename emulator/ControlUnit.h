@@ -181,7 +181,8 @@ public:
     void _INSN_JLE(const Source& ioff);
     void _INSN_CMP(const Source& op1, const Source& op2);
     void _INSN_PUSH(bool width, const Source& value);
-    // TODO: Stack Special
+    void _INSN_POP(bool width, Destination& value);
+    // TODO: PUSHA, POPA
     // TODO: Add, Subtract, Multiply/Divice, And, Or, Other Byte, Call
     void _INSN_LIVT(const Source& addr);
     void _INSN_INT(u8 int_number);
@@ -250,13 +251,13 @@ private:
 class ImmediateDestination : public Destination
 {
 public:
-    ImmediateDestination(u16 value)
+    ImmediateDestination(u16& value)
     : m_value(value) {}
 
     virtual void write(u16 value) override { m_value = value; }
 
 private:
-    u16 m_value;
+    u16& m_value;
 };
 
 #define INT_INVALID_MATH 0

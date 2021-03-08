@@ -28,7 +28,6 @@ Destination& ControlUnit::common_destination(u8 type)
 
 void ControlUnit::cycle()
 {
-    // TODO: Check interrupts!
     Cx16InterruptController* pic = m_cpu.slave()->interrupt_controller();
     if(pic->irq_raised() && !get_flag(FLAG_IN_IRQ) && !get_flag(FLAG_EXCEPTION))
     {
@@ -111,7 +110,10 @@ void ControlUnit::return_from_interrupt()
         raise_interrupt(INT_UNSPECIFIED, true, &arg);
     }
 
-    // TODO: Pop stack and return to previous location.
+    // Pop stack and return to previous location.
+    ImmediateDestination destination(m_flags);
+    m_executor._INSN_POP(false, destination);
+    m_executor._INSN_POP(false, m_ip.as_destination());
 }
 
 MemorySource ControlUnit::read_insn()
@@ -241,6 +243,23 @@ void ControlUnit::do_insn(Bitfield opcode)
             case 0b11: m_executor._INSN_PUSH(width, m_sp.as_source_with_offset((i8)(read_insn().read8()))); break;
         }
     }
+    else if(opcode.sub_msb(0, 5) == 0b10001)
+    {
+        bool pop_all = opcode[5];
+        bool spop = opcode[6];
+        bool reserved = opcode[7];
+
+        if(pop_all)
+        {
+            error("CU") << "Stack Special not implemented: " << std::hex << (int)opcode.data() << std::dec;
+            raise_interrupt(INT_INVALID_INSTRUCTION, true);
+            return;
+        }
+        else
+        {
+            m_executor._INSN_POP(spop, m_ax.as_destination());
+        }
+    }
     // TODO....
     // Random Block 2
     else if(opcode.sub_msb(0, 6) == 0b101111)
@@ -251,7 +270,7 @@ void ControlUnit::do_insn(Bitfield opcode)
             case 0b00: m_executor._INSN_HLT(); break;
             case 0b10: m_executor._INSN_CPUID(); break;
             default:
-                error("CU") << "Invalid opcode: " << std::hex << (int)opcode.data() << std::dec;
+                error("CU") << "RB2 not implemented: " << std::hex << (int)opcode.data() << std::dec;
                 raise_interrupt(INT_INVALID_INSTRUCTION, true);
                 break;
         }
