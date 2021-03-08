@@ -60,14 +60,39 @@ bool SimpleTypeSpecifier::from_lex(LexOutput& output)
     if(!token)
         return false;
 
-    if(token->value == "int")
-        simple_type = SimpleType::Int;
-    else if(token->value == "char")
-        simple_type = SimpleType::Char;
-    else if(token->value == "void")
-        simple_type = SimpleType::Void;
+    if(token->value == "unsigned")
+    {
+        auto token2 = output.consume_token_of_type(Token::TypeName);
+        if(!token2)
+            simple_type = SimpleType::UnsignedInt; // if given 'unsigned', expand to 'unsigned int'
+        else if(token2->value == "int")
+            simple_type = SimpleType::UnsignedInt;
+        else if(token2->value == "short")
+            simple_type = SimpleType::UnsignedShort;
+        else if(token2->value == "long")
+            simple_type = SimpleType::UnsignedLong;
+        else if(token2->value == "char")
+            simple_type = SimpleType::UnsignedChar;
+        else
+            PARSE_ERROR(output, "expected integer type specifier after 'unsigned'");
+    }
     else
-        PARSE_ERROR(output, "invalid simple-type-specifier");
+    {
+        if(token->value == "int")
+            simple_type = SimpleType::Int;
+        else if(token->value == "short")
+            simple_type = SimpleType::Short;
+        else if(token->value == "long")
+            simple_type = SimpleType::Long;
+        else if(token->value == "bool")
+            simple_type = SimpleType::Bool;
+        else if(token->value == "char")
+            simple_type = SimpleType::Char;
+        else if(token->value == "void")
+            simple_type = SimpleType::Void;
+        else
+            PARSE_ERROR(output, "invalid simple-type-specifier");
+    }
     return true;
 }
 

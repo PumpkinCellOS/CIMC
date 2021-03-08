@@ -226,7 +226,8 @@ class SimpleTypeSpecifier : public TypeSpecifier
 public:
     enum SimpleType
     {
-        Int, UnsignedInt, Short, UnsignedShort, Long, UnsignedLong, Bool, Char, Void, Unknown
+        // NOTE: UnsignedChar is not supported by cx16 for now :(
+        Int, UnsignedInt, Short, UnsignedShort, Long, UnsignedLong, Bool, Char, UnsignedChar, Void, Unknown
     };
     SimpleType simple_type = Unknown;
 
@@ -308,7 +309,7 @@ public:
     {
         std::cout << indent(depth) << "FunctionDefinition: " << std::endl;
         type->display(depth + 1);
-        std::cout << indent(depth) << name << std::endl;
+        std::cout << indent(depth + 1) << name << std::endl;
         for(auto it : args)
         {
             it->display(depth + 1);
