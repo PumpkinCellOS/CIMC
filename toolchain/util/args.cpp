@@ -4,10 +4,10 @@
 
 namespace util
 {
-    
+
 void display_arg_help(std::map<std::string, ArgSpec> arguments)
 {
-    std::cout << std::endl << "Possible options are: " << std::endl << std::endl;
+    std::cout << std::endl << "Usage: " << std::endl << std::endl;
     for(auto& it: arguments)
     {
         if(it.second.is_bool)
@@ -17,12 +17,12 @@ void display_arg_help(std::map<std::string, ArgSpec> arguments)
     }
     std::cout << std::endl;
 }
-    
+
 Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments)
 {
     Args args;
     bool double_dash = false;
-    
+
     for(size_t carg = 1; carg < argc; carg++)
     {
         std::string arg = argv[carg];
@@ -33,7 +33,7 @@ Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments
                 double_dash = true;
                 continue;
             }
-            
+
             auto it = arguments.find(arg.substr(1));
             if(it == arguments.end())
             {
@@ -42,7 +42,7 @@ Args parse_args(int argc, char* argv[], std::map<std::string, ArgSpec> arguments
                 display_arg_help(arguments);
                 return args;
             }
-            
+
             ArgSpec argspec = it->second;
             if(!argspec.is_bool)
             {

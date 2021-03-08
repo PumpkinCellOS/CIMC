@@ -13,6 +13,9 @@ int main(int argc, char* argv[])
         {"-help",    {true,  "Display help and quit"}},
         {"-version", {true,  "Display version and quit"}},
 
+        // Input
+        {"x",       {false, "Specify input language. Possible values are c,asm."}},
+
         // Output
         {"o",       {false, "Specify output file"}},
 
@@ -24,7 +27,7 @@ int main(int argc, char* argv[])
         {"ffreestanding", {true, "Do not link libc and crt0 (useful for OS kernels)"}},
 
         // Misc. options
-        {"S",  {true, "Do not assemble"}}
+        {"S",  {true, "Only compile, do not assemble. It's ignored if input language is 'asm'"}}
     };
 
     util::Args args = util::parse_args(argc, argv, argspec);
@@ -96,14 +99,28 @@ int main(int argc, char* argv[])
     if(args.options.count("ffreestanding"))
         options.f_freestanding = true;
 
-    if(!compiler_make_asm_from_file(input, asm_output, options))
+    // Input
+    std::string language = args.options["x"];
+    if(language == "c")
     {
-        std::cout << "- Compilation failed." << std::endl;
-        return 1;
+        if(!compiler_make_asm_from_file(input, asm_output, options))
+        {
+            std::cout << "- Compilation failed." << std::endl;
+            return 1;
+        }
+
+        if(!only_asm)
+        {
+            if(!compiler_make_object_from_file(asm_output, output, options))
+            {
+                std::cout << "- Assembling failed." << std::endl;
+                return 1;
+            }
+        }
     }
-    if(!only_asm)
+    else if(language == "asm")
     {
-        if(!compiler_make_object_from_file(asm_output, output, options))
+        if(!compiler_make_object_from_file(input, output, options))
         {
             std::cout << "- Assembling failed." << std::endl;
             return 1;
