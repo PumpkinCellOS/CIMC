@@ -282,7 +282,7 @@ void ControlUnit::do_insn(Bitfield opcode)
         m_executor._INSN_SUB(data,
                              src == 0b00 || (src == 0b11 && !dst) ? (const Source&)read_2_insns() : (const Source&)common_source(src));
     }
-    // TODO.... Multiply/Divide, And, Or, Other Byte, Call
+    // TODO: Multiply/Divide, And, Or, Other Byte, Call
     else if(opcode.sub_msb(0, 6) == 0b101101)
     {
         bool li = opcode[6];
@@ -292,7 +292,8 @@ void ControlUnit::do_insn(Bitfield opcode)
         else
             m_executor._INSN_INT(op ? INT_USER1 : INT_USER2);
     }
-    // TODO: Random Block 2
+    // TODO: Random Block 1
+    // TODO: Random Block 2: _MKSTFR, PGE
     // Random Block 2
     else if(opcode.sub_msb(0, 6) == 0b101111)
     {
