@@ -33,6 +33,21 @@ void consume_whitespace_except_newline(std::istream& input)
     }
 }
 
+bool consume_hex_number(std::istream& input, std::string& value)
+{
+    // TODO:
+    int ch = input.peek();
+    while(isdigit(ch) || (toupper(ch) >= 'A' && toupper(ch) <= 'F'))
+    {
+        std::cout << "H'" << (char)ch << "' ";
+        value += (char)ch;
+        std::cout << value << std::endl;
+        input.ignore(1);
+        ch = input.peek();
+    }
+    return true;
+}
+
 }
 
 std::string Token::type_to_string()
@@ -41,6 +56,7 @@ std::string Token::type_to_string()
     {
         case Dot: return "Dot";
         case At: return "At";
+        case Comma: return "Comma";
         case String: return "String";
         case DecNumber: return "DecNumber";
         case HexNumber: return "HexNumber";
@@ -50,9 +66,11 @@ std::string Token::type_to_string()
         case BraceClose: return "BraceClose";
         case Add: return "Add";
         case Subtract: return "Subtract";
-        case Invalid: return "Invalid";
         case NewLine: return "NewLine";
+        case Colon: return "Colon";
+        case Invalid: return "Invalid";
     }
+    return std::to_string(type);
 }
 
 void Lexer::display()
@@ -94,6 +112,12 @@ bool Lexer::from_stream(convert::InputFile& input, const compiler::Options& opti
             break;
         case '@':
             token.type = Token::At;
+            m_tokens.push_back(token);
+            input.stream.ignore(1);
+            parse_helpers::consume_whitespace_except_newline(input.stream);
+            break;
+        case ',':
+            token.type = Token::Comma;
             m_tokens.push_back(token);
             input.stream.ignore(1);
             parse_helpers::consume_whitespace_except_newline(input.stream);
@@ -145,11 +169,24 @@ bool Lexer::from_stream(convert::InputFile& input, const compiler::Options& opti
             {
                 if(isdigit(ch))
                 {
-                    // TODO: Support hex numbers
-                    token.type = Token::DecNumber;
-                    if(!cpp_compiler::parse_helpers::consume_number(input.stream, token.value))
-                        LEX_ERROR(input.stream, "invalid number");
-                    m_tokens.push_back(token);
+                    char data[2];
+                    input.stream.read(data, 2);
+                    if(data[0] == '0' && data[1] == 'x')
+                    {
+                        token.type = Token::HexNumber;
+                        if(!parse_helpers::consume_hex_number(input.stream, token.value))
+                            LEX_ERROR(input.stream, "invalid hex number");
+                        std::cout << "Value(" << token.value << ")" << std::endl;
+                        m_tokens.push_back(token);
+                    }
+                    else
+                    {
+                        input.stream.seekg(-2, std::ios::cur);
+                        token.type = Token::DecNumber;
+                        if(!cpp_compiler::parse_helpers::consume_number(input.stream, token.value))
+                            LEX_ERROR(input.stream, "invalid number");
+                        m_tokens.push_back(token);
+                    }
                     parse_helpers::consume_whitespace_except_newline(input.stream);
                 }
                 else if(isalnum(ch) || ch == '_')
@@ -165,13 +202,6 @@ bool Lexer::from_stream(convert::InputFile& input, const compiler::Options& opti
             }
             break;
         }
-
-        // TODO:
-        /*
-            HexNumber, // 0x1AB
-            Assignment, // :=
-            Invalid
-        */
     }
     return true;
 }

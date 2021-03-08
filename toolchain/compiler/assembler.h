@@ -14,7 +14,8 @@ public:
     {
         Dot, // .
         At, // @
-        Colon , // :
+        Colon, // :
+        Comma, // ,
         String, // "xxx"
         DecNumber, // 0123
         HexNumber, // 0x1AB
