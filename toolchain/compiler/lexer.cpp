@@ -46,7 +46,7 @@ Token::Type token_type_from_word(std::string word)
     return Token::Name;
 }
 
-bool consume_comment(std::istream& stream)
+bool consume_c_comment(std::istream& stream)
 {
     stream >> std::ws;
     if(stream.peek() != '/')
@@ -120,7 +120,7 @@ bool is_operator(char ch)
     case '<':
     case '>':
     case '.':
-    case '/': // Valid for lexer but invalid for parser due to arch limitations
+    case '/':
     case '%':
         return true;
     default:
@@ -316,7 +316,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
         }
         else if(parse_helpers::is_operator(ch)) // operator or comment
         {
-            if(!parse_helpers::consume_comment(input.stream))
+            if(!parse_helpers::consume_c_comment(input.stream))
             {
                 token.type = Token::Operator;
                 if(!parse_helpers::consume_operator(input.stream, token.value))

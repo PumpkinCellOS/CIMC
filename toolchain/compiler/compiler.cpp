@@ -12,7 +12,7 @@ namespace convert
 static bool convert_from_file(std::string input, Converter::InputFormat iformat, std::string output, Converter::OutputFormat oformat, const compiler::Options& options)
 {
     std::cout << "Converting files: " << input << " > " << output << std::endl;
-    
+
     std::ifstream ifile(input);
     if(ifile.fail())
     {
@@ -27,11 +27,11 @@ static bool convert_from_file(std::string input, Converter::InputFormat iformat,
     }
     InputFile isfile = {ifile, input};
     OutputFile osfile = {ofile, output};
-    
+
     Converter converter(isfile, osfile);
     return converter.convert(iformat, oformat, options);
 }
-    
+
 bool Converter::convert(InputFormat iformat, OutputFormat oformat, const compiler::Options& options)
 {
     if(iformat == InputFormat::Cpp && oformat == OutputFormat::Asm)
@@ -40,7 +40,7 @@ bool Converter::convert(InputFormat iformat, OutputFormat oformat, const compile
     }
     else if(iformat == InputFormat::Asm && oformat == OutputFormat::Obj)
     {
-        return assembler::assemble_to_obj(m_input, m_output);
+        return assembler::assemble_to_obj(m_input, m_output, options);
     }
     std::cout << "- Unrecognized format!" << std::endl;
     return false;

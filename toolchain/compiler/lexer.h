@@ -44,39 +44,60 @@ struct Token
     void display() const;
 };
 
-class LexOutput
+namespace parse_helpers
+{
+
+bool consume_string(std::istream& stream, std::string& value);
+bool consume_number(std::istream& stream, std::string& value);
+bool consume_operator(std::istream& stream, std::string& value);
+bool consume_word(std::istream& stream, std::string& value);
+bool consume_c_comment(std::istream& stream);
+
+}
+
+template<class T>
+class LexerBase
 {
 public:
-    bool from_stream(convert::InputFile& input, const compiler::Options& options);
-    void display();
+    virtual bool from_stream(convert::InputFile& input, const compiler::Options& options) = 0;
+    virtual void display() {}
 
-    const Token* consume_token()
+    const T* consume_token()
     {
         return m_index < m_tokens.size() ? &m_tokens[m_index++] : nullptr;
     }
 
-    const Token* consume_token_of_type(Token::Type type)
+    const T* consume_token_of_type(typename T::Type type)
     {
         if(!peek()) return nullptr;
         return peek()->type == type ? consume_token() : nullptr;
     }
 
-    const Token* consume_token_of_types(std::vector<Token::Type> types)
+    const T* consume_token_of_types(std::vector<typename T::Type> types)
     {
         if(!peek()) return nullptr;
         return std::find(types.begin(), types.end(), peek()->type) == types.end() ? nullptr : consume_token();
     }
 
-    const Token* peek() const { return m_index < m_tokens.size() ? &m_tokens[m_index] : nullptr; }
+    const T* peek() const { return m_index < m_tokens.size() ? &m_tokens[m_index] : nullptr; }
 
     size_t index() const { return m_index; }
     void set_index(size_t index) { m_index = index; }
 
     std::istream* stream = nullptr;
 
-private:
-    std::vector<Token> m_tokens;
+protected:
+    std::vector<T> m_tokens;
     size_t m_index = 0;
+};
+
+// TODO: Rename to CppLexer
+// TODO: Rename Token to CppToken
+class LexOutput : public LexerBase<Token>
+{
+public:
+    virtual bool from_stream(convert::InputFile& input, const compiler::Options& options);
+    virtual void display();
 };
 
 } // cpp_compiler
