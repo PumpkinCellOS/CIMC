@@ -14,6 +14,7 @@ public:
     {
         Dot, // .
         At, // @
+        Colon , // :
         String, // "xxx"
         DecNumber, // 0123
         HexNumber, // 0x1AB
@@ -23,6 +24,7 @@ public:
         BraceClose, // ]
         Add, // +
         Subtract, // -
+        NewLine, // \n
         Invalid
     };
 
