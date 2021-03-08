@@ -206,7 +206,7 @@ void Memory::write_memory(u16 addr, u8 val)
 
 void Cx16ConventionalDevice::out8(u8 val)
 {
-    trace(name()) << "out8:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
+    trace(name()) << ">out8:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
     switch(m_state)
     {
     case Ready:
@@ -220,10 +220,11 @@ void Cx16ConventionalDevice::out8(u8 val)
     default:
         break;
     }
+    trace(name()) << "<out8:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
 }
 void Cx16ConventionalDevice::out16(u16 val)
 {
-    trace(name()) << "out16:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
+    trace(name()) << ">out16:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
     switch(m_state)
     {
     case Ready:
@@ -257,8 +258,7 @@ void Cx16ConventionalDevice::out16(u16 val)
                 m_current_command.m_arg_buf.clear();
                 m_state = Ready;
             }
-        }
-        break;
+        } break;
     case RegisterWrite:
         {
             trace(name()) << "Register write: regs[0x" << std::hex << (int)m_current_command.m_command << "] = 0x" << val << std::dec;
@@ -270,6 +270,7 @@ void Cx16ConventionalDevice::out16(u16 val)
     default:
         break;
     }
+    trace(name()) << "<out16:" << (int)val << " state=" << m_state << " args_left=" << (int)m_args_needed;
 }
 u16 Cx16ConventionalDevice::in16()
 {

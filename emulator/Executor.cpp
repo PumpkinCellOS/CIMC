@@ -44,7 +44,8 @@ void Executor::jmp_helper(const Source& ioff)
 {
     // We must offset by 1 because the offset is instruction beginning-relative
     // and we has already read an offset!
-    m_control.instruction_pointer().set_value(m_control.instruction_pointer().value() + (i8)ioff.read8() - 1);
+    trace("eXecutor") << "jmp_helper " << (int)ioff.read8() << " (" << (int)(i8)ioff.read8() << ")";
+    m_control.instruction_pointer().set_value(m_control.instruction_pointer().value() + (i8)ioff.read8() - 2);
 }
 
 void Executor::_INSN_JZ(const Source& ioff)

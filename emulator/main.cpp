@@ -127,7 +127,7 @@ int main()
     info("main") << "Initialization done.";
 
     // Reboot test.
-    while(true) { sleep(10); pmi->reset_button(); }
+    while(true) { sleep(10); }
 
     return 0;
 }

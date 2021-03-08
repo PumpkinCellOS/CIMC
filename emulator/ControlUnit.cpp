@@ -2,6 +2,8 @@
 
 #include "CPU.h"
 
+#include <unistd.h>
+
 const Source& ControlUnit::common_source(u8 type) const
 {
     switch(type)
@@ -226,9 +228,9 @@ void ControlUnit::do_insn(Bitfield opcode)
 
         auto& reg = common_source(op1);
         if(op2)
-            m_executor._INSN_CMP(reg, m_dx.as_source());
-        else
             m_executor._INSN_CMP(reg, read_2_insns());
+        else
+            m_executor._INSN_CMP(reg, m_dx.as_source());
     }
     // Push
     else if(opcode.sub_msb(0, 5) == 0b10000)
@@ -268,6 +270,7 @@ void ControlUnit::do_insn(Bitfield opcode)
         bool dst = opcode[5];
         u8 src = opcode.sub_msb(6, 2);
 
+        trace("CU") << "add " << dst << "," << src;
         Data data = (dst ? (src == 0b11 ? m_bx : m_dx) : m_ax).as_data();
         m_executor._INSN_ADD(data,
                              src == 0b00 ? (const Source&)read_2_insns() : (const Source&)common_source(src));

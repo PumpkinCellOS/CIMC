@@ -34,8 +34,10 @@ void set_pixel(u8 x, u8 y, u8 color)
         return;
     }
 
+    //trace("Display") << "set_pixel " << (int)x << "," << (int)y << "=" << (int)color;
+
     // Set Cursor
-    std::cout << "\e[" << (int)y << ";" << (int)(x*2-1) << "f";
+    std::cout << "\e[" << (int)y+1 << ";" << (int)(x*2) << "f";
 
     // Display
     std::cout << (color ? "\e[107m" : "\e[40m") << "  " << std::flush;
