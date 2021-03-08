@@ -27,7 +27,16 @@ void consume_whitespace_except_newline(std::istream& input)
     int ch = input.peek();
     while(isspace(ch) && ch != '\n')
     {
-        std::cout << "W'" << ch << "' ";
+        input.ignore(1);
+        ch = input.peek();
+    }
+}
+
+void ignore_comment(std::istream& input)
+{
+    int ch = input.peek();
+    while(ch != '\n')
+    {
         input.ignore(1);
         ch = input.peek();
     }
@@ -39,9 +48,7 @@ bool consume_hex_number(std::istream& input, std::string& value)
     int ch = input.peek();
     while(isdigit(ch) || (toupper(ch) >= 'A' && toupper(ch) <= 'F'))
     {
-        std::cout << "H'" << (char)ch << "' ";
         value += (char)ch;
-        std::cout << value << std::endl;
         input.ignore(1);
         ch = input.peek();
     }
@@ -92,8 +99,6 @@ bool Lexer::from_stream(convert::InputFile& input, const compiler::Options& opti
         Token token;
         token.codepos = {input.file_name, current_line, 0};
         int ch = input.stream.peek();
-
-        std::cout << "'" << (char)ch << "' ";
 
         switch(ch)
         {
@@ -164,6 +169,9 @@ bool Lexer::from_stream(convert::InputFile& input, const compiler::Options& opti
                 token.type = Token::Colon;
             m_tokens.push_back(token);
             parse_helpers::consume_whitespace_except_newline(input.stream);
+            break;
+        case ';':
+            parse_helpers::ignore_comment(input.stream);
             break;
         default:
             {
