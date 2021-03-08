@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
     // Input
     std::string language = args.options["x"];
-    if(language == "c")
+    if(language.empty() || language == "c")
     {
         if(!compiler_make_asm_from_file(input, asm_output, options))
         {
