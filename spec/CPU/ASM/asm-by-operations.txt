@@ -58,7 +58,7 @@ MSB at left!
 {01111}{01}{1}  7b  CMP bx, val  2(b)
 {01111}{10}{0}  7c  CMP cx, dx
 {01111}{10}{1}  7d  CMP cx, val  2(b)
-..............  7e  .. Reserved ..
+{01111}{11}{0}  7e  II1          Invalid Instruction 1. It's guaranteed to be invalid.
 {01111}{11}{1}  7f  CMP dx, val  2(b)
 
 # {10000} -> Stack Push
@@ -251,3 +251,27 @@ MSB at left!
 {111100}{0}{1}  f1  MOV sp, val16  2(a)
 {111100}{1}{0}  f2  MOV bp, ax     none
 {111100}{1}{1}  f3  MOV bp, val16  2(a)
+
+# {111101} -> Memory and Stack Store, 8-bit
+# {OPCODE}{Dst}
+# Dst - Destination (bx, val, bp offset, sp offset)
+{111101}{00}  f4  MOV [bx], dl    none  Write RAM at bx   _STORE bx
+{111101}{01}  f5  MOV [val8], dl  1(a)  Write RAM at mem  _STORE val
+{111101}{10}  f6  MOV [bp+x], dl  1(x)                    _STORE bp+x
+{111101}{11}  f7  MOV [sp+x], dl  1(x)                    _STORE sp+x
+
+# {111110} -> dx Store Special, 8-bit
+# {OPCODE}{Src}
+# Src - Source (bx, val, bp offset, sp offset)
+{111110}{00}  f8  MOV dl, [bx]    none  Read RAM at bx   _LOAD bx
+{111110}{01}  f9  MOV dl, [val8] 1(b)  Read RAM at mem   _LOAD val
+{111110}{10}  fa  MOV dl, [bp+x]  1(x)                   _LOAD bp+x
+{111110}{11}  fb  MOV dl, [sp+x]  1(x)                   _LOAD sp+x
+
+# {111111} -> Truncate
+# {OPCODE}{Op}
+# Op - (ax, bx, cx, dx)
+{111111}{0}{0}  fc  TRC ax  none
+{111111}{0}{1}  fd  TRC bx  2(a)
+{111111}{1}{0}  fe  TRC cx  none
+{111111}{1}{1}  ff  TRC dx  2(a)
