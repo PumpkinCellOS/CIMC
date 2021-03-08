@@ -1,13 +1,11 @@
 #include "Cx16.h"
 
+// TODO: Actually be a timer :^)
 class PIT : public Cx16ConventionalDevice
 {
 public:
     virtual u16 do_cmd(u8, const std::vector<u16>&) override { return 0x0; }
     virtual u16* reg(u8 id) override;
-
-    // TODO: make better IRQ API!
-    virtual bool irq_raised() const override { return true; }
 
     virtual u8 di_caps() const override { return 0x0; }
 

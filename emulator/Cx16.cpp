@@ -77,18 +77,18 @@ u16* Cx16InterruptController::reg(u8 id)
 
 void Cx16InterruptController::eoi()
 {
-    m_irq_raised = false;
-    for(; m_current_irq < 0x7; m_current_irq++)
+    // Clear irq raised flag for specific device.
+    m_irq_raised_for_device &= ~(0x1 << m_current_irq);
+
+    // Find next device that raised an IRQ.
+    for(int i = 0; i < 16; i++)
     {
-        auto it = m_devices.find(m_current_irq);
-        if(it != m_devices.end() && it->second->irq_raised() && (m_mask & (1 << m_current_irq)))
+        if(m_irq_raised_for_device & (1 << i))
         {
-            m_irq_raised = true;
-            return;
+            m_current_irq = i;
+            break;
         }
     }
-    // We end up with Spurious Interrupt here.
-    m_irq_raised = false;
 }
 
 void Cx16Bus::out8(u8 id, u8 val)
@@ -278,12 +278,11 @@ u16 Cx16ConventionalDevice::in16()
 u8 Cx16ConventionalDevice::in8()
 {
     if(m_state == Irqc)
+    {
+        m_state = Ready;
         return m_current_command.m_command;
+    }
     return 0;
-}
-bool Cx16ConventionalDevice::irq_raised() const
-{
-    return m_state == Irqc;
 }
 
 void Cx16ConventionalDevice::boot()

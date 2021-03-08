@@ -148,8 +148,6 @@ public:
 
     virtual std::string name() const override { return "Cx16 Generic Device"; }
 
-    virtual bool irq_raised() const = 0;
-
     void set_interrupt_controller(Cx16InterruptController* irqc) { m_irqc = irqc; }
     void set_dma_controller(Cx16DMAController* dmac) { m_dmac = dmac; }
 
@@ -211,7 +209,6 @@ public:
     virtual void out16(u16 val) override;
     virtual u16 in16() override;
     virtual u8 in8() override;
-    virtual bool irq_raised() const override;
 
     virtual u16* reg(u8 id) = 0;
 
@@ -243,7 +240,7 @@ public:
 
     virtual bool irq_raised() const
     {
-        return m_irq_raised || (m_irqc && m_irqc->irq_raised());
+        return m_irq_raised_for_device || (m_irqc && m_irqc->irq_raised());
     }
 
     u8 number() const { return m_current_irq + m_offset; }
@@ -252,6 +249,8 @@ public:
 
     // TODO: Commands
     virtual u8 di_caps() const { return 0x0; }
+
+    void raise_irq(u8 port) { m_irq_raised_for_device |= (1 << port); m_current_irq = 0x0; }
 
 protected:
     virtual u16* reg(u8 id);
@@ -263,8 +262,8 @@ private:
 
     std::mutex m_irq_access_mutex;
     std::map<u8, std::shared_ptr<Cx16Device>> m_devices;
-    u8 m_current_irq = 0x7; // Cascaded IRQ
+    u8 m_current_irq = 0x7; // Spurious IRQ
     u8 m_offset = 8;
     u16 m_mask = 0xFFFF;
-    bool m_irq_raised = false;
+    u16 m_irq_raised_for_device = 0x0000;
 };
