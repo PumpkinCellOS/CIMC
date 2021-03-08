@@ -236,6 +236,7 @@ bool LexOutput::from_stream(convert::InputFile& input, const compiler::Options& 
 
     while(!input.stream.eof())
     {
+        // TODO: Support line numbers and columns!d
         Token token;
         token.codepos = {input.file_name, 0, 0};
         int ch = input.stream.peek();
