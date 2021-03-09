@@ -315,7 +315,7 @@ bool UnaryExpression::from_lex(LexOutput& output)
     return true;
 }
 
-bool FunctionBody::from_lex(LexOutput& output)
+bool CodeBlock::from_lex(LexOutput& output)
 {
     // Opening
     auto lb = output.consume_token_of_type(Token::LeftCurly);
@@ -412,10 +412,10 @@ bool FunctionDefinition::from_lex(LexOutput& output)
     }
 
     // Function body
-    auto function_body = std::make_shared<FunctionBody>();
-    if(!function_body->from_lex(output))
+    auto code_block = std::make_shared<CodeBlock>();
+    if(!code_block->from_lex(output))
         PARSE_ERROR(output, "expected function body");
-    body = function_body;
+    body = code_block;
 
     return true;
 }

@@ -195,14 +195,14 @@ class ControlStatement : public Statement
 
 // function-body ::= { [statement...] }
 // statement ::= [expression | return-statement | control-statement];
-class FunctionBody : public NodeSeq<Statement>
+class CodeBlock : public NodeSeq<Statement>
 {
 public:
     virtual bool from_lex(LexOutput& output);
 
     virtual void display(size_t depth) const override
     {
-        std::cout << indent(depth) << "FunctionBody:" << std::endl;
+        std::cout << indent(depth) << "CodeBlock:" << std::endl;
         NodeSeq::display(depth + 1);
     }
 };
@@ -301,7 +301,7 @@ public:
     std::shared_ptr<TypeSpecifier> type;
     std::string name;
     std::vector<std::shared_ptr<VariableDeclaration>> args;
-    std::shared_ptr<FunctionBody> body;
+    std::shared_ptr<CodeBlock> body;
 
     virtual bool from_lex(LexOutput& output);
 
