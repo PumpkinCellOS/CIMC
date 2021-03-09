@@ -128,20 +128,43 @@ public:
         BitNegate, // ~
         LogicNegate, // !
         Increment, // ++
-        Decrement // --
+        Decrement, // --
+        Invalid
         // TODO:
         // Cast // ( type-specifier )
-    } type;
+    } type = Type::Invalid;
 
     std::shared_ptr<Expression> expression;
-
-    virtual bool from_lex(LexOutput& output);
 
     virtual void display(size_t depth) const override
     {
         std::cout << indent(depth) << "UnaryExpression: " << (int)type << std::endl;
         expression->display(depth + 1);
     }
+};
+
+class BinaryOperatorExpression : public Expression
+{
+public:
+    std::shared_ptr<Expression> lhs;
+    std::shared_ptr<Expression> rhs;
+
+    virtual std::string type() const { return "unknown"; }
+
+    virtual void display(size_t depth) const override
+    {
+        std::cout << indent(depth) << "BinaryOperatorExpression: " << type() << std::endl;
+        lhs->display(depth + 1);
+        rhs->display(depth + 1);
+    }
+};
+
+class AssignmentExpression : public BinaryOperatorExpression
+{
+public:
+    virtual std::string type() const override { return "assignment-operator"; }
+
+    //virtual bool from_lex(LexOutput& output);
 };
 
 // statement ::= [expression | return-statement];

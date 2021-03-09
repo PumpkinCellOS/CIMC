@@ -176,34 +176,131 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
     PARSE_ERROR(output, "expected ';' in statement");
 }
 
-// expression ::= comma-expression | ( expression ) | function-call | numeric-literal | identifier
-// TODO: operators
-std::shared_ptr<Expression> parse_expression(LexOutput& output)
+// primary-expression ::= ( expression ) | integer-literal | identifier
+std::shared_ptr<Expression> parse_primary_expression(LexOutput& output)
 {
-    // TODO: Make FunctionCall a postfix-expression
     std::shared_ptr<Expression> expression;
-    expression = std::make_shared<FunctionCall>();
+
+    // TODO: Parenthised expressions
+
     size_t position = output.index();
+    expression = std::make_shared<IntegerLiteral>();
     if(!expression->from_lex(output))
     {
         output.set_index(position);
-        expression = std::make_shared<UnaryExpression>();
+        expression = std::make_shared<Identifier>();
         if(!expression->from_lex(output))
         {
             output.set_index(position);
-            expression = std::make_shared<IntegerLiteral>();
-            if(!expression->from_lex(output))
-            {
-                output.set_index(position);
-                expression = std::make_shared<Identifier>();
-                if(!expression->from_lex(output))
-                {
-                    output.set_index(position);
-                    return nullptr;
-                }
-            }
+            return nullptr;
         }
     }
+
+    return expression;
+}
+
+// TODO: Make function name expression instead of identifier (allows function pointers)
+// function-call ::= identifier ( [ expression..., ] ) | primary-expression
+std::shared_ptr<Expression> parse_function_call(LexOutput& output)
+{
+    std::shared_ptr<Expression> expression;
+
+    size_t position = output.index();
+    expression = std::make_shared<FunctionCall>();
+    if(!expression->from_lex(output))
+    {
+        output.set_index(position);
+        expression = parse_primary_expression(output);
+        if(!expression)
+        {
+            output.set_index(position);
+            return nullptr;
+        }
+    }
+
+    return expression;
+}
+
+// unary-expression ::= function-call
+// | unary-operator unary-expression
+std::shared_ptr<Expression> parse_unary_expression(LexOutput& output)
+{
+    size_t position = output.index();
+    std::shared_ptr<Expression> lhs = parse_function_call(output);
+    if(!lhs)
+    {
+        output.set_index(position);
+
+        // Unary OP
+        auto oper = output.consume_token_of_type(Token::Operator);
+        if(!oper)
+        {
+            output.set_index(position);
+            return nullptr; // Just function call (not operator)
+        }
+
+        // Other expression
+        auto rhs = parse_unary_expression(output);
+        if(!rhs)
+            PARSE_ERROR(output, "expected expression after unary operator");
+
+        std::shared_ptr<UnaryExpression> unary = std::make_shared<UnaryExpression>();
+        unary->expression = rhs;
+
+        if(oper->value == "&")
+            unary->type = UnaryExpression::Type::Address;
+        else if(oper->value == "*")
+            unary->type = UnaryExpression::Type::Dereference;
+        else if(oper->value == "+")
+            unary->type = UnaryExpression::Type::Plus;
+        else if(oper->value == "-")
+            unary->type = UnaryExpression::Type::Minus;
+        else if(oper->value == "~")
+            unary->type = UnaryExpression::Type::BitNegate;
+        else if(oper->value == "!")
+            unary->type = UnaryExpression::Type::LogicNegate;
+        else if(oper->value == "++")
+            unary->type = UnaryExpression::Type::Increment;
+        else if(oper->value == "--")
+            unary->type = UnaryExpression::Type::Decrement;
+
+        return unary;
+    }
+    return lhs;
+}
+
+// assignment-expression ::= unary-expression assignment-op assignment-expression
+// | unary-expression
+std::shared_ptr<Expression> parse_assignment_expression(LexOutput& output)
+{
+    // First unary expression
+    std::shared_ptr<Expression> lhs = parse_unary_expression(output);
+    if(!lhs)
+        return nullptr;
+
+    // Assignment OP
+    auto op = output.consume_token_of_type(Token::Operator);
+    if(!op)
+        return lhs; // Just unary expression
+
+    // Other assignment expression or unary expression
+    auto rhs = parse_assignment_expression(output);
+    if(!rhs)
+        PARSE_ERROR(output, "expected expression after assignment operator");
+
+    std::shared_ptr<AssignmentExpression> assignment = std::make_shared<AssignmentExpression>();
+    assignment->lhs = lhs;
+    // TODO: Actually save the operator!
+    assignment->rhs = rhs;
+    return assignment;
+}
+
+// expression ::= assignment-expression
+// TODO: comma expression
+std::shared_ptr<Expression> parse_expression(LexOutput& output)
+{
+    // TODO: Make FunctionCall a postfix-expression
+    std::shared_ptr<Expression> expression = parse_assignment_expression(output);
     return expression;
 }
 
@@ -278,52 +375,6 @@ bool FunctionCall::from_lex(LexOutput& output)
         return true;
     }
     return false;
-}
-
-// unary-expression ::= unary-operator expression
-bool UnaryExpression::from_lex(LexOutput& output)
-{
-    // Operator
-    auto oper = output.consume_token_of_type(Token::Operator);
-    if(!oper)
-        return false;
-
-    /*
-        Address, // &
-        Dereference, // *
-        Plus, // +
-        Minus, // -
-        BitNegate, // ~
-        LogicNegate, // !
-        Increment, // ++
-        Decrement // --
-    */
-
-    if(oper->value == "&")
-        type = Type::Address;
-    else if(oper->value == "*")
-        type = Type::Dereference;
-    else if(oper->value == "+")
-        type = Type::Plus;
-    else if(oper->value == "-")
-        type = Type::Minus;
-    else if(oper->value == "~")
-        type = Type::BitNegate;
-    else if(oper->value == "!")
-        type = Type::LogicNegate;
-    else if(oper->value == "++")
-        type = Type::Increment;
-    else if(oper->value == "--")
-        type = Type::Decrement;
-
-    // TODO: Casts
-
-    // Expression
-    expression = parse_expression(output);
-    if(!expression)
-        return false;
-
-    return true;
 }
 
 bool CodeBlock::from_lex(LexOutput& output)
