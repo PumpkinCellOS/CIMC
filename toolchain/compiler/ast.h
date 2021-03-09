@@ -187,23 +187,41 @@ public:
     }
 };
 
-// control-statement :// if, else, switch, for, ...
-class ControlStatement : public Statement
-{
-
-};
-
 // function-body ::= { [statement...] }
 // statement ::= [expression | return-statement | control-statement];
-class CodeBlock : public NodeSeq<Statement>
+class CodeBlock : public Statement, NodeSeq<Statement>
 {
 public:
     virtual bool from_lex(LexOutput& output);
+
+    virtual bool need_semicolon() const override { return false; }
 
     virtual void display(size_t depth) const override
     {
         std::cout << indent(depth) << "CodeBlock:" << std::endl;
         NodeSeq::display(depth + 1);
+    }
+};
+
+// if-statement ::= if ( expression ) statement [ else statement ]
+class IfStatement : public Statement
+{
+public:
+    virtual bool need_semicolon() const override { return false; }
+
+    std::shared_ptr<Expression> condition;
+    std::shared_ptr<Statement> if_statement;
+    std::shared_ptr<Statement> else_statement;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display(size_t depth) const override
+    {
+        std::cout << indent(depth) << "IfStatement:" << std::endl;
+        condition->display(depth + 1);
+        if_statement->display(depth + 1);
+        if(else_statement)
+            else_statement->display(depth + 1);
     }
 };
 

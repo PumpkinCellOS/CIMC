@@ -24,6 +24,8 @@ bool compile_to_asm(convert::InputFile& input, convert::OutputFile& output, cons
     auto translation_unit = std::make_shared<AST::TranslationUnit>();
     if(!translation_unit->from_lex(lex_output))
     {
+        if(translation_unit)
+            translation_unit->display(0);
         return false;
     }
     translation_unit->display(0);

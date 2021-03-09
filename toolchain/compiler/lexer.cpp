@@ -413,9 +413,12 @@ void Token::display() const
 
 void LexOutput::display()
 {
+    size_t counter = 0;
     for(auto& token: m_tokens)
     {
+        std::cout << counter << ": ";
         token.display();
+        counter++;
     }
 }
 

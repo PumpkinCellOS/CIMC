@@ -137,19 +137,30 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
 {
     // Statement
     std::shared_ptr<Statement> statement;
-    statement = std::make_shared<ReturnStatement>();
+
     size_t position = output.index();
+    statement = std::make_shared<CodeBlock>();
     if(!statement->from_lex(output))
     {
         output.set_index(position);
-        statement = std::make_shared<ExpressionStatement>();
+        statement = std::make_shared<IfStatement>();
         if(!statement->from_lex(output))
         {
             output.set_index(position);
-            statement = std::make_shared<DeclarationStatement>();
+            statement = std::make_shared<ReturnStatement>();
             if(!statement->from_lex(output))
             {
-                return nullptr;
+                output.set_index(position);
+                statement = std::make_shared<ExpressionStatement>();
+                if(!statement->from_lex(output))
+                {
+                    output.set_index(position);
+                    statement = std::make_shared<DeclarationStatement>();
+                    if(!statement->from_lex(output))
+                    {
+                        return nullptr;
+                    }
+                }
             }
         }
     }
@@ -340,6 +351,43 @@ bool CodeBlock::from_lex(LexOutput& output)
     if(!rb)
         return false;
     return true;
+}
+
+bool IfStatement::from_lex(LexOutput& output)
+{
+    auto if_keyword = output.consume_token_of_type(Token::Keyword);
+    if(if_keyword && if_keyword->value == "if")
+    {
+        // Condition
+        auto lc = output.consume_token_of_type(Token::LeftBracket);
+        if(!lc)
+            PARSE_ERROR(output, "expected '(' after 'if'");
+
+        condition = parse_expression(output);
+        if(!condition)
+            PARSE_ERROR(output, "expected expression");
+
+        auto rc = output.consume_token_of_type(Token::RightBracket);
+        if(!rc)
+            PARSE_ERROR(output, "expected ')' after condition");
+
+        // IF statement
+        if_statement = parse_statement(output);
+        if(!if_statement)
+            PARSE_ERROR(output, "expected statement after 'if'");
+
+        // Optional ELSE
+        auto else_keyword = output.peek();
+
+        if(else_keyword && else_keyword->type == Token::Keyword && else_keyword->value == "else")
+        {
+            output.consume_token();
+            else_statement = parse_statement(output);
+        }
+
+        return true;
+    }
+    return false;
 }
 
 bool ReturnStatement::from_lex(LexOutput& output)
