@@ -102,7 +102,9 @@ public:
 class FunctionCall : public Expression
 {
 public:
+    // TODO: Change it to expression!
     std::string function_name;
+
     std::vector<std::shared_ptr<Expression>> arguments;
 
     virtual bool from_lex(LexOutput& output);
@@ -113,6 +115,22 @@ public:
         std::cout << indent(depth) << "Arguments:" << std::endl;
         for(auto it : arguments)
             it->display(depth + 1);
+    }
+};
+
+class Subscript : public Expression
+{
+public:
+    std::shared_ptr<Expression> subscripted;
+    std::shared_ptr<Expression> in_subscript;
+
+    virtual bool from_lex(LexOutput& output);
+
+    virtual void display(size_t depth) const override
+    {
+        std::cout << indent(depth) << "Subscript: " << std::endl;
+        subscripted->display(depth + 1);
+        in_subscript->display(depth + 1);
     }
 };
 

@@ -19,6 +19,8 @@ std::string indent(size_t depth, std::string _fill, std::string _lastfill)
     return str;
 }
 
+std::shared_ptr<Expression> parse_expression(LexOutput& output);
+
 std::shared_ptr<Declaration> parse_declaration(LexOutput& output)
 {
     std::shared_ptr<Declaration> declaration;
@@ -101,6 +103,7 @@ std::shared_ptr<TypeSpecifier> parse_type_specifier(LexOutput& output)
     std::shared_ptr<TypeSpecifier> type_specifier = std::make_shared<SimpleTypeSpecifier>();
     if(type_specifier->from_lex(output))
     {
+        // TODO: Make it better when lexer will be able to distinguish operators!
         auto op = output.peek();
         if(op->type == Token::Operator)
         {
@@ -176,23 +179,42 @@ std::shared_ptr<Statement> parse_statement(LexOutput& output)
     PARSE_ERROR(output, "expected ';' in statement");
 }
 
+std::shared_ptr<Expression> parse_parenthised_expression(LexOutput& output)
+{
+    auto lc = output.consume_token_of_type(Token::LeftBracket);
+    if(!lc)
+        return nullptr;
+
+    std::shared_ptr<Expression> expression = parse_expression(output);
+    if(!expression)
+        PARSE_ERROR(output, "expected expression in parentheses");
+
+    auto rc = output.consume_token_of_type(Token::RightBracket);
+    if(!rc)
+        PARSE_ERROR(output, "expected ')'");
+
+    return expression;
+}
+
 // primary-expression ::= ( expression ) | integer-literal | identifier
 std::shared_ptr<Expression> parse_primary_expression(LexOutput& output)
 {
     std::shared_ptr<Expression> expression;
 
-    // TODO: Parenthised expressions
-
     size_t position = output.index();
-    expression = std::make_shared<IntegerLiteral>();
-    if(!expression->from_lex(output))
+    expression = parse_parenthised_expression(output);
+    if(!expression)
     {
-        output.set_index(position);
-        expression = std::make_shared<Identifier>();
+        expression = std::make_shared<IntegerLiteral>();
         if(!expression->from_lex(output))
         {
             output.set_index(position);
-            return nullptr;
+            expression = std::make_shared<Identifier>();
+            if(!expression->from_lex(output))
+            {
+                output.set_index(position);
+                return nullptr;
+            }
         }
     }
 
@@ -200,7 +222,7 @@ std::shared_ptr<Expression> parse_primary_expression(LexOutput& output)
 }
 
 // TODO: Make function name expression instead of identifier (allows function pointers)
-// function-call ::= identifier ( [ expression..., ] ) | primary-expression
+// function-call ::= function-expression | subscript | primary-expression
 std::shared_ptr<Expression> parse_function_call(LexOutput& output)
 {
     std::shared_ptr<Expression> expression;
@@ -210,11 +232,16 @@ std::shared_ptr<Expression> parse_function_call(LexOutput& output)
     if(!expression->from_lex(output))
     {
         output.set_index(position);
-        expression = parse_primary_expression(output);
-        if(!expression)
+        expression = std::make_shared<Subscript>();
+        if(!expression->from_lex(output))
         {
             output.set_index(position);
-            return nullptr;
+            expression = parse_primary_expression(output);
+            if(!expression)
+            {
+                output.set_index(position);
+                return nullptr;
+            }
         }
     }
 
@@ -333,6 +360,7 @@ bool Identifier::from_lex(LexOutput& output)
     return true;
 }
 
+// TODO: Make function-name an expression!
 // function-call ::= function-name ( [expression,...] )
 bool FunctionCall::from_lex(LexOutput& output)
 {
@@ -371,6 +399,29 @@ bool FunctionCall::from_lex(LexOutput& output)
         auto rc = output.consume_token_of_type(Token::RightBracket);
         if(!rc)
             PARSE_ERROR(output, "expected ')'");
+
+        return true;
+    }
+    return false;
+}
+
+bool Subscript::from_lex(LexOutput& output)
+{
+    subscripted = parse_primary_expression(output);
+    if(subscripted)
+    {
+        auto lc = output.consume_token_of_type(Token::LeftSquareBracket);
+        if(!lc)
+            return false;
+
+        // Subscript value
+        in_subscript = parse_expression(output);
+        if(!in_subscript)
+            PARSE_ERROR(output, "expected expression in subscript");
+
+        auto rc = output.consume_token_of_type(Token::RightSquareBracket);
+        if(!rc)
+            PARSE_ERROR(output, "expected ']'");
 
         return true;
     }
