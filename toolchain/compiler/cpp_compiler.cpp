@@ -1,7 +1,7 @@
 #include "cpp_compiler.h"
 
-#include "ast.h"
-#include "lexer.h"
+#include "cpp/parser.h"
+#include "cpp/lexer.h"
 
 #include <iostream>
 #include <limits>

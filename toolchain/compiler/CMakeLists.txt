@@ -1,11 +1,10 @@
 set(SOURCES
-    "assembler.cpp"
-    "ast.cpp"
+    "asm/lexer.cpp"
+    "cpp/parser.cpp"
     "compiler.cpp"
     "cpp_compiler.cpp"
-    "lexer.cpp"
-    "main.cpp"
-    "parser.cpp")
+    "cpp/lexer.cpp"
+    "main.cpp")
 
 add_executable(${SCC_PREFIX}-cc ${SOURCES})
 target_include_directories(${SCC_PREFIX}-cc PUBLIC ${CMAKE_SOURCE_DIR}/include)

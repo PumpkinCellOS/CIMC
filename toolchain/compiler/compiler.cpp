@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-#include "assembler.h"
+#include "asm/lexer.h"
 #include "cpp_compiler.h"
 
 #include <iostream>

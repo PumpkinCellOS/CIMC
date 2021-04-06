@@ -1,7 +1,6 @@
 #pragma once
 
-#include "compiler.h"
-
+#include "../lexer.h"
 #include "lexer.h"
 
 namespace assembler
@@ -29,7 +28,7 @@ public:
         Invalid
     };
 
-    cpp_compiler::CodePos codepos;
+    compiler::CodePos codepos;
     std::string value;
     Type type = Invalid;
 
@@ -37,7 +36,7 @@ public:
     void display() const;
 };
 
-class Lexer : public cpp_compiler::LexerBase<Token>
+class Lexer : public compiler::LexerBase<Token>
 {
 public:
     virtual bool from_stream(convert::InputFile& input, const compiler::Options& options) override;
@@ -46,4 +45,4 @@ public:
 
 bool assemble_to_obj(convert::InputFile& input, convert::OutputFile& output, const compiler::Options& options);
 
-} // cpp_compiler
+} // assembler
