@@ -67,7 +67,7 @@ The computer uses our own `cx16` architecture.
 * BIOS / Bootloader
   * Ability to load kernel from file (thanks to FS acceleration)
 * Simple operating system (VERY loosely Unix-based)
-  * Up to 3 processes (shell, command, worker) + kernel, not preemtive for now
+  * Up to 3 processes (shell, command, worker) + kernel, not preemptive for now
   * File descriptors (up to ?? per process)
   * Standard streams
   * Simple shell with Unix-like commands
