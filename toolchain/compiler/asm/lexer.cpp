@@ -17,8 +17,6 @@ bool assemble_to_obj(convert::InputFile& input, convert::OutputFile& output, con
     if(!success)
         return false;
 
-    lexer.display();
-
     auto block = assembler::parse_block(lexer);
     if(!block)
         return false;
