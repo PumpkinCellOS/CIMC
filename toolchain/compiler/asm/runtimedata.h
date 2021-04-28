@@ -16,14 +16,13 @@ public:
     struct Section
     {
         std::string name;
-        size_t offset = 0;
         std::vector<std::shared_ptr<Opcode>> instructions;
+        std::map<std::string, size_t> labels;
     };
 
     struct Symbol
     {
         std::string name;
-        size_t offset = 0;
         Section* section = nullptr;
 
         enum class Type
@@ -34,7 +33,6 @@ public:
         } type = Type::Invalid;
     };
 
-    void advance() { m_current_offset++; }
     void switch_section(std::string name);
     bool add_symbol(std::string name);
     bool set_symbol_type(std::string name, Symbol::Type type);
@@ -47,8 +45,6 @@ private:
     std::map<std::string, Section> m_sections;
     std::map<std::string, Symbol> m_symbols;
     Section* m_current_section = nullptr;
-
-    size_t m_current_offset = 0;
 };
 
 }

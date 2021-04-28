@@ -7,7 +7,7 @@
 #define STREAM_MAX std::numeric_limits<std::streamsize>::max()
 
 #define PARSE_ERROR(lexoutput, message) do { \
-        std::cout << "error: " << (message) << std::endl << "  token " << (lexoutput).index() << ", near "; \
+        std::cout << "\e[31merror:\e[0m " << (message) << std::endl << "  token " << (lexoutput).index() << ", near "; \
         if((lexoutput).peek()) \
             (lexoutput).peek()->display(); \
         else \
@@ -16,7 +16,7 @@
     } while(0)
 
 #define PARSE_WARNING(lexoutput, message) do { \
-        std::cout << "warning: " << (message) << std::endl << "  near "; \
+        std::cout << "\e[93mwarning:\e[0m " << (message) << std::endl << "  token " << (lexoutput).index() << ", near "; \
         if((lexoutput).peek()) \
             (lexoutput).peek()->display(); \
         else \
@@ -27,7 +27,7 @@
         char nd[17]; \
         nd[16] = 0; \
         (stream).read(nd, 16); \
-        std::cout << "error: " << (message) << std::endl; \
+        std::cout << "\e[31merror:\e[0m " << (message) << std::endl; \
         std::cout << "  near '" << nd << "'" << std::endl; \
         return {}; \
     } while(0)
@@ -36,23 +36,23 @@
         char nd[17]; \
         nd[16] = 0; \
         (stream).read(nd, 16); \
-        std::cout << "warning: " << (message) << std::endl; \
+        std::cout << "\e[93mwarning:\e[0m " << (message) << std::endl; \
         std::cout << "  near '" << nd << "'" << std::endl; \
     } while(0)
 
 #define BUILDER_ERROR(op, message) do { \
-        std::cout << "error: " << (message) << std::endl << "  node " << (op)->name() << ", near "; \
+        std::cout << "\e[31merror:\e[0m " << (message) << std::endl << "  node " << (op)->display_name() << ", near "; \
         if(op) \
-            (op)->display(); \
+            std::cout << (op)->display() << std::endl; \
         else \
             std::cout << "EOF" << std::endl; \
         return {}; \
     } while(0)
 
 #define BUILDER_WARNING(op, message) do { \
-        std::cout << "warning: " << (message) << std::endl << "  near "; \
+        std::cout << "\e[93mwarning:\e[0m " << (message) << std::endl << "  node " << (op)->display_name() << ", near "; \
         if(op) \
-            (op)->display(); \
+            std::cout << (op)->display() << std::endl; \
         else \
             std::cout << "EOF" << std::endl; \
     } while(0)

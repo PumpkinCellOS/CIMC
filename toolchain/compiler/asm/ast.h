@@ -14,10 +14,10 @@ class RuntimeData;
 class Node
 {
 public:
-    virtual std::string display() const { return name(); }
-    virtual std::string display_block(size_t depth) const { return name() + "\n"; }
+    virtual std::string display() const { return display_name(); }
+    virtual std::string display_block(size_t depth) const { return display_name() + "\n"; }
     virtual bool is_block_node() const { return false; }
-    virtual std::string name() const { return "<InvalidNode>"; }
+    virtual std::string display_name() const { return "<InvalidNode>"; }
 };
 
 template<class Member>
@@ -195,7 +195,7 @@ public:
 class Block : public BlockNode<Operation>
 {
 public:
-    virtual std::string name() const override
+    virtual std::string display_name() const override
     {
         return "Block";
     }
