@@ -51,12 +51,16 @@ std::shared_ptr<Operand> parse_operand(Lexer& lexer)
                 {
                 case Token::DecNumber:
                     operand->type = Operand::Type::DecNumber;
+                    break;
                 case Token::HexNumber:
                     operand->type = Operand::Type::HexNumber;
+                    break;
                 case Token::Name:
                     operand->type = Operand::Type::Name;
+                    break;
                 case Token::String:
                     operand->type = Operand::Type::String;
+                    break;
                 }
                 operand->value = token->value;
             }
