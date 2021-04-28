@@ -78,8 +78,8 @@ u16 load_os()
     
     // Wait for IRQ. The IRQ handler sets DX to 1.
     asm(
-        "_fenbl IF\n" // Flag Enable: Interrupt Flag
         "mov dx, 0x0\n"
+        "_fenbl IF\n" // Flag Enable: Interrupt Flag
         "1:\n"
             "hlt\n"
             // Got an IRQ.

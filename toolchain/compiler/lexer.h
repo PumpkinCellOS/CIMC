@@ -21,7 +21,7 @@ class LexerBase
 {
 public:
     virtual bool from_stream(convert::InputFile& input, const compiler::Options& options) = 0;
-    virtual void display() {}
+    virtual void display() const {}
 
     const T* consume_token()
     {

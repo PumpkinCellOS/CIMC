@@ -1,5 +1,5 @@
-stack=0x0180
-_start=0x0
+stack := 0x0180
+_start := 0x0
 
 section .text
 

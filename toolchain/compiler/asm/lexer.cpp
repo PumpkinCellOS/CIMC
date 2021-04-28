@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include "../cpp/lexer.h"
+#include "parser.h"
 
 #include <iostream>
 
@@ -12,13 +13,18 @@ bool assemble_to_obj(convert::InputFile& input, convert::OutputFile& output, con
     std::cout << "assemble_to_obj" << std::endl;
     Lexer lexer;
     bool success = lexer.from_stream(input, options);
-    if(success)
-    {
-        lexer.display();
-        return true;
-    }
-    return false;
-    // TODO: Parser
+    if(!success)
+        return false;
+
+    lexer.display();
+
+    std::cout << "Parsing!" << std::endl;
+    auto block = assembler::parse_block(lexer);
+    if(!block)
+        return false;
+
+    std::cout << block->display_block(0) << std::endl;
+    return true;
 }
 
 namespace parse_helpers
@@ -59,7 +65,7 @@ bool consume_hex_number(std::istream& input, std::string& value)
 
 }
 
-std::string Token::type_to_string()
+std::string Token::type_to_string() const
 {
     switch(type)
     {
@@ -75,6 +81,7 @@ std::string Token::type_to_string()
         case BraceClose: return "BraceClose";
         case Add: return "Add";
         case Subtract: return "Subtract";
+        case Hash: return "Hash";
         case NewLine: return "NewLine";
         case Colon: return "Colon";
         case Invalid: return "Invalid";
@@ -82,11 +89,19 @@ std::string Token::type_to_string()
     return std::to_string(type);
 }
 
-void Lexer::display()
+void Token::display() const
 {
+    std::cout << "Token " << type_to_string() << " ['" << value << "'] " << std::endl;
+}
+
+void Lexer::display() const
+{
+    size_t counter = 0;
     for(auto& token: m_tokens)
     {
-        std::cout << "Token " << token.type_to_string() << " ['" << token.value << "'] " << std::endl;
+        std::cout << counter << ": ";
+        token.display();
+        counter++;
     }
 }
 
@@ -149,6 +164,12 @@ bool Lexer::from_stream(convert::InputFile& input, const compiler::Options& opti
             break;
         case '-':
             token.type = Token::Subtract;
+            m_tokens.push_back(token);
+            input.stream.ignore(1);
+            parse_helpers::consume_whitespace_except_newline(input.stream);
+            break;
+        case '#':
+            token.type = Token::Hash;
             m_tokens.push_back(token);
             input.stream.ignore(1);
             parse_helpers::consume_whitespace_except_newline(input.stream);

@@ -1,6 +1,8 @@
 set(SOURCES
     "asm/lexer.cpp"
+    "asm/parser.cpp"
     "cpp/parser.cpp"
+    "cpp/parser_new.cpp"
     "compiler.cpp"
     "cpp_compiler.cpp"
     "cpp/lexer.cpp"
