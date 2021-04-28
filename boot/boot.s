@@ -1,13 +1,13 @@
 stack := 0x0180
 _start := 0x0
 
-section .text
+.section .text
 
 .globl bios_main
-.type bios_main, @function
+.type bios_main, function
 
 .globl _start
-.type _start, @function
+.type _start, function
 _start:
     ; Setup a memory layout.
     ; 0x0000-0x01FF (512B) BIOS data
@@ -30,9 +30,9 @@ _start:
     hlt
 
 .globl hdd_entry
-.type hdd_entry, @function
+.type hdd_entry, function
 
-section .ivt
+.section .ivt
     data 0x0B
     skip 22
-    data &hdd_entry
+    data hdd_entry
