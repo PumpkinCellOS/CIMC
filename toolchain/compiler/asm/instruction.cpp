@@ -57,6 +57,10 @@ bool InstructionOperation::execute(RuntimeData& data) const
             else
                 BUILDER_ERROR(&m_instruction, "invalid jump condition");
         }
+        else if(mnemonic == "DATA")
+            opcode = std::make_shared<opcodes::Data>(arg1);
+        else if(mnemonic == "SKIP")
+            opcode = std::make_shared<opcodes::Skip>(arg1);
         // TODO: PUSH, POP, NEG, NOT, CALL, LIVT, INT, INC, DEC, PGE, TRC
     }
 

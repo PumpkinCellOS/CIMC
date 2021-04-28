@@ -79,6 +79,30 @@ private:
     Condition m_condition;
 };
 
+class Data : public Opcode
+{
+public:
+    Data(std::shared_ptr<Operand> value)
+    : m_value(value) {}
+
+    virtual std::string display() const { return "Data " + m_value->display(); }
+
+private:
+    std::shared_ptr<Operand> m_value;
+};
+
+class Skip : public Opcode
+{
+public:
+    Skip(std::shared_ptr<Operand> value)
+    : m_value(value) {}
+
+    virtual std::string display() const { return "Skip " + m_value->display(); }
+
+private:
+    std::shared_ptr<Operand> m_value;
+};
+
 }
 
 }
