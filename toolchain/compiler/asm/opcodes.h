@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "ast.h"
+
 namespace assembler
 {
 
@@ -10,7 +12,7 @@ class RuntimeData;
 class Opcode
 {
 public:
-    virtual std::string payload(const RuntimeData&) const = 0;
+    virtual std::string payload(const RuntimeData&) const { return "\xff"; };
     virtual std::string display() const = 0;
 };
 
@@ -50,6 +52,31 @@ public:
 
 private:
     std::string m_name;
+};
+
+class Jump : public Opcode
+{
+public:
+    enum Condition
+    {
+        None = 0x70,
+        Equal = 0x72,
+        Greater,
+        Less,
+        NotEqual,
+        GreateOrEqual,
+        LessOrEqual,
+        Invalid
+    };
+
+    Jump(std::shared_ptr<Operand> destination, Condition condition)
+    : m_destination(destination), m_condition(condition) {}
+
+    virtual std::string display() const { return "Jump" + std::to_string(m_condition) + " -> " + m_destination->display(); }
+
+private:
+    std::shared_ptr<Operand> m_destination;
+    Condition m_condition;
 };
 
 }

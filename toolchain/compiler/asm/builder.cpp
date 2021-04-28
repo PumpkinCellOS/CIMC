@@ -9,10 +9,7 @@ bool Builder::build()
 
     for(auto& op: m_block->members)
     {
-        if(!op->execute(m_data))
-        {
-            return false;
-        }
+        op->execute(m_data);
     }
 
     return true;
