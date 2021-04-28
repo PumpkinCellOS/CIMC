@@ -1,5 +1,6 @@
 #include "lexer.h"
 
+#include "builder.h"
 #include "../cpp/lexer.h"
 #include "parser.h"
 
@@ -18,12 +19,18 @@ bool assemble_to_obj(convert::InputFile& input, convert::OutputFile& output, con
 
     lexer.display();
 
-    std::cout << "Parsing!" << std::endl;
     auto block = assembler::parse_block(lexer);
     if(!block)
         return false;
 
     std::cout << block->display_block(0) << std::endl;
+
+    std::cout << "Semantic analysis!" << std::endl;
+    Builder builder(block);
+    if(!builder.build())
+        return false;
+
+    builder.display();
     return true;
 }
 

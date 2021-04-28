@@ -9,6 +9,8 @@
 namespace assembler
 {
 
+class RuntimeData;
+
 class Node
 {
 public:
@@ -135,16 +137,19 @@ class SectionOperand : public Operand
 class Operation : public BlockNode<Operand>
 {
 public:
-    std::string mnemonic;
+    virtual bool execute(RuntimeData&) const = 0;
 };
 
 class Instruction : public Operation
 {
 public:
+    std::string mnemonic;
+
     virtual std::string display() const override
     {
         return "Instruction:" + mnemonic;
     }
+    virtual bool execute(RuntimeData&) const override;
 };
 
 // directive ::= . instruction
@@ -157,6 +162,7 @@ public:
     {
         return "Directive:" + mnemonic;
     }
+    virtual bool execute(RuntimeData&) const override;
 };
 
 // assignment ::= identifier := operand
@@ -170,6 +176,7 @@ public:
     {
         return "Assignment " + identifier->display() + " := " + operand->display();
     }
+    virtual bool execute(RuntimeData&) const override;
 };
 
 // label ::= name :
@@ -182,6 +189,7 @@ public:
     {
         return "Label " + name + ":";
     }
+    virtual bool execute(RuntimeData&) const override;
 };
 
 class Block : public BlockNode<Operation>

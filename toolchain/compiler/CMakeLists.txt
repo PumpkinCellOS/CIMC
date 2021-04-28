@@ -1,6 +1,11 @@
 set(SOURCES
+    "asm/ast.cpp"
+    "asm/builder.cpp"
+    "asm/directive.cpp"
+    "asm/instruction.cpp"
     "asm/lexer.cpp"
     "asm/parser.cpp"
+    "asm/runtimedata.cpp"
     "cpp/parser.cpp"
     "cpp/parser_new.cpp"
     "compiler.cpp"
