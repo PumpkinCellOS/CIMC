@@ -1,7 +1,11 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
+#include <vector>
+
+#include "opcodes.h"
 
 namespace assembler
 {
@@ -13,6 +17,7 @@ public:
     {
         std::string name;
         size_t offset = 0;
+        std::vector<std::shared_ptr<Opcode>> instructions;
     };
 
     struct Symbol
@@ -34,6 +39,7 @@ public:
     bool add_symbol(std::string name);
     bool set_symbol_type(std::string name, Symbol::Type type);
     const Section* current_section() const { return m_current_section; }
+    Section* current_section() { return m_current_section; }
 
     void display() const;
 

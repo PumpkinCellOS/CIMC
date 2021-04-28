@@ -4,6 +4,7 @@ set(SOURCES
     "asm/directive.cpp"
     "asm/instruction.cpp"
     "asm/lexer.cpp"
+    "asm/opcodes.cpp"
     "asm/parser.cpp"
     "asm/runtimedata.cpp"
     "cpp/parser.cpp"

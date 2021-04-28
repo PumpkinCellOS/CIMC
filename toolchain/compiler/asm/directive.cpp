@@ -21,7 +21,7 @@ namespace directives
 
 bool Globl::execute(RuntimeData& data) const
 {
-    std::cout << "Globl::execute " << std::endl;
+    std::cout << "  Globl::execute" << std::endl;
     if(m_directive.members.size() != 1)
         BUILDER_ERROR(&m_directive, "invalid argument count for .globl, need 1");
 
@@ -35,7 +35,7 @@ bool Globl::execute(RuntimeData& data) const
 
 bool Type::execute(RuntimeData& data) const
 {
-    std::cout << "Type::execute " << std::endl;
+    std::cout << "  Type::execute" << std::endl;
     if(m_directive.members.size() != 2)
         BUILDER_ERROR(&m_directive, "invalid argument count for .type, need 2");
 
@@ -61,7 +61,7 @@ bool Type::execute(RuntimeData& data) const
 
 bool Section::execute(RuntimeData& data) const
 {
-    std::cout << "Section::execute " << std::endl;
+    std::cout << "  Section::execute" << std::endl;
     if(m_directive.members.size() != 1)
         BUILDER_ERROR(&m_directive, "invalid argument count for .type, need 2");
 

@@ -39,10 +39,24 @@ bool RuntimeData::set_symbol_type(std::string name, Symbol::Type type)
 
 void RuntimeData::display() const
 {
+    auto hex_display = [](size_t offset, std::string data)
+    {
+        std::cout << "    " << offset << ": ";
+        for(unsigned c: data)
+            std::cout << std::hex << (unsigned)(c & 0xFF) << " ";
+        std::cout << std::endl;
+    };
+
     std::cout << "Sections:" << std::endl;
     for(auto& it: m_sections)
     {
         std::cout << "  ." << it.first << " offset " << it.second.offset << std::endl;
+        size_t offset = 0;
+        for(auto& op: it.second.instructions)
+        {
+            hex_display(offset, op->payload(*this));
+            offset++;
+        }
     }
 
     std::cout << "Symbols:" << std::endl;
